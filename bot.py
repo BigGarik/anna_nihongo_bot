@@ -39,7 +39,7 @@ async def cmd_answer(message: types.Message):
 async def cmd_reply(message: types.Message):
     await message.reply('Это ответ с "ответом"')
 
-
+#
 # @dp.message(Command("dice"))
 # async def cmd_dice(message: types.Message):
 #     await message.answer_dice(emoji="🎲")
