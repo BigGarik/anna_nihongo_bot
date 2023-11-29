@@ -46,6 +46,11 @@ async def cmd_reply(message: types.Message):
 
 
 @dp.message(Command("dice"))
+async def cmd_dice(message: types.Message):
+    await message.answer_dice(emoji=DiceEmoji.DICE)
+
+
+@dp.message(Command("dice1"))
 async def cmd_dice(message: types.Message, bot: Bot):
     await bot.send_dice(-100466818868, emoji=DiceEmoji.DICE)
 
