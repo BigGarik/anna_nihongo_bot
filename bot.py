@@ -3,14 +3,34 @@ import logging
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 from aiogram.enums.dice_emoji import DiceEmoji
-
+from datetime import datetime
+from config_reader import config
 
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO)
 # Объект бота
-bot = Bot(token="6983818183:AAEaUcHTbxoDIR9dc1Or3FR2r5WfEGUGQL0")
+# Для записей с типом Secret* необходимо
+# вызывать метод get_secret_value(),
+# чтобы получить настоящее содержимое вместо '*******'
+bot = Bot(token=config.bot_token.get_secret_value())
 # Диспетчер
 dp = Dispatcher()
+
+
+@dp.message(Command("add_to_list"))
+async def cmd_add_to_list(message: types.Message, mylist: list[int]):
+    mylist.append(7)
+    await message.answer("Добавлено число 7")
+
+
+@dp.message(Command("show_list"))
+async def cmd_show_list(message: types.Message, mylist: list[int]):
+    await message.answer(f"Ваш список: {mylist}")
+
+
+@dp.message(Command("info"))
+async def cmd_info(message: types.Message, started_at: str):
+    await message.answer(f"Бот запущен {started_at}")
 
 
 # Хэндлер на команду /start
@@ -39,6 +59,7 @@ async def cmd_answer(message: types.Message):
 async def cmd_reply(message: types.Message):
     await message.reply('Это ответ с "ответом"')
 
+
 #
 # @dp.message(Command("dice"))
 # async def cmd_dice(message: types.Message):
@@ -59,8 +80,8 @@ async def cmd_dice(message: types.Message, bot: Bot):
 async def main():
     # Где-то в другом месте, например, в функции main():
     dp.message.register(cmd_test2, Command("test2"))
-    await dp.start_polling(bot)
-
+    dp["started_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
+    await dp.start_polling(bot, mylist=[1, 2, 3])
 
 
 if __name__ == "__main__":
