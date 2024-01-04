@@ -1,2 +1,5 @@
 aiogram<4.0
 python-dotenv==1.0.0
+librosa~=0.10.1
+matplotlib~=3.8.2
+numpy~=1.26.2
