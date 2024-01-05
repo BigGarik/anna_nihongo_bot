@@ -4,7 +4,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 
-
+logger = logging.getLogger(__name__)
 class SpeechRecognizer:
     def __init__(self, spoken_file):
         self.spoken_file = spoken_file

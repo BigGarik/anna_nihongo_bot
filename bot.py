@@ -20,7 +20,7 @@ from original_files import original_files as files
 from config import load_config
 
 # Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format='[{asctime}] #{levelname:8} {filename}:'
                            '{lineno} - {name} - {message}',
                     style='{'
@@ -47,11 +47,11 @@ async def cmd_start(message: types.Message):
 # Хэндлер на голосовое сообщение
 @dp.message(F.voice)
 async def process_send_voice(message: Message):
-    logging.info(message.from_user.id)
+    logging.info(f'ID пользователя {message.from_user.id}')
     file_id = message.voice.file_id
     file = await bot.get_file(file_id)
     file_path = file.file_path
-    file_on_disk = Path("", f"{file_id}.ogg")
+    file_on_disk = Path("", f"temp/{file_id}.oga")
     await bot.download_file(file_path, destination=file_on_disk)
 
     # Распознавание речи на японском языке
@@ -64,14 +64,15 @@ async def process_send_voice(message: Message):
     original_audio, sample_rate = librosa.load(files[0]['path'])
     spoken_audio, _ = librosa.load(file_on_disk, sr=sample_rate)
 
-    visual = PronunciationVisualizer(original_audio, spoken_audio, sample_rate)
+    visual = PronunciationVisualizer(original_audio, spoken_audio, sample_rate, file_id)
     await visual.preprocess_audio()
     await visual.plot_waveform()  # Визуализация графика звуковой волны
 
-    photo = FSInputFile('voice.png')
+    photo = FSInputFile(f'temp/{file_id}.png')
     await message.answer_photo(photo, caption=f'Оригинал {original_text} ({files[0]["translation"]})\nВаш вариант {spoken_text}')
 
     os.remove(file_on_disk)  # Удаление временного файла
+    os.remove(f'temp/{file_id}.png')
 
 
 # Запуск процесса поллинга новых апдейтов

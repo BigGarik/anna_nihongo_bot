@@ -1,13 +1,16 @@
+import logging
+
 import matplotlib.pyplot as plt
 import numpy as np
 import librosa
 
-
+logger = logging.getLogger(__name__)
 class PronunciationVisualizer:
-    def __init__(self, original_audio, spoken_audio, sample_rate):
+    def __init__(self, original_audio, spoken_audio, sample_rate, file_id):
         self.original_audio = original_audio
         self.spoken_audio = spoken_audio
         self.sample_rate = sample_rate
+        self.file_id = file_id
 
     async def preprocess_audio(self):
         # Удаление тишины и тихих шумов в начале файлов
@@ -28,10 +31,10 @@ class PronunciationVisualizer:
         self.original_audio = librosa.util.normalize(self.original_audio)
         self.spoken_audio = librosa.util.normalize(self.spoken_audio)
 
-        print('процессинг закончен')
+        logging.info('процессинг закончен')
 
     async def plot_waveform(self):
-        print('начало рисования графика')
+        logging.info('начало рисования графика')
         fig, ax = plt.subplots()
         ax.plot(self.original_audio, label='Original')
         ax.plot(self.spoken_audio, label='Spoken', alpha=0.7)
@@ -39,5 +42,5 @@ class PronunciationVisualizer:
         # ax.set_ylabel('Amplitude')
         # ax.set_title('Waveform')
         ax.legend()
-        plt.savefig('voice.png')
-        print('окончание рисования графика')
+        plt.savefig(f'temp/{self.file_id}.png')
+        logging.info('окончание рисования графика')
