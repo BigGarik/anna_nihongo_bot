@@ -5,19 +5,18 @@ import sys
 import lexicon
 import librosa
 
-import visualizer
-import soundfile as sf
+# import visualizer
+# import soundfile as sf
 
-import numpy as np
-from recognizer import SpeechRecognizer
+from voice_recognizer import SpeechRecognizer
 from visualizer import PronunciationVisualizer
-from aiogram import Bot, Dispatcher, types
-from aiogram import F, Router, types
+from aiogram import Bot, Dispatcher
+from aiogram import F, types
 from aiogram.filters import Command
 from aiogram.types import Message, FSInputFile
 from pathlib import Path
 from original_files import original_files as files
-from config import load_config
+from config_data.config import load_config
 
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO,
