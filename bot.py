@@ -1,21 +1,39 @@
 import asyncio
 import logging
 import os
+import sys
+
+import librosa
+
 import visualizer
 import soundfile as sf
 
 import numpy as np
+from recognizer import SpeechRecognizer
 from visualizer import PronunciationVisualizer
 from aiogram import Bot, Dispatcher, types
 from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.types import Message, FSInputFile
 from pathlib import Path
+from original_files import original_files as files
+from config import load_config
 
 # Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG,
+                    format='[{asctime}] #{levelname:8} {filename}:'
+                           '{lineno} - {name} - {message}',
+                    style='{'
+                    )
+logger = logging.getLogger(__name__)
+# Инициализируем хэндлер, который будет перенаправлять логи в stdout
+stdout_handler = logging.StreamHandler(sys.stdout)
+# Добавляем хэндлеры логгеру
+logger.addHandler(stdout_handler)
+
+config = load_config('.env')
 # Объект бота
-bot = Bot(token="6983818183:AAEaUcHTbxoDIR9dc1Or3FR2r5WfEGUGQL0")
+bot = Bot(token=config.tg_bot.token)
 # Диспетчер
 dp = Dispatcher()
 
@@ -29,30 +47,29 @@ async def cmd_start(message: types.Message):
 # Хэндлер на голосовое сообщение
 @dp.message(F.voice)
 async def process_send_voice(message: Message):
+    logging.info(message.from_user.id)
     file_id = message.voice.file_id
     file = await bot.get_file(file_id)
     file_path = file.file_path
     file_on_disk = Path("", f"{file_id}.ogg")
     await bot.download_file(file_path, destination=file_on_disk)
 
-    original_audio, original_sample_rate = sf.read('sumimasen.ogg')
-    spoken_audio, spoken_sample_rate = sf.read(file_on_disk)
+    # Распознавание речи на японском языке
+    original_recognizer = SpeechRecognizer(files[0]['path'])
+    original_text = original_recognizer.recognize_speech()
+    spoken_recognizer = SpeechRecognizer(file_on_disk)
+    spoken_text = spoken_recognizer.recognize_speech()
 
-    # Приведение аудиофайлов к одной длине
-    min_length = min(len(original_audio), len(spoken_audio))
-    original_audio = original_audio[:min_length]
-    spoken_audio = spoken_audio[:min_length]
+    # Загрузка аудиофайлов
+    original_audio, sample_rate = librosa.load(files[0]['path'])
+    spoken_audio, _ = librosa.load(file_on_disk, sr=sample_rate)
 
-    # Нормализация громкости аудиофайлов
-    max_amplitude = max(np.max(np.abs(original_audio)), np.max(np.abs(spoken_audio)))
-    original_audio /= max_amplitude
-    spoken_audio /= max_amplitude
-
-    visual = PronunciationVisualizer(original_audio, spoken_audio, original_sample_rate)
-    visual.plot_waveform()  # Визуализация графика звуковой волны
+    visual = PronunciationVisualizer(original_audio, spoken_audio, sample_rate)
+    await visual.preprocess_audio()
+    await visual.plot_waveform()  # Визуализация графика звуковой волны
 
     photo = FSInputFile('voice.png')
-    await message.answer_photo(photo, caption='ваш вариант')
+    await message.answer_photo(photo, caption=f'Оригинал {original_text} ({files[0]["translation"]})\nВаш вариант {spoken_text}')
 
     os.remove(file_on_disk)  # Удаление временного файла
 

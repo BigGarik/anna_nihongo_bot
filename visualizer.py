@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import librosa
 
 
 class PronunciationVisualizer:
@@ -8,39 +9,35 @@ class PronunciationVisualizer:
         self.spoken_audio = spoken_audio
         self.sample_rate = sample_rate
 
-    def plot_waveform(self):
-        # Вычисляем длительность аудио в секундах
-        duration = len(self.original_audio) / float(self.sample_rate)
+    async def preprocess_audio(self):
+        # Удаление тишины и тихих шумов в начале файлов
+        self.original_audio, _ = librosa.effects.trim(self.original_audio, top_db=20, frame_length=1024, hop_length=256)
+        self.spoken_audio, _ = librosa.effects.trim(self.spoken_audio, top_db=20, frame_length=1024, hop_length=256)
 
-        # Создаем массив временных меток для оси X
-        time = np.linspace(0., duration, len(self.original_audio))
+        # Добавление 0.2 секунды тишины в начало обоих файлов
+        silence = np.zeros(int(self.sample_rate * 0.2))
+        self.original_audio = np.concatenate((silence, self.original_audio))
+        self.spoken_audio = np.concatenate((silence, self.spoken_audio))
 
-        # Построение графиков
-        plt.figure(figsize=(10, 4))
-        plt.plot(time, self.original_audio, label='Original')
-        plt.plot(time, self.spoken_audio, label='Spoken')
-        plt.xlabel('Time (s)')
-        # plt.ylabel('Amplitude')
-        # plt.title('Waveform Comparison')
-        plt.set_ylim(-1.0, 1.0)
-        plt.legend()
+        # Уравнивание длины двух файлов
+        max_length = max(len(self.original_audio), len(self.spoken_audio))
+        self.original_audio = librosa.util.fix_length(self.original_audio, size=max_length)
+        self.spoken_audio = librosa.util.fix_length(self.spoken_audio, size=max_length)
+
+        # Нормализация по максимальному значению амплитуды
+        self.original_audio = librosa.util.normalize(self.original_audio)
+        self.spoken_audio = librosa.util.normalize(self.spoken_audio)
+
+        print('процессинг закончен')
+
+    async def plot_waveform(self):
+        print('начало рисования графика')
+        fig, ax = plt.subplots()
+        ax.plot(self.original_audio, label='Original')
+        ax.plot(self.spoken_audio, label='Spoken', alpha=0.7)
+        # ax.set_xlabel('Time')
+        # ax.set_ylabel('Amplitude')
+        # ax.set_title('Waveform')
+        ax.legend()
         plt.savefig('voice.png')
-        plt.show()
-
-    def plot_spectrogram(self):
-        # Вычисляем спектрограмму оригинальной фразы
-        original_spec, original_freqs, original_times, _ = plt.specgram(self.original_audio, Fs=self.sample_rate)
-
-        # Вычисляем спектрограмму произнесенной фразы
-        spoken_spec, spoken_freqs, spoken_times, _ = plt.specgram(self.spoken_audio, Fs=self.sample_rate)
-
-        # Построение графиков
-        plt.figure(figsize=(10, 4))
-        plt.imshow(np.log(original_spec), origin='lower', aspect='auto', cmap='viridis')
-        plt.title('Original Spectrogram')
-        plt.colorbar()
-        plt.figure(figsize=(10, 4))
-        plt.imshow(np.log(spoken_spec), origin='lower', aspect='auto', cmap='viridis')
-        plt.title('Spoken Spectrogram')
-        plt.colorbar()
-        plt.show()
+        print('окончание рисования графика')
