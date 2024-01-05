@@ -2,7 +2,7 @@ import asyncio
 import logging
 import os
 import sys
-
+import lexicon
 import librosa
 
 import visualizer
@@ -41,7 +41,7 @@ dp = Dispatcher()
 # Хэндлер на команду /start
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("Hello!")
+    await message.answer(lexicon.lexicon_ru.hello)
 
 
 # Хэндлер на голосовое сообщение
