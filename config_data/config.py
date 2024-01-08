@@ -3,6 +3,16 @@ from environs import Env
 
 
 @dataclass
+class WebConfig:
+    web_server_host: str    # Port for incoming request from reverse proxy. Should be any available port
+    web_server_port: int
+    webhook_path: str   # Path to webhook route, on which Telegram will send requests
+    webhook_secret: str     # Secret key to validate requests from Telegram (optional)
+    # Base URL for webhook will be used to generate webhook URL for Telegram,
+    # it is used public DNS with HTTPS support
+    base_webhook_url: str
+
+@dataclass
 class DatabaseConfig:
     database: str         # Название базы данных
     db_host: str          # URL-адрес базы данных
@@ -20,6 +30,7 @@ class TgBot:
 class Config:
     tg_bot: TgBot
     db: DatabaseConfig
+    webhook: WebConfig
 
 
 def load_config(path: str | None = None) -> Config:
@@ -37,5 +48,12 @@ def load_config(path: str | None = None) -> Config:
             db_host=env('DB_HOST'),
             db_user=env('DB_USER'),
             db_password=env('DB_PASSWORD')
+        ),
+        webhook=WebConfig(
+            web_server_host=env('WEB_SERVER_HOST'),
+            web_server_port=env('WEB_SERVER_PORT'),
+            webhook_path=env('WEBHOOK_PATH'),
+            webhook_secret=env('WEBHOOK_SECRET'),
+            base_webhook_url=env('BASE_WEBHOOK_URL')
         )
     )

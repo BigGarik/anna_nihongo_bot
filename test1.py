@@ -1,56 +1,107 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import librosa
+"""
+This example shows how to use webhook on behind of any reverse proxy (nginx, traefik, ingress etc.)
+"""
+import logging
+import sys
+from os import getenv
+
+from aiohttp import web
+
+from aiogram import Bot, Dispatcher, Router, types
+from aiogram.enums import ParseMode
+from aiogram.filters import CommandStart
+from aiogram.types import Message
+from aiogram.utils.markdown import hbold
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+
+# Bot token can be obtained via https://t.me/BotFather
+TOKEN = "6777279637:AAFbsUE8GUYIfolIJEV_DmBozuu0GSiYMoQ"
+
+# Webserver settings
+# bind localhost only to prevent any external access
+WEB_SERVER_HOST = "127.0.0.1"
+# Port for incoming request from reverse proxy. Should be any available port
+WEB_SERVER_PORT = 8080
+
+# Path to webhook route, on which Telegram will send requests
+WEBHOOK_PATH = "/webhook"
+# Secret key to validate requests from Telegram (optional)
+WEBHOOK_SECRET = "123456"
+# Base URL for webhook will be used to generate webhook URL for Telegram,
+# in this example it is used public DNS with HTTPS support
+BASE_WEBHOOK_URL = "https://b0b2-212-3-131-87.ngrok-free.app"
+
+# All handlers should be attached to the Router (or Dispatcher)
+router = Router()
 
 
-class PronunciationVisualizer:
-    def __init__(self, original_audio, spoken_audio, sample_rate):
-        self.original_audio = original_audio
-        self.spoken_audio = spoken_audio
-        self.sample_rate = sample_rate
-
-    def preprocess_audio(self):
-        # Удаление тишины и тихих шумов в начале файлов
-        self.original_audio, _ = librosa.effects.trim(self.original_audio, top_db=40, frame_length=1024, hop_length=256)
-        self.spoken_audio, _ = librosa.effects.trim(self.spoken_audio, top_db=40, frame_length=1024, hop_length=256)
-
-        # Добавление 0.2 секунды тишины в начало обоих файлов
-        silence = np.zeros(int(self.sample_rate * 0.2))
-        self.original_audio = np.concatenate((silence, self.original_audio))
-        self.spoken_audio = np.concatenate((silence, self.spoken_audio))
-
-        # Уравнивание длины двух файлов
-        max_length = max(len(self.original_audio), len(self.spoken_audio))
-        self.original_audio = librosa.util.fix_length(self.original_audio, size=max_length)
-        self.spoken_audio = librosa.util.fix_length(self.spoken_audio, size=max_length)
-
-        # Нормализация по максимальному значению амплитуды
-        self.original_audio = librosa.util.normalize(self.original_audio)
-        self.spoken_audio = librosa.util.normalize(self.spoken_audio)
-
-    def plot_waveform(self):
-        fig, ax = plt.subplots()
-        ax.plot(self.original_audio, label='Original')
-        ax.plot(self.spoken_audio, label='Spoken', alpha=0.5)
-        ax.set_xlabel('Time')
-        ax.set_ylabel('Amplitude')
-        ax.set_title('Waveform')
-        ax.legend()
-        plt.show()
+@router.message(CommandStart())
+async def command_start_handler(message: Message) -> None:
+    """
+    This handler receives messages with `/start` command
+    """
+    # Most event objects have aliases for API methods that can be called in events' context
+    # For example if you want to answer to incoming message you can use `message.answer(...)` alias
+    # and the target chat will be passed to :ref:`aiogram.methods.send_message.SendMessage`
+    # method automatically or call API method directly via
+    # Bot instance: `bot.send_message(chat_id=message.chat.id, ...)`
+    await message.answer(f"Hello, {hbold(message.from_user.full_name)}!")
 
 
-# Пример использования класса PronunciationVisualizer с реальными аудиофайлами
-original_file = 'original_files/sumimasen.ogg'  # Замените на путь к оригинальному аудиофайлу
-spoken_file = 'AwACAgIAAxkBAAOIZZcha6RHprQAAbzXLgIl4R8_X-NpAAKUOgACNIy4SFwGuh6uGmHGNAQ.ogg' # Замените на путь к аудиофайлу произнесения
+@router.message()
+async def echo_handler(message: types.Message) -> None:
+    """
+    Handler will forward receive a message back to the sender
 
-# Загрузка аудиофайлов
-original_audio, sample_rate = librosa.load(original_file)
-spoken_audio, _ = librosa.load(spoken_file, sr=sample_rate)
+    By default, message handler will handle all message types (like text, photo, sticker etc.)
+    """
+    try:
+        # Send a copy of the received message
+        await message.send_copy(chat_id=message.chat.id)
+    except TypeError:
+        # But not all the types is supported to be copied so need to handle it
+        await message.answer("Nice try!")
 
-visualizer = PronunciationVisualizer(original_audio, spoken_audio, sample_rate)
 
-# Предварительная обработка аудио (удаление тишины, добавление тишины в начало, уравнивание длины)
-visualizer.preprocess_audio()
+async def on_startup(bot: Bot) -> None:
+    # If you have a self-signed SSL certificate, then you will need to send a public
+    # certificate to Telegram
+    await bot.set_webhook(f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}", secret_token=WEBHOOK_SECRET)
 
-# Визуализация графика звуковой волны
-visualizer.plot_waveform()
+
+def main() -> None:
+    # Dispatcher is a root router
+    dp = Dispatcher()
+    # ... and all other routers should be attached to Dispatcher
+    dp.include_router(router)
+
+    # Register startup hook to initialize webhook
+    dp.startup.register(on_startup)
+
+    # Initialize Bot instance with a default parse mode which will be passed to all API calls
+    bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+
+    # Create aiohttp.web.Application instance
+    app = web.Application()
+
+    # Create an instance of request handler,
+    # aiogram has few implementations for different cases of usage
+    # In this example we use SimpleRequestHandler which is designed to handle simple cases
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+        secret_token=WEBHOOK_SECRET,
+    )
+    # Register webhook handler on application
+    webhook_requests_handler.register(app, path=WEBHOOK_PATH)
+
+    # Mount dispatcher startup and shutdown hooks to aiohttp application
+    setup_application(app, dp, bot=bot)
+
+    # And finally start webserver
+    web.run_app(app, host=WEB_SERVER_HOST, port=WEB_SERVER_PORT)
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    main()

@@ -1,9 +1,10 @@
-aiogram
+aiogram~=3.3.0
 python-dotenv
-librosa
-matplotlib
-numpy
+librosa~=0.10.1
+matplotlib~=3.8.2
+numpy~=1.26.2
 soundfile
-environs
-pydub
+environs~=10.0.0
+pydub~=0.25.1
 SpeechRecognition
+aiohttp~=3.9.1

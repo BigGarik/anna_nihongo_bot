@@ -6,11 +6,11 @@ import librosa
 
 logger = logging.getLogger(__name__)
 class PronunciationVisualizer:
-    def __init__(self, original_audio, spoken_audio, sample_rate, file_id):
+    def __init__(self, original_audio, spoken_audio, sample_rate, file_name):
         self.original_audio = original_audio
         self.spoken_audio = spoken_audio
         self.sample_rate = sample_rate
-        self.file_id = file_id
+        self.file_name = file_name
 
     async def preprocess_audio(self):
         # Удаление тишины и тихих шумов в начале файлов
@@ -42,5 +42,5 @@ class PronunciationVisualizer:
         # ax.set_ylabel('Amplitude')
         # ax.set_title('Waveform')
         ax.legend()
-        plt.savefig(f'temp/{self.file_id}.png')
+        plt.savefig(f'temp/{self.file_name}.png')
         logging.info('окончание рисования графика')
