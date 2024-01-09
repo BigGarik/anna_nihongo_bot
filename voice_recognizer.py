@@ -5,6 +5,8 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 
 logger = logging.getLogger(__name__)
+
+
 class SpeechRecognizer:
     def __init__(self, spoken_file):
         self.spoken_file = spoken_file
@@ -20,7 +22,7 @@ class SpeechRecognizer:
         with sr.AudioFile("temp.wav") as source:
             audio_data = recognizer.record(source)
             text = recognizer.recognize_google(audio_data, language="ja-JP")
-            #text = recognizer.recognize_google(audio_data, language="en-US")
+            # text = recognizer.recognize_google(audio_data, language="en-US")
 
         # Удаление временного WAV-файла
         os.remove("temp.wav")

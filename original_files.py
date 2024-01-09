@@ -4,11 +4,16 @@ original_files = [
         'translation': 'Извините'
     },
     {
-        'path': 'path_to_file2.wav',
+        'path': 'original_files/spath_to_file2.ogg',
         'translation': 'Оригинальный файл 2'
     },
     {
-        'path': 'path_to_file3.wav',
+        'path': 'original_files/spath_to_file3.ogg',
         'translation': 'Оригинальный файл 3'
     }
 ]
+
+BUTTONS: dict[str, str] = {
+    'sumimasen.ogg': 'sumimasen - Извините',
+    'spath_to_file2.ogg': 'Оригинальный файл 2',
+    'spath_to_file3.ogg': 'Оригинальный файл 3'}

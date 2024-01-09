@@ -3,9 +3,10 @@ from aiogram.types import Message, FSInputFile
 from aiogram.filters import Command, CommandStart
 from pathlib import Path
 
+from keyboards.inline_kb import create_inline_kb
 from voice_recognizer import SpeechRecognizer
 from visualizer import PronunciationVisualizer
-from original_files import original_files as files
+from original_files import original_files as files, BUTTONS
 
 from lexicon.lexicon_ru import LEXICON_RU
 import logging
@@ -19,7 +20,11 @@ router = Router()
 # Этот хэндлер срабатывает на команду /start
 @router.message(CommandStart())
 async def process_start_command(message: Message):
-    await message.answer(text=LEXICON_RU['/start'])
+    keyboard = create_inline_kb(1, **BUTTONS)
+    await message.answer(
+        text=LEXICON_RU['/start'],
+        reply_markup=keyboard
+    )
 
 
 # Этот хэндлер срабатывает на команду /help
@@ -36,7 +41,7 @@ async def process_send_voice(message: Message, bot: Bot):
     file_id = message.voice.file_id
     file = await bot.get_file(file_id)
     file_path = file.file_path
-    file_on_disk = Path("", f"temp/{file_name}.oga")
+    file_on_disk = Path("", f"temp/{file_name}.ogg")
     await bot.download_file(file_path, destination=file_on_disk)
 
     # Распознавание речи на японском языке

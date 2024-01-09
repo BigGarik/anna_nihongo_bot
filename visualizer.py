@@ -5,6 +5,8 @@ import numpy as np
 import librosa
 
 logger = logging.getLogger(__name__)
+
+
 class PronunciationVisualizer:
     def __init__(self, original_audio, spoken_audio, sample_rate, file_name):
         self.original_audio = original_audio
