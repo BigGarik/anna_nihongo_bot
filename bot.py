@@ -6,21 +6,43 @@ from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
 from handlers import other_handlers, user_handlers
 from keyboards.set_menu import set_main_menu
-
+from aiogram.fsm.storage.redis import RedisStorage, Redis
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
+# Форматирование для файлов
+file_format = '[{asctime}] - {message}'
+# форматирование для вывода в консоль
+stdout_format = '[{asctime}] #{levelname:8} {filename}:'\
+                  '{lineno} - {name} - {message}'
+
 # Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO,
-                    format='[{asctime}] #{levelname:8} {filename}:'
-                           '{lineno} - {name} - {message}',
-                    style='{'
-                    )
+logging.basicConfig(level=logging.INFO)
+
+# Инициализируем первый форматтер
+file_formatter = logging.Formatter(
+    fmt=file_format,
+    style='{'
+)
+# Инициализируем второй форматтер
+stdout_formatter = logging.Formatter(
+    fmt=stdout_format,
+    style='{'
+)
+
 logger = logging.getLogger(__name__)
 # Инициализируем хэндлер, который будет перенаправлять логи в stdout
 stdout_handler = logging.StreamHandler(sys.stdout)
+# Инициализируем хэндлер, который будет перенаправлять логи в файл
+file_handler = logging.FileHandler('logs.log')
 # Добавляем хэндлеры логгеру
 logger.addHandler(stdout_handler)
+logger.addHandler(file_handler)
 
+# Инициализируем Redis
+redis = Redis(host='localhost')
+
+# Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
+storage = RedisStorage(redis=redis)
 
 # async def on_startup(bot: Bot) -> None:
 #     # If you have a self-signed SSL certificate, then you will need to send a public
@@ -37,7 +59,7 @@ async def main() -> None:
     # Инициализируем бот и диспетчер
     bot = Bot(token=config.tg_bot.token,
               parse_mode='HTML')
-    dp = Dispatcher()
+    dp = Dispatcher(storage=storage)
 
     # Настраиваем кнопку Menu
     await set_main_menu(bot)
@@ -48,7 +70,7 @@ async def main() -> None:
 
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=[])
 
     # # Register startup hook to initialize webhook
     # dp.startup.register(on_startup)

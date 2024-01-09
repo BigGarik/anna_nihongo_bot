@@ -17,3 +17,5 @@ BUTTONS: dict[str, str] = {
     'sumimasen.ogg': 'sumimasen - Извините',
     'spath_to_file2.ogg': 'Оригинальный файл 2',
     'spath_to_file3.ogg': 'Оригинальный файл 3'}
+
+BUTTONS_LIST = list(BUTTONS.keys())

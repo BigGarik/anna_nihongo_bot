@@ -3,6 +3,9 @@ import logging
 import speech_recognition as sr
 from pydub import AudioSegment
 from pydub.utils import make_chunks
+from speech_recognition import UnknownValueError
+
+from lexicon.lexicon_ru import LEXICON_RU
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +24,11 @@ class SpeechRecognizer:
         # Распознавание речи на японском языке из временного WAV-файла
         with sr.AudioFile("temp.wav") as source:
             audio_data = recognizer.record(source)
-            text = recognizer.recognize_google(audio_data, language="ja-JP")
+            try:
+                text = recognizer.recognize_google(audio_data, language="ja-JP")
             # text = recognizer.recognize_google(audio_data, language="en-US")
+            except UnknownValueError:
+                text = LEXICON_RU['value_error']
 
         # Удаление временного WAV-файла
         os.remove("temp.wav")

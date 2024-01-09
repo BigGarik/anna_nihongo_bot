@@ -1,6 +1,6 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from original_files import BUTTONS
+from original_files.original_files import BUTTONS
 
 
 # Функция для генерации инлайн-клавиатур "на лету"

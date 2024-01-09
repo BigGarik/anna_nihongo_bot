@@ -33,10 +33,10 @@ class PronunciationVisualizer:
         self.original_audio = librosa.util.normalize(self.original_audio)
         self.spoken_audio = librosa.util.normalize(self.spoken_audio)
 
-        logging.info('процессинг закончен')
+        logging.debug('процессинг закончен')
 
     async def plot_waveform(self):
-        logging.info('начало рисования графика')
+        logging.debug('начало рисования графика')
         fig, ax = plt.subplots()
         ax.plot(self.original_audio, label='Original')
         ax.plot(self.spoken_audio, label='Spoken', alpha=0.7)
@@ -45,4 +45,4 @@ class PronunciationVisualizer:
         # ax.set_title('Waveform')
         ax.legend()
         plt.savefig(f'temp/{self.file_name}.png')
-        logging.info('окончание рисования графика')
+        logging.debug('окончание рисования графика')

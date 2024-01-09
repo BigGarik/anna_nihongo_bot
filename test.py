@@ -1,37 +1,49 @@
-import logging
-from aiohttp import web
-from aiogram import Bot, Dispatcher, types
-from aiogram.filters import Command
+from aiogram import Bot, Dispatcher, F
+from aiogram.filters import CommandStart
+from aiogram.types import (CallbackQuery, InlineKeyboardButton,
+                           InlineKeyboardMarkup, Message)
 
-# Устанавливаем уровень логирования
-logging.basicConfig(level=logging.INFO)
+# Вместо BOT TOKEN HERE нужно вставить токен вашего бота,
+# полученный у @BotFather
+BOT_TOKEN = '6777279637:AAFbsUE8GUYIfolIJEV_DmBozuu0GSiYMoQ'
 
-# Создаем экземпляры бота и диспетчера
-bot = Bot(token="6777279637:AAFbsUE8GUYIfolIJEV_DmBozuu0GSiYMoQ")
+# Создаем объекты бота и диспетчера
+bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
+# Создаем объекты инлайн-кнопок
+big_button_1 = InlineKeyboardButton(
+    text='БОЛЬШАЯ КНОПКА 1',
+    callback_data='big_button_1_pressed'
+)
+big_button_2 = InlineKeyboardButton(
+    text='БОЛЬШАЯ КНОПКА 2',
+    callback_data='big_button_2_pressed'
+)
 
-# Обработчик команды /start
-@dp.message(Command("start"))
-async def cmd_start(message: types.Message):
-    await message.reply("Привет! Я эхо-бот. Отправь мне сообщение, и я повторю его.")
-
-
-# Обработчик всех остальных сообщений
-@dp.message()
-async def echo_message(message: types.Message):
-    await message.answer(message.text)
-
-
-# Создаем функцию, которая будет принимать апдейты от Telegram через webhook
-async def on_startup(app):
-    await bot.set_webhook("https://a36b-212-3-131-87.ngrok-free.app")
+# Создаем объект инлайн-клавиатуры
+keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[[big_button_1],
+                     [big_button_2]])
 
 
-# Создаем объект приложения aiohttp и добавляем роут для хандлера апдейтов
-app = web.Application()
-app.on_startup.append(on_startup)
-app.router.add_post('/https://a36b-212-3-131-87.ngrok-free.app', dp.update)
+# Этот хэндлер будет срабатывать на команду "/start"
+# и отправлять в чат клавиатуру с инлайн-кнопками
+@dp.message(CommandStart())
+async def process_start_command(message: Message):
+    await message.answer(
+        text='Это инлайн-кнопки. Нажми на любую!',
+        reply_markup=keyboard
+    )
 
-# Запускаем приложение на вашем IP и порту
-web.run_app(app, host='https://a36b-212-3-131-87.ngrok-free.app', port=80)
+
+# Этот хэндлер будет срабатывать на апдейт типа CallbackQuery
+# с data 'big_button_1_pressed' или 'big_button_2_pressed'
+@dp.callback_query(F.data.in_(['big_button_1_pressed',
+                               'big_button_2_pressed']))
+async def process_buttons_press(callback: CallbackQuery):
+    await callback.answer()
+
+
+if __name__ == '__main__':
+    dp.run_polling(bot)
