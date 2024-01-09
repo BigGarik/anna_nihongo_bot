@@ -7,7 +7,7 @@ from voice_recognizer import SpeechRecognizer
 from visualizer import PronunciationVisualizer
 from original_files import original_files as files
 
-import lexicon
+from lexicon.lexicon_ru import LEXICON_RU
 import logging
 import datetime
 import librosa
@@ -19,13 +19,13 @@ router = Router()
 # Этот хэндлер срабатывает на команду /start
 @router.message(CommandStart())
 async def process_start_command(message: Message):
-    await message.answer(text=lexicon.lexicon_ru.hello)
+    await message.answer(text=LEXICON_RU['/start'])
 
 
 # Этот хэндлер срабатывает на команду /help
 @router.message(Command(commands='help'))
 async def process_help_command(message: Message):
-    await message.answer(text=lexicon.lexicon_ru.help)
+    await message.answer(text=LEXICON_RU['/help'])
 
 
 # Хэндлер на голосовое сообщение

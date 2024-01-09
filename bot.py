@@ -1,25 +1,13 @@
 import asyncio
-import datetime
 import logging
-import os
 import sys
-import lexicon
-import librosa
 
-# import visualizer
-# import soundfile as sf
-from aiohttp import web
-from voice_recognizer import SpeechRecognizer
-from visualizer import PronunciationVisualizer
 from aiogram import Bot, Dispatcher
-from aiogram import F, types
-from aiogram.filters import Command
-from aiogram.types import Message, FSInputFile
-from pathlib import Path
-from original_files import original_files as files
 from config_data.config import Config, load_config
 from handlers import other_handlers, user_handlers
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+from keyboards.set_menu import set_main_menu
+
+# from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 # Включаем логирование, чтобы не пропустить важные сообщения
 logging.basicConfig(level=logging.INFO,
@@ -47,8 +35,12 @@ async def main() -> None:
     config: Config = load_config()
 
     # Инициализируем бот и диспетчер
-    bot = Bot(token=config.tg_bot.token)
+    bot = Bot(token=config.tg_bot.token,
+              parse_mode='HTML')
     dp = Dispatcher()
+
+    # Настраиваем кнопку Menu
+    await set_main_menu(bot)
 
     # Регистрируем роутеры в диспетчере
     dp.include_router(user_handlers.router)
