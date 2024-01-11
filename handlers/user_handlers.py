@@ -11,7 +11,7 @@ from services.services import get_ogg_files, create_kb_name
 from states.states import FSMInLearn, user_dict
 
 from lexicon.lexicon_ru import LEXICON_RU
-import logging
+import logging.config
 import datetime
 import librosa
 
@@ -68,11 +68,11 @@ async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMInLearn.original_phrase)
     # Сохряняем выбранную фразу в хранилище состояний
     await state.update_data(current_phrase=callback.data)
-    logging.warning(await state.get_data())
+    # logging.warning(await state.get_data())
     # Добавляем в "базу данных" данные пользователя
     # по ключу id пользователя
     user_dict[callback.from_user.id] = await state.get_data()
-    logging.warning(f'current_phrase - {user_dict[callback.from_user.id]["current_phrase"]}')
+    logger.warning(f'current_phrase - {user_dict[callback.from_user.id]["current_phrase"]}')
     # Удаляем сообщение с кнопками, потому что следующий этап - загрузка голосового сообщения
     # чтобы у пользователя не было желания тыкать кнопки
     await callback.message.delete()
@@ -83,10 +83,14 @@ async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     )
 
 
+@router.callback_query()
+async def process_phrase(callback: CallbackQuery):
+    await callback.message.answer(text=callback.data)
+
+
 # Хэндлер на голосовое сообщение
 @router.message(F.voice, ~StateFilter(default_state))
 async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
-    logging.warning(f'ID пользователя {message.from_user.id} имя {message.from_user.first_name}')
     # Получаем голосовое сообщение и сохраняем на диск
     file_name = f"{message.from_user.id}_{datetime.datetime.now()}"
     file_id = message.voice.file_id
@@ -95,8 +99,12 @@ async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
     file_on_disk = Path("", f"temp/{file_name}.ogg")
     await bot.download_file(file_path, destination=file_on_disk)
 
-    logging.debug(await state.get_state())
-    logging.debug(user_dict[message.from_user.id]["current_phrase"])
+    logger.warning(f'ID пользователя {message.from_user.id} имя {message.from_user.first_name} '
+                   f'фраза {user_dict[message.from_user.id]["current_phrase"]} '
+                   f'файл - {file_on_disk}')
+    # logging.debug(await state.get_state())
+    # logger.warning(user_dict[message.from_user.id]["current_phrase"])
+
     original_file = f'original_files/{user_dict[message.from_user.id]["current_phrase"]}'
     # Распознавание речи на японском языке
     original_recognizer = SpeechRecognizer(original_file)

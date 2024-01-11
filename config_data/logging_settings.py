@@ -80,7 +80,7 @@ logging_config = {
         },
         'handlers.user_handlers': {
             'level': 'INFO',
-            'handlers': ['info_file']
+            'handlers': ['info_file', 'stderr']
         }
     },
     'root': {
