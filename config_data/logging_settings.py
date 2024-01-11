@@ -1,6 +1,6 @@
 import sys
 
-from filters.log_filters import DebugWarningLogFilter, CriticalLogFilter, ErrorLogFilter
+from filters.log_filters import DebugWarningLogFilter, CriticalLogFilter, ErrorLogFilter, InfoFileLogFilter
 
 
 logging_config = {
@@ -10,7 +10,7 @@ logging_config = {
         'default': {
             'format': '#%(levelname)-8s %(name)s:%(funcName)s - %(message)s'
         },
-        'formatter_1': {
+        'formatter_stderr': {
             'format': '[%(asctime)s] #%(levelname)-8s %(filename)s:'
                       '%(lineno)d - %(name)s:%(funcName)s - %(message)s'
         },
@@ -18,8 +18,8 @@ logging_config = {
             'format': '#%(levelname)-8s [%(asctime)s] - %(filename)s:'
                       '%(lineno)d - %(name)s:%(funcName)s - %(message)s'
         },
-        'formatter_3': {
-            'format': '#%(levelname)-8s [%(asctime)s] - %(message)s'
+        'formatter_file': {
+            'format': '[%(asctime)s] - %(message)s'
         }
     },
     'filters': {
@@ -31,6 +31,9 @@ logging_config = {
         },
         'debug_warning_filter': {
             '()': DebugWarningLogFilter,
+        },
+        'info_file_filter': {
+            '()': InfoFileLogFilter,
         }
     },
     'handlers': {
@@ -40,11 +43,11 @@ logging_config = {
         },
         'stderr': {
             'class': 'logging.StreamHandler',
+            'formatter': 'formatter_stderr'
         },
         'stdout': {
             'class': 'logging.StreamHandler',
             'formatter': 'formatter_2',
-            'filters': ['debug_warning_filter'],
             'stream': sys.stdout
         },
         'error_file': {
@@ -52,28 +55,32 @@ logging_config = {
             'filename': 'error.log',
             'mode': 'w',
             'level': 'DEBUG',
-            'formatter': 'formatter_1',
+            'formatter': 'formatter_stderr',
             'filters': ['error_filter']
         },
         'critical_file': {
             'class': 'logging.FileHandler',
             'filename': 'critical.log',
             'mode': 'w',
-            'formatter': 'formatter_3',
+            'formatter': 'formatter_file',
             'filters': ['critical_filter']
+        },
+        'info_file': {
+            'class': 'logging.FileHandler',
+            'filename': 'user.log',
+            'mode': 'a',
+            'formatter': 'formatter_file',
+            'filters': ['info_file_filter']
         }
     },
     'loggers': {
-        'module_1': {
+        'bot': {
             'level': 'DEBUG',
-            'handlers': ['error_file']
-
+            'handlers': ['stderr']
         },
-        'module_2': {
-            'handlers': ['stdout']
-        },
-        'module_3': {
-            'handlers': ['stderr', 'critical_file']
+        'handlers.user_handlers': {
+            'level': 'INFO',
+            'handlers': ['info_file']
         }
     },
     'root': {

@@ -27,10 +27,16 @@ class TgBot:
 
 
 @dataclass
+class OpenAI:
+    token: str            # Токен для доступа к OpenAI api
+
+
+@dataclass
 class Config:
     tg_bot: TgBot
     db: DatabaseConfig
     webhook: WebConfig
+    openai: OpenAI
 
 
 def load_config(path: str | None = None) -> Config:
@@ -55,5 +61,8 @@ def load_config(path: str | None = None) -> Config:
             webhook_path=env('WEBHOOK_PATH'),
             webhook_secret=env('WEBHOOK_SECRET'),
             base_webhook_url=env('BASE_WEBHOOK_URL')
+        ),
+        openai=OpenAI(
+            token=env('OPENAI_API_KEY')
         )
     )

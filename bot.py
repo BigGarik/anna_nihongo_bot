@@ -1,42 +1,19 @@
 import asyncio
-import logging
-import sys
+import logging.config
+from handlers.user_handlers import router
+# import handlers.other_handlers
 
 from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
-from handlers import other_handlers, user_handlers
+from config_data.logging_settings import logging_config
+# from handlers import other_handlers, user_handlers
 from keyboards.set_menu import set_main_menu
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
-# Форматирование для файлов
-file_format = '[{asctime}] - {message}'
-# форматирование для вывода в консоль
-stdout_format = '[{asctime}] #{levelname:8} {filename}:'\
-                  '{lineno} - {name} - {message}'
-
-# Включаем логирование, чтобы не пропустить важные сообщения
-logging.basicConfig(level=logging.INFO)
-
-# Инициализируем первый форматтер
-file_formatter = logging.Formatter(
-    fmt=file_format,
-    style='{'
-)
-# Инициализируем второй форматтер
-stdout_formatter = logging.Formatter(
-    fmt=stdout_format,
-    style='{'
-)
-
+# Загружаем настройки логирования из словаря `logging_config`
+logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
-# Инициализируем хэндлер, который будет перенаправлять логи в stdout
-stdout_handler = logging.StreamHandler(sys.stdout)
-# Инициализируем хэндлер, который будет перенаправлять логи в файл
-file_handler = logging.FileHandler('logs.log')
-# Добавляем хэндлеры логгеру
-logger.addHandler(stdout_handler)
-logger.addHandler(file_handler)
 
 # Инициализируем Redis
 redis = Redis(host='localhost')
@@ -65,7 +42,7 @@ async def main() -> None:
     await set_main_menu(bot)
 
     # Регистрируем роутеры в диспетчере
-    dp.include_router(user_handlers.router)
+    dp.include_router(router)
     # dp.include_router(other_handlers.router)
 
     # Пропускаем накопившиеся апдейты и запускаем polling

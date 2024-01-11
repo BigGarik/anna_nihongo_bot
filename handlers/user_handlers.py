@@ -4,11 +4,10 @@ from aiogram.fsm.state import default_state
 from aiogram.types import Message, FSInputFile, CallbackQuery
 from aiogram.filters import Command, CommandStart, StateFilter
 from pathlib import Path
-
 from keyboards.inline_kb import create_inline_kb
 from external_services.voice_recognizer import SpeechRecognizer
 from external_services.visualizer import PronunciationVisualizer
-from original_files.original_files import original_files as files, BUTTONS, BUTTONS_LIST
+from original_files.original_files import BUTTONS, BUTTONS_LIST, get_tags, get_ogg_files, get_folders
 from states.states import FSMInLearn, user_dict
 
 from lexicon.lexicon_ru import LEXICON_RU
@@ -19,11 +18,16 @@ import librosa
 # Инициализируем роутер уровня модуля
 router = Router()
 
+logger = logging.getLogger(__name__)
+
 
 # Этот хэндлер срабатывает на команду /start вне состояний
 @router.message(CommandStart(), StateFilter(default_state))
 async def process_start_command(message: Message):
-    keyboard = create_inline_kb(1, **BUTTONS)
+    # Получаем список файлов для клавиатуры
+    files = await get_ogg_files('original_files')
+    print(files)
+    keyboard = create_inline_kb(1, *files)
     await message.answer(
         text=f"{LEXICON_RU['/start']}{LEXICON_RU['choose_phrase']}",
         reply_markup=keyboard
@@ -39,7 +43,7 @@ async def process_start_command(message: Message, state: FSMContext):
         text=LEXICON_RU['choose_phrase'],
         reply_markup=keyboard
     )
-    # Завершаем машину состояний
+    # TODO Нужно сделать команду cancel для Завершаем машину состояний
     await state.clear()
 
 
@@ -60,11 +64,11 @@ async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     await state.set_state(FSMInLearn.original_phrase)
     # Сохряняем выбранную фразу в хранилище состояний
     await state.update_data(current_phrase=callback.data)
-    logging.info(await state.get_data())
+    logging.warning(await state.get_data())
     # Добавляем в "базу данных" данные пользователя
     # по ключу id пользователя
     user_dict[callback.from_user.id] = await state.get_data()
-    logging.info(f'current_phrase - {user_dict[callback.from_user.id]["current_phrase"]}')
+    logging.warning(f'current_phrase - {user_dict[callback.from_user.id]["current_phrase"]}')
     # Удаляем сообщение с кнопками, потому что следующий этап - загрузка голосового сообщения
     # чтобы у пользователя не было желания тыкать кнопки
     await callback.message.delete()
@@ -78,7 +82,7 @@ async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
 # Хэндлер на голосовое сообщение
 @router.message(F.voice, ~StateFilter(default_state))
 async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
-    logging.info(f'ID пользователя {message.from_user.id} имя {message.from_user.first_name}')
+    logging.warning(f'ID пользователя {message.from_user.id} имя {message.from_user.first_name}')
     # Получаем голосовое сообщение и сохраняем на диск
     file_name = f"{message.from_user.id}_{datetime.datetime.now()}"
     file_id = message.voice.file_id
@@ -106,7 +110,7 @@ async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
 
     photo = FSInputFile(f'temp/{file_name}.png')
     await message.answer_photo(photo,
-                               caption=f'Оригинал {original_text} ({files[0]["translation"]})\nВаш вариант {spoken_text}')
+                               caption=f'Оригинал {original_text}\nВаш вариант {spoken_text}')
 
     # os.remove(file_on_disk)  # Удаление временного файла
     # os.remove(f'temp/{file_name}.png')

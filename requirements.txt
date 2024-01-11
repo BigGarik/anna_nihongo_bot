@@ -8,3 +8,5 @@ environs~=10.0.0
 pydub~=0.25.1
 SpeechRecognition
 aiohttp~=3.9.1
+PyOgg>=0.6.14a1
+openai>=1.7.0
