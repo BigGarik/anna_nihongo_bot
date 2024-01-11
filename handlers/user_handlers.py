@@ -7,7 +7,7 @@ from pathlib import Path
 from keyboards.inline_kb import create_inline_kb
 from external_services.voice_recognizer import SpeechRecognizer
 from external_services.visualizer import PronunciationVisualizer
-from original_files.original_files import BUTTONS, BUTTONS_LIST, get_tags, get_ogg_files, get_folders
+from services.services import get_ogg_files, create_kb_name
 from states.states import FSMInLearn, user_dict
 
 from lexicon.lexicon_ru import LEXICON_RU
@@ -20,14 +20,14 @@ router = Router()
 
 logger = logging.getLogger(__name__)
 
+kb_names = create_kb_name('original_files')
+
+
 
 # Этот хэндлер срабатывает на команду /start вне состояний
 @router.message(CommandStart(), StateFilter(default_state))
 async def process_start_command(message: Message):
-    # Получаем список файлов для клавиатуры
-    files = await get_ogg_files('original_files')
-    print(files)
-    keyboard = create_inline_kb(1, *files)
+    keyboard = create_inline_kb(1, **kb_names)
     await message.answer(
         text=f"{LEXICON_RU['/start']}{LEXICON_RU['choose_phrase']}",
         reply_markup=keyboard
@@ -37,13 +37,17 @@ async def process_start_command(message: Message):
 # Этот хэндлер срабатывает на команду /start в состоянии original_phrase
 # Предлагаем выбрать новую фразу и очищаем состояние
 @router.message(CommandStart(), StateFilter(FSMInLearn.original_phrase))
-async def process_start_command(message: Message, state: FSMContext):
-    keyboard = create_inline_kb(1, **BUTTONS)
+async def process_start_command(message: Message):
+    keyboard = create_inline_kb(1, **kb_names)
     await message.answer(
         text=LEXICON_RU['choose_phrase'],
         reply_markup=keyboard
     )
-    # TODO Нужно сделать команду cancel для Завершаем машину состояний
+
+
+@router.message(Command(commands='cancel'))
+async def process_help_command(message: Message, state: FSMContext):
+    await message.answer(text=LEXICON_RU['/cancel'])
     await state.clear()
 
 
@@ -58,7 +62,7 @@ async def process_help_command(message: Message):
 # отправить пользователю оригинальное произношение и предложит повторить
 # @router.callback_query(F.date.in_(BUTTONS_LIST))
 
-@router.callback_query(F.data.in_(BUTTONS_LIST))
+@router.callback_query(F.data.in_(list(kb_names.keys())))
 async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     # Устанавливаем состояние ожидания голосового сообщения повторения оригинала
     await state.set_state(FSMInLearn.original_phrase)

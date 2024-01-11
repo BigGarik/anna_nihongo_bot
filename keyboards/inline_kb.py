@@ -1,8 +1,10 @@
+import logging
+
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from original_files.original_files import BUTTONS
+from services.services import BUTTONS
 
-
+logger = logging.getLogger(__name__)
 # Функция для генерации инлайн-клавиатур "на лету"
 def create_inline_kb(width: int,
                      *args: str,
@@ -10,6 +12,7 @@ def create_inline_kb(width: int,
                      **kwargs: str) -> InlineKeyboardMarkup:
     # Инициализируем билдер
     kb_builder = InlineKeyboardBuilder()
+    logger.warning(kb_builder)
     # Инициализируем список для кнопок
     buttons: list[InlineKeyboardButton] = []
 
@@ -21,6 +24,7 @@ def create_inline_kb(width: int,
                 callback_data=button))
     if kwargs:
         for button, text in kwargs.items():
+            logger.warning(f'{text}{button}')
             buttons.append(InlineKeyboardButton(
                 text=text,
                 callback_data=button))
