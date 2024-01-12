@@ -32,7 +32,6 @@ storage = RedisStorage(redis=redis)
 async def main() -> None:
     # Загружаем конфиг в переменную config
     config: Config = load_config()
-
     # Инициализируем бот и диспетчер
     bot = Bot(token=config.tg_bot.token,
               parse_mode='HTML')

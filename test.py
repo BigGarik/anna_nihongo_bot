@@ -1,7 +1,7 @@
 from mutagen import File
 import asyncio
 
-from services.services import create_kb_name
+from services.services import create_kb_file
 
 
 def read_ogg_tags(file_path):

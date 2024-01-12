@@ -12,6 +12,7 @@ class WebConfig:
     # it is used public DNS with HTTPS support
     base_webhook_url: str
 
+
 @dataclass
 class DatabaseConfig:
     database: str         # Название базы данных

@@ -3,12 +3,15 @@ import os
 from mutagen import File
 
 
-def get_folders(dir_to_folders: str) -> list:
+def get_folders(dir_to_folders: str) -> dict[str, str]:
     # Получаем список элементов в директории
     items = os.listdir(dir_to_folders)
+    kb_folders = {}
     # Фильтруем элементы, оставляя только папки
     folders = [item for item in items if os.path.isdir(os.path.join(dir_to_folders, item))]
-    return folders
+    for folder in folders:
+        kb_folders[folder] = f'{dir_to_folders}/{folder}'
+    return kb_folders
 
 
 def get_ogg_files(dir_to_files: str) -> list:
@@ -19,22 +22,39 @@ def get_ogg_files(dir_to_files: str) -> list:
     return ogg_files
 
 
-def get_tags(path_to_file: str):
+def get_all_ogg_files(start_dir: str) -> list:
+    all_ogg_files = []
+    for root, dirs, files in os.walk(start_dir):
+        for file in files:
+            if file.endswith(".ogg"):
+                all_ogg_files.append(file)
+    return all_ogg_files
+
+
+def get_all_tags(path_to_file: str):
     audio = File(path_to_file)
     tags = audio.tags
     return tags
 
 
-def create_kb_name(dir_to_files: str) -> dict[str, str]:
+def get_tag(path_to_file: str, tag: str):
+    tag = str(get_all_tags(path_to_file)[tag])
+    tag = tag.replace('\'', '')
+    tag = tag.replace('[', '')
+    tag = tag.replace(']', '')
+    return tag
+
+
+def create_kb_file(dir_to_files: str) -> dict[str, str]:
     files = get_ogg_files(dir_to_files)
     kb_name = {}
     for file in files:
-        tags = get_tags(f'{dir_to_files}/{file}')
+        tags = get_all_tags(f'{dir_to_files}/{file}')
         title = str(tags['title'])
         title = title.replace('\'', '')
         title = title.replace('[', '')
         title = title.replace(']', '')
-        kb_name[file] = title
+        kb_name[title] = file
 
     return kb_name
 
@@ -50,4 +70,8 @@ BUTTONS: dict[str, str] = {
 
 
 if __name__ == "__main__":
-    create_kb_name('../original_files')
+    # print(get_all_ogg_files('../original_files'))
+    # print(list(get_folders('../original_files')))
+    # print(get_folders('../original_files'))
+    # print(create_kb_file('../original_files/Spy Family'))
+    print(get_all_tags('../original_files/Spy Family/kawaisouni.ogg'))
