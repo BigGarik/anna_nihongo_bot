@@ -113,35 +113,45 @@ async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
     file_path = file.file_path
     file_on_disk = Path("", f"temp/{file_name}.ogg")
     await bot.download_file(file_path, destination=file_on_disk)
-
+    print(message.from_user.id)
+    print(message.from_user.first_name)
+    print(user_dict[message.from_user.id]["current_phrase"])
+    print(file_on_disk)
+    logger.warning('проверка логера')
     logger.warning(f'ID пользователя {message.from_user.id} имя {message.from_user.first_name} '
                    f'фраза {user_dict[message.from_user.id]["current_phrase"]} '
                    f'файл - {file_on_disk}')
     # logging.debug(await state.get_state())
     logger.warning(
         f'{user_dict[message.from_user.id]["select_category"]}/{user_dict[message.from_user.id]["current_phrase"]}')
+    print(555555)
 
     original_file = f'{user_dict[message.from_user.id]["select_category"]}/{user_dict[message.from_user.id]["current_phrase"]}'
+    print(original_file)
     original_script = get_tag(original_file, 'script')
+    print(original_script)
     original_translation = get_tag(original_file, 'translation')
+    print(original_translation)
+
     # logger.warning(original_file)
     # # Распознавание речи на японском языке
     # original_recognizer = SpeechRecognizer(original_file)
     # original_text = original_recognizer.recognize_speech()
     spoken_recognizer = SpeechRecognizer(file_on_disk)
     spoken_text = spoken_recognizer.recognize_speech()
-
     # Загрузка аудиофайлов
     original_audio, sample_rate = librosa.load(original_file)
+    print(111111111)
     spoken_audio, _ = librosa.load(file_on_disk, sr=sample_rate)
 
     visual = PronunciationVisualizer(original_audio, spoken_audio, sample_rate, file_name)
+    print(2222222222)
     await visual.preprocess_audio()
     await visual.plot_waveform()  # Визуализация графика звуковой волны
-
     photo = FSInputFile(f'temp/{file_name}.png')
     await message.answer_photo(photo, caption=f'Оригинал\n{original_script}\n{original_translation}\n\n'
                                               f'Ваш вариант {spoken_text}')
+
     print(await state.get_state())
     # os.remove(file_on_disk)  # Удаление временного файла
     # os.remove(f'temp/{file_name}.png')

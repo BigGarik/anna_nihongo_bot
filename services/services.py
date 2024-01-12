@@ -75,3 +75,4 @@ if __name__ == "__main__":
     # print(get_folders('../original_files'))
     # print(create_kb_file('../original_files/Spy Family'))
     print(get_all_tags('../original_files/Spy Family/kawaisouni.ogg'))
+    print(get_tag('../original_files/Spy Family/kawaisouni.ogg', 'translation'))
