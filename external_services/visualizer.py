@@ -7,6 +7,7 @@ import librosa
 logger = logging.getLogger(__name__)
 
 
+# TODO обрабатывать оригинальные файлы только один раз при запуске бота.
 class PronunciationVisualizer:
     def __init__(self, original_audio, spoken_audio, sample_rate, file_name):
         self.original_audio = original_audio
@@ -33,16 +34,13 @@ class PronunciationVisualizer:
         self.original_audio = librosa.util.normalize(self.original_audio)
         self.spoken_audio = librosa.util.normalize(self.spoken_audio)
 
-        logging.debug('процессинг закончен')
+        logger.debug('процессинг закончен')
 
     async def plot_waveform(self):
-        logging.debug('начало рисования графика')
+        logger.debug('начало рисования графика')
         fig, ax = plt.subplots()
         ax.plot(self.original_audio, label='Original')
         ax.plot(self.spoken_audio, label='Spoken', alpha=0.7)
-        # ax.set_xlabel('Time')
-        # ax.set_ylabel('Amplitude')
-        # ax.set_title('Waveform')
         ax.legend()
         plt.savefig(f'temp/{self.file_name}.png')
-        logging.debug('окончание рисования графика')
+        logger.debug('окончание рисования графика')

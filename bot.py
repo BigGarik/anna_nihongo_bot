@@ -11,6 +11,13 @@ from keyboards.set_menu import set_main_menu
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
+''' TODO проверка комментария '''
+# TODO база данных
+# TODO отправлять файлы по ID
+# TODO создать админку с с добавлением категорий и загрузкой файлов в нее
+# TODO добавить раздел собеседника
+# TODO переписать код под aiogram_dialog
+# TODO разобраться с логированием
 # Загружаем настройки логирования из словаря `logging_config`
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
