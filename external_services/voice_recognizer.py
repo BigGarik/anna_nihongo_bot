@@ -1,9 +1,10 @@
-import os
 import logging
+import os
+
 import speech_recognition as sr
 from pydub import AudioSegment
-# from pydub.utils import make_chunks
 from speech_recognition import UnknownValueError
+
 from lexicon.lexicon_ru import LEXICON_RU
 
 logger = logging.getLogger(__name__)

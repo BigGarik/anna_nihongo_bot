@@ -1,5 +1,3 @@
-import os
-
 from openai import OpenAI
 
 client = OpenAI(api_key='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')

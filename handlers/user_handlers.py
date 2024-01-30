@@ -1,19 +1,20 @@
+import datetime
+import logging
+from pathlib import Path
+
+import librosa
 from aiogram import Router, F, Bot
+from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import Message, FSInputFile, CallbackQuery
-from aiogram.filters import Command, CommandStart, StateFilter
-from pathlib import Path
-from keyboards.inline_kb import create_inline_kb
-from external_services.voice_recognizer import SpeechRecognizer
-from external_services.visualizer import PronunciationVisualizer
-from services.services import get_ogg_files, create_kb_file, get_folders, get_all_ogg_files, get_all_tags, get_tag
-from states.states import FSMInLearn, user_dict
 
+from external_services.visualizer import PronunciationVisualizer
+from external_services.voice_recognizer import SpeechRecognizer
+from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
-import logging
-import datetime
-import librosa
+from services.services import create_kb_file, get_folders, get_all_ogg_files, get_tag
+from states.states import FSMInLearn, user_dict
 
 # Инициализируем роутер уровня модуля
 router = Router()

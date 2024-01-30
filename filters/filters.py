@@ -1,8 +1,5 @@
 from aiogram.filters import BaseFilter
-from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-
-from services.services import get_ogg_files
 
 
 # Собственный фильтр, проверяющий юзера на админа
