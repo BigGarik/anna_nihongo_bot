@@ -1,12 +1,14 @@
 import asyncio
 import logging.config
-from handlers.user_handlers import router
-import yaml
 
+import yaml
 from aiogram import Bot, Dispatcher
-from config_data.config import Config, load_config
-from keyboards.set_menu import set_main_menu
 from aiogram.fsm.storage.redis import RedisStorage, Redis
+
+from config_data.config import Config, load_config
+from handlers.user_handlers import router
+from keyboards.set_menu import set_main_menu
+
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 ''' TODO проверка комментария '''
