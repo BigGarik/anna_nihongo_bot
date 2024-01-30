@@ -11,7 +11,7 @@ from services.services import get_ogg_files, create_kb_file, get_folders, get_al
 from states.states import FSMInLearn, user_dict
 
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
-import logging.config
+import logging
 import datetime
 import librosa
 

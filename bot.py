@@ -1,12 +1,10 @@
 import asyncio
 import logging.config
 from handlers.user_handlers import router
-# import handlers.other_handlers
+import yaml
 
 from aiogram import Bot, Dispatcher
 from config_data.config import Config, load_config
-from config_data.logging_settings import logging_config
-# from handlers import other_handlers, user_handlers
 from keyboards.set_menu import set_main_menu
 from aiogram.fsm.storage.redis import RedisStorage, Redis
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -18,8 +16,11 @@ from aiogram.fsm.storage.redis import RedisStorage, Redis
 # TODO добавить раздел собеседника
 # TODO переписать код под aiogram_dialog
 # TODO разобраться с логированием
+
+with open('config_data/logging_config.yaml', 'rt') as f:
+    config = yaml.safe_load(f.read())
 # Загружаем настройки логирования из словаря `logging_config`
-logging.config.dictConfig(logging_config)
+logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
 
 # Инициализируем Redis

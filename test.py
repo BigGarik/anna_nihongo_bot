@@ -1,38 +1,56 @@
-from mutagen import File
-import asyncio
-
-from services.services import create_kb_file
-
-
-def read_ogg_tags(file_path):
-    audio = File(file_path)
-    if audio.tags:
-        tags = {}
-        for key, value in audio.tags.items():
-            tags[key] = str(value)
-        return tags
-    else:
-        return None
+from aiogram import Bot, Dispatcher
+from aiogram.filters import CommandStart
+from aiogram.fsm.state import State, StatesGroup
+from aiogram.types import Message, User
+from aiogram_dialog import Dialog, DialogManager, StartMode, Window, setup_dialogs
+from aiogram_dialog.widgets.text import Format
+from environs import Env
+from aiogram.fsm.storage.redis import RedisStorage, Redis
+import logging.config
+import yaml
 
 
-# Открываем аудиофайл
-# audio = File('original_files/kawaisouni.ogg')
-async def main() -> None:
-    # kb_names = await create_kb_names('original_files')
-    # print(kb_names)
+with open('config_data/logging_config.yaml', 'rt') as f:
+    config = yaml.safe_load(f.read())
 
-    file_path = "original_files/kawaisouni.ogg"
-    tags_dict = read_ogg_tags(file_path)
-    if tags_dict:
-        print("Теги файла:")
-        for key, value in tags_dict.items():
-            value = value.replace('\'', '')
-            value = value.replace('[', '')
-            value = value.replace(']', '')
-            print(f"{key}: {value}")
-    else:
-        print("Файл не содержит тегов.")
+logging.config.dictConfig(config)
+logger = logging.getLogger(__name__)
+
+env = Env()
+env.read_env()
+
+BOT_TOKEN = env('BOT_TOKEN')
+
+redis = Redis(host='localhost')
+storage = RedisStorage(redis=redis)
+
+bot = Bot(token=BOT_TOKEN)
+dp = Dispatcher(storage=storage)
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+class StartSG(StatesGroup):
+    start = State()
+
+
+async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
+    return {'username': event_from_user.username}
+
+
+start_dialog = Dialog(
+    Window(
+        Format('Привет, {username}!'),
+        getter=username_getter,
+        state=StartSG.start
+    ),
+)
+
+
+@dp.message(CommandStart())
+async def command_start_process(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(state=StartSG.start, mode=StartMode.RESET_STACK)
+
+
+if __name__ == '__main__':
+    dp.include_router(start_dialog)
+    setup_dialogs(dp)
+    dp.run_polling(bot)
