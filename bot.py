@@ -17,7 +17,6 @@ from keyboards.set_menu import set_main_menu
 # TODO создать админку с с добавлением категорий и загрузкой файлов в нее
 # TODO добавить раздел собеседника
 # TODO переписать код под aiogram_dialog
-# TODO разобраться с логированием
 
 with open('config_data/logging_config.yaml', 'rt') as f:
     config = yaml.safe_load(f.read())
