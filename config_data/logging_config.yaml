@@ -74,6 +74,6 @@ loggers:
     propagate: False
 
 root:
-  level: INFO
+  level: ERROR
   formatter: default
   handlers: [default]

@@ -3,7 +3,7 @@ import logging.config
 
 import yaml
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.redis import RedisStorage, Redis
+from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
 
 from config_data.config import Config, load_config
 from handlers.user_handlers import router
@@ -24,6 +24,8 @@ with open('config_data/logging_config.yaml', 'rt') as f:
 logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
 
+redis = Redis(host='localhost')
+storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
 
 # async def on_startup(bot: Bot) -> None:
 #     # If you have a self-signed SSL certificate, then you will need to send a public
@@ -36,8 +38,8 @@ logger = logging.getLogger(__name__)
 async def main() -> None:
     # Загружаем конфиг в переменную config
     config: Config = load_config()
-    # Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
-    storage = RedisStorage.from_url(config.redis.redis_dsn)
+    # # Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
+    # storage = RedisStorage.from_url(config.redis.redis_dsn)
     # Инициализируем бот и диспетчер
     bot = Bot(token=config.tg_bot.token,
               parse_mode='HTML')
