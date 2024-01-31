@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 COPY requirements.txt .
 RUN apt update && apt install -y ffmpeg && \
-	apt install redis-server && \
+	# apt install redis-server && \
 	python -m pip install --upgrade pip && \
 	pip install --no-cache -r /app/requirements.txt && \
     pip wheel --no-cache-dir --wheel-dir /opt/pip_wheels -r /app/requirements.txt

@@ -19,16 +19,11 @@ from keyboards.set_menu import set_main_menu
 # TODO переписать код под aiogram_dialog
 
 with open('config_data/logging_config.yaml', 'rt') as f:
-    config = yaml.safe_load(f.read())
+    logging_config = yaml.safe_load(f.read())
 # Загружаем настройки логирования из словаря `logging_config`
-logging.config.dictConfig(config)
+logging.config.dictConfig(logging_config)
 logger = logging.getLogger(__name__)
 
-# Инициализируем Redis
-redis = Redis(host='localhost')
-
-# Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
-storage = RedisStorage(redis=redis)
 
 # async def on_startup(bot: Bot) -> None:
 #     # If you have a self-signed SSL certificate, then you will need to send a public
@@ -41,6 +36,8 @@ storage = RedisStorage(redis=redis)
 async def main() -> None:
     # Загружаем конфиг в переменную config
     config: Config = load_config()
+    # Инициализируем хранилище (создаем экземпляр класса MemoryStorage)
+    storage = RedisStorage.from_url(config.redis.redis_dsn)
     # Инициализируем бот и диспетчер
     bot = Bot(token=config.tg_bot.token,
               parse_mode='HTML')

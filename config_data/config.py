@@ -34,11 +34,17 @@ class OpenAI:
 
 
 @dataclass
+class Redis:
+    redis_dsn: str
+
+
+@dataclass
 class Config:
     tg_bot: TgBot
     db: DatabaseConfig
     webhook: WebConfig
     openai: OpenAI
+    redis: Redis
 
 
 def load_config(path: str | None = None) -> Config:
@@ -66,5 +72,8 @@ def load_config(path: str | None = None) -> Config:
         ),
         openai=OpenAI(
             token=env('OPENAI_API_KEY')
+        ),
+        redis=Redis(
+            redis_dsn=env('REDIS_DSN')
         )
     )
