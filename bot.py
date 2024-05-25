@@ -6,7 +6,8 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
 
 from config_data.config import Config, load_config
-from handlers.user_handlers import router
+from handlers.user_handlers import router as user_router
+from handlers.admin_handlers import router as admin_router
 from keyboards.set_menu import set_main_menu
 
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -49,7 +50,8 @@ async def main() -> None:
     await set_main_menu(bot)
 
     # Регистрируем роутеры в диспетчере
-    dp.include_router(router)
+    dp.include_router(admin_router)
+    dp.include_router(user_router)
     # dp.include_router(other_handlers.router)
 
     # Пропускаем накопившиеся апдейты и запускаем polling
