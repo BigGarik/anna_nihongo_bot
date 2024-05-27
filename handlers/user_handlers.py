@@ -55,7 +55,7 @@ async def category_button_clicked(callback: CallbackQuery, button: Button, dialo
 
 
 async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.done()
+    # await dialog_manager.done()
     await dialog_manager.start(state=TextToSpeechSG.start)
 
 
