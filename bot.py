@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 async def main() -> None:
     # Загружаем конфиг в переменную config
     config: Config = load_config()
-    redis = Redis(host='localhost')
+    redis = Redis(host=config.redis.redis_dsn)
     storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
     DATABASE_URL = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
     await init_db(DATABASE_URL)
