@@ -18,6 +18,7 @@ class WebConfig:
 class DatabaseConfig:
     database: str         # Название базы данных
     db_host: str          # URL-адрес базы данных
+    db_port: str          # Порт базы
     db_user: str          # Username пользователя базы данных
     db_password: str      # Пароль к базе данных
 
@@ -60,6 +61,7 @@ def load_config(path: str | None = None) -> Config:
         db=DatabaseConfig(
             database=env('DATABASE'),
             db_host=env('DB_HOST'),
+            db_port=env('DB_PORT'),
             db_user=env('DB_USER'),
             db_password=env('DB_PASSWORD')
         ),

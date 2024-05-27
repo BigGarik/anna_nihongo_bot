@@ -25,3 +25,11 @@
 Запуск
 
 `python3 -m bot`
+
+### Docker
+
+`docker build -t anna_nihongo_bot:latest .`
+
+`docker compose up`
+
+`docker compose down`

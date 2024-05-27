@@ -6,9 +6,14 @@ import librosa
 from aiogram import Router, F, Bot
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state
-from aiogram.types import Message, FSInputFile, CallbackQuery
+from aiogram.fsm.state import default_state, StatesGroup, State
+from aiogram.types import Message, FSInputFile, CallbackQuery, User
+from aiogram_dialog import Dialog, Window, DialogManager, StartMode
+from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
+from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.text import Format, Const
 
+from external_services.openai_services import text_to_speech
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from keyboards.inline_kb import create_inline_kb
@@ -22,15 +27,91 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-# Этот хэндлер срабатывает на команду /start вне состояний
-# рисуем клавиатуру с категориями
-@router.message(CommandStart(), StateFilter(default_state))
-async def process_start_command(message: Message):
+class StartDialogSG(StatesGroup):
+    start = State()
+
+
+class TextToSpeechSG(StatesGroup):
+    start = State()
+
+
+# Этот хэндлер будет срабатывать на /start
+@router.message(CommandStart())
+async def process_start_command(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+
+
+async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
+    return {'username': event_from_user.first_name or event_from_user.username}
+
+
+async def category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     keyboard = create_inline_kb(1, **get_folders('original_files'))
-    await message.answer(
+    await callback.message.answer(
         text=f"{LEXICON_RU['/start']}{LEXICON_RU['select_category']}",
         reply_markup=keyboard
     )
+    await dialog_manager.done()
+
+
+async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.done()
+    await dialog_manager.start(state=TextToSpeechSG.start)
+
+
+async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    response = await text_to_speech(text)
+    # Отправляем голосовое сообщение пользователю
+    await message.answer_voice(voice=response, caption='Слушайте и повторяйте')
+
+
+start_dialog = Dialog(
+    # Стартовое окно админки
+    Window(
+        Format('Приветствую тебя, {username}! \nО мой повелитель!!!'),
+        # кнопки Настройки и т.д.
+        Button(
+            text=Const('Категории'),
+            id='category',
+            on_click=category_button_clicked),
+        Button(
+            text=Const('Озвучить текст'),
+            id='tts',
+            on_click=tts_button_clicked),
+        getter=username_getter,
+        # Состояние этого окна для переключения на него
+        state=StartDialogSG.start
+    ),
+)
+
+text_to_speech_dialog = Dialog(
+    Window(
+        Const('Отправь мне фразу и я ее озвучу'),
+        TextInput(
+            id='tts_input',
+            on_success=phrase_to_speech,
+        ),
+        getter=username_getter,
+        state=TextToSpeechSG.start
+    ),
+)
+
+
+
+
+
+
+
+#
+# # Этот хэндлер срабатывает на команду /start вне состояний
+# # рисуем клавиатуру с категориями
+# @router.message(CommandStart(), StateFilter(default_state))
+# async def process_start_command(message: Message):
+#     keyboard = create_inline_kb(1, **get_folders('original_files'))
+#     await message.answer(
+#         text=f"{LEXICON_RU['/start']}{LEXICON_RU['select_category']}",
+#         reply_markup=keyboard
+#     )
 
 
 # Этот хэндлер срабатывает на команду /start в состоянии original_phrase
@@ -92,6 +173,7 @@ async def process_select_category(callback: CallbackQuery, state: FSMContext):
 # Колбек на нажатие кнопки с выбором категории
 @router.callback_query(F.data.in_(list(get_folders('original_files').values())))
 async def process_select_category(callback: CallbackQuery, state: FSMContext):
+    print(callback.data)
     # Сохраняем выбранную категорию в хранилище состояний
     await state.update_data(select_category=callback.data)
     # Создаем клавиатуру с файлами
