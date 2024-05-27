@@ -11,3 +11,4 @@ SpeechRecognition==3.10.4
 tortoise-orm==0.21.1
 asyncpg==0.29.0
 redis==5.0.4
+aiogram-dialog

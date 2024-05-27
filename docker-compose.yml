@@ -1,8 +1,13 @@
 version: "3.8"
 services:
     bot:
-        image: "biggarik/anna_nihongo_bot:latest"
+        # image: "biggarik/anna_nihongo_bot:latest"
+        image: "anna_nihongo_bot:latest"
         restart: "unless-stopped"
+        # внутри контейнера по адресу host.docker.internal (имя можно указать любое по желанию) ему [контейнеру]
+        # будут доступны процессы на хосте.
+        extra_hosts:
+          - "host.docker.internal:host-gateway"
         env_file: ".env"
         depends_on:
           - "redis_fsm"
@@ -11,9 +16,9 @@ services:
         restart: "unless-stopped"
         volumes:
           # Подменяем файл конфигурации внутри контейнера на свой
-          - "/d/Projects/redis/data/redis.conf:/usr/local/etc/redis/redis.conf"
+          - "./redis/data/redis.conf:/usr/local/etc/redis/redis.conf"
           # Примонтируем внутрь контейнера наш каталог в расположение /data
-          - "/d/Projects/redis/data:/data"
+          - "./redis/data:/data"
         command: "redis-server /usr/local/etc/redis/redis.conf"
         healthcheck:
             test: [ "CMD", "redis-cli","ping" ]
