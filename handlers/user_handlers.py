@@ -41,6 +41,12 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
     await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
 
 
+@router.message(Command(commands='cancel'))
+async def process_help_command(message: Message, state: FSMContext):
+    await message.answer(text=LEXICON_RU['/cancel'])
+    await state.clear()
+
+
 async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
     return {'username': event_from_user.first_name or event_from_user.username}
 
@@ -126,10 +132,7 @@ text_to_speech_dialog = Dialog(
 #     )
 
 
-@router.message(Command(commands='cancel'))
-async def process_help_command(message: Message, state: FSMContext):
-    await message.answer(text=LEXICON_RU['/cancel'])
-    await state.clear()
+
 
 
 @router.message(Command(commands='contact'))
@@ -207,9 +210,6 @@ async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     # TODO добавить кнопку грамматический комментарий
 
 
-@router.callback_query()
-async def process_phrase(callback: CallbackQuery):
-    await callback.message.answer(text=callback.data)
 
 
 # Хэндлер на голосовое сообщение
@@ -254,8 +254,4 @@ async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
     # os.remove(f'temp/{file_name}.png')
 
 
-# Этот хэндлер будет срабатывать на любые сообщения
-@router.message()
-async def send_echo(message: Message, state: FSMContext):
-    await message.reply(text=LEXICON_RU['error'])
-    await state.clear()
+

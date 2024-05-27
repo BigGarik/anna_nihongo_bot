@@ -8,7 +8,7 @@ services:
         # будут доступны процессы на хосте.
         extra_hosts:
           - "host.docker.internal:host-gateway"
-        env_file: ".env"
+        env_file: "./config_data/.env"
         depends_on:
           - "redis_fsm"
     redis_fsm:
