@@ -8,7 +8,7 @@ from aiogram import Router, F, Bot, types
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, StatesGroup, State
-from aiogram.types import Message, FSInputFile, CallbackQuery, User
+from aiogram.types import Message, FSInputFile, CallbackQuery, User, InputFile
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Button
@@ -69,9 +69,10 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     response = await text_to_speech(text)
     voice_message = io.BytesIO(response.content)
+    voice_input_file = InputFile(voice_message, filename="audio.ogg")
     print(response.content)
     # Отправляем голосовое сообщение пользователю
-    await message.answer_voice(voice=voice_message, caption='Слушайте и повторяйте')
+    await message.answer_voice(voice=voice_input_file, caption='Слушайте и повторяйте')
 
 
 start_dialog = Dialog(
