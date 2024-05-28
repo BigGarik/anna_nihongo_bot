@@ -76,7 +76,7 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
     response.write_to_file(file_on_disk)
     # отправить файл
     file_input = FSInputFile(file_on_disk)
-    await message.answer_voice(voice=file_input, caption='Слушайте и повторяйте')
+    await message.answer_voice(voice=file_input, caption=f'{text}\nСлушайте и повторяйте')
     # записать ого в базу данных
     # удалить файл
 
