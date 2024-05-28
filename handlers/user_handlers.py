@@ -1,9 +1,10 @@
 import datetime
+import io
 import logging
 from pathlib import Path
 
 import librosa
-from aiogram import Router, F, Bot
+from aiogram import Router, F, Bot, types
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, StatesGroup, State
@@ -67,9 +68,10 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     response = await text_to_speech(text)
+    voice_message = io.BytesIO(response.content)
     print(response.content)
     # Отправляем голосовое сообщение пользователю
-    await message.answer_voice(voice=response.content, caption='Слушайте и повторяйте')
+    await message.answer_voice(voice=voice_message, caption='Слушайте и повторяйте')
 
 
 start_dialog = Dialog(
