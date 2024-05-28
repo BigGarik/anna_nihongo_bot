@@ -1,6 +1,7 @@
 import datetime
 import io
 import logging
+import re
 from pathlib import Path
 
 import librosa
@@ -68,14 +69,17 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     response = await text_to_speech(text)
-    print(response)
-    print('-------------------------------------------------------------------')
-    print(response.content)
-    voice_message = io.BytesIO(response)
-    voice_input_file = InputFile(voice_message, filename="audio.ogg")
+    # Создать имя файла из строки
+    filename = re.sub(r'[^\w\s-]', '', text).replace(' ', '_')
+    # сохранить файл в темп
+    file_on_disk = Path("", f"temp/{filename}.ogg")
+    response.write_to_file(file_on_disk)
+    # отправить файл
+    file_input = FSInputFile(file_on_disk)
+    await message.answer_voice(voice=file_input, caption='Слушайте и повторяйте')
+    # записать ого в базу данных
+    # удалить файл
 
-    # Отправляем голосовое сообщение пользователю
-    await message.answer_voice(voice=voice_input_file, caption='Слушайте и повторяйте')
 
 
 start_dialog = Dialog(
