@@ -1,3 +1,11 @@
 .env
 
+.idea
 venv/
+.venv/
+/redis/data/dump.rdb
+/redis/data/redis_dump.rdb
+/locales/en/LC_MESSAGES/anna_nihongo_bot.mo
+/locales/ru/LC_MESSAGES/anna_nihongo_bot.mo
+/user.log
+/temp/

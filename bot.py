@@ -42,8 +42,9 @@ async def main() -> None:
     config: Config = load_config()
     redis = Redis(host=config.redis.redis_dsn)
     storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
-    DATABASE_URL = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
-    await init_db(DATABASE_URL)
+    database_url = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
+    print(database_url)
+    await init_db(database_url)
 
     # Инициализируем бот и диспетчер
     bot = Bot(token=config.tg_bot.token) # , parse_mode='HTML')
