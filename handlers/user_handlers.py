@@ -67,8 +67,9 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     response = await text_to_speech(text)
+    print(response.content)
     # Отправляем голосовое сообщение пользователю
-    await message.answer_voice(voice=response, caption='Слушайте и повторяйте')
+    await message.answer_voice(voice=response.content, caption='Слушайте и повторяйте')
 
 
 start_dialog = Dialog(
