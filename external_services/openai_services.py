@@ -13,7 +13,7 @@ async def text_to_speech(text: str):
     client = OpenAI() if proxy_url is None or proxy_url == "" else OpenAI(http_client=httpx.Client(proxy=proxy_url))
     response = client.audio.speech.create(
         model="tts-1-hd",
-        voice="onyx",
+        voice="nova",
         speed=0.85,
         response_format='opus',
         input=text,
