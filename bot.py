@@ -14,8 +14,8 @@ from handlers.user_handlers import router as user_router, start_dialog, text_to_
 from handlers.admin_handlers import router as admin_router
 from handlers.other_handlers import router as other_router
 from keyboards.set_menu import set_main_menu
-from aiohttp import web
-from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+# from aiohttp import web
+# from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 ''' TODO проверка комментария '''
 # TODO база данных
@@ -34,11 +34,11 @@ logger = logging.getLogger(__name__)
 config: Config = load_config()
 
 
-async def on_startup(bot: Bot) -> None:
-    # If you have a self-signed SSL certificate, then you will need to send a public
-    # certificate to Telegram
-    await bot.set_webhook(f"{config.webhook.base_webhook_url}{config.webhook.webhook_path}",
-                          secret_token=config.webhook.webhook_secret)
+# async def on_startup(bot: Bot) -> None:
+#     # If you have a self-signed SSL certificate, then you will need to send a public
+#     # certificate to Telegram
+#     await bot.set_webhook(f"{config.webhook.base_webhook_url}{config.webhook.webhook_path}",
+#                           secret_token=config.webhook.webhook_secret)
 
 
 async def main() -> None:
@@ -66,37 +66,37 @@ async def main() -> None:
 
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
-    # await dp.start_polling(bot, allowed_updates=[])
+    await dp.start_polling(bot, allowed_updates=[])
 
-    # Регистрируем хук на старт для инициализации webhook
-    dp.startup.register(on_startup)
-
-    # Создаем экземпляр aiohttp.web.Application
-    app = web.Application()
-
-    # Создаем экземпляр обработчика запросов,
-    # aiogram предоставляет несколько реализаций для разных случаев использования
-    # В этом примере мы используем SimpleRequestHandler, который предназначен для обработки простых случаев
-    webhook_requests_handler = SimpleRequestHandler(
-        dispatcher=dp,
-        bot=bot,
-        secret_token=config.webhook.webhook_secret,
-    )
-    # Регистрируем обработчик webhook в приложении
-    webhook_requests_handler.register(app, path=config.webhook.webhook_path)
-
-    # Подключаем хуки запуска и завершения работы диспетчера к приложению aiohttp
-    setup_application(app, dp, bot=bot)
-
-    runner = web.AppRunner(app)
-    await runner.setup()
-    site = web.TCPSite(runner, host=config.webhook.web_server_host, port=config.webhook.web_server_port)
-    await site.start()
-
-    try:
-        await asyncio.Event().wait()
-    finally:
-        await runner.cleanup()
+    # # Регистрируем хук на старт для инициализации webhook
+    # dp.startup.register(on_startup)
+    #
+    # # Создаем экземпляр aiohttp.web.Application
+    # app = web.Application()
+    #
+    # # Создаем экземпляр обработчика запросов,
+    # # aiogram предоставляет несколько реализаций для разных случаев использования
+    # # В этом примере мы используем SimpleRequestHandler, который предназначен для обработки простых случаев
+    # webhook_requests_handler = SimpleRequestHandler(
+    #     dispatcher=dp,
+    #     bot=bot,
+    #     secret_token=config.webhook.webhook_secret,
+    # )
+    # # Регистрируем обработчик webhook в приложении
+    # webhook_requests_handler.register(app, path=config.webhook.webhook_path)
+    #
+    # # Подключаем хуки запуска и завершения работы диспетчера к приложению aiohttp
+    # setup_application(app, dp, bot=bot)
+    #
+    # runner = web.AppRunner(app)
+    # await runner.setup()
+    # site = web.TCPSite(runner, host=config.webhook.web_server_host, port=config.webhook.web_server_port)
+    # await site.start()
+    #
+    # try:
+    #     await asyncio.Event().wait()
+    # finally:
+    #     await runner.cleanup()
 
     # И, наконец, запускаем веб-сервер
     # web.run_app(app, host=config.webhook.web_server_host, port=int(config.webhook.web_server_port))
