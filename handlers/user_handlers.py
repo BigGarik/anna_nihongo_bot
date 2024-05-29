@@ -1,6 +1,7 @@
 import datetime
 import io
 import logging
+import os
 import re
 from pathlib import Path
 
@@ -9,19 +10,24 @@ from aiogram import Router, F, Bot, types
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, StatesGroup, State
-from aiogram.types import Message, FSInputFile, CallbackQuery, User, InputFile
+from aiogram.types import Message, FSInputFile, CallbackQuery, User, InputFile, BufferedInputFile
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
-from aiogram_dialog.widgets.kbd import Button
-from aiogram_dialog.widgets.text import Format, Const
+from aiogram_dialog.widgets.kbd import Button, Row
+from aiogram_dialog.widgets.text import Format, Const, Multi
 
 from external_services.openai_services import text_to_speech
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
+from models import TextToSpeech
 from services.services import create_kb_file, get_folders, get_all_ogg_files, get_tag
 from states.states import FSMInLearn, user_dict
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 # Инициализируем роутер уровня модуля
 router = Router()
@@ -50,13 +56,22 @@ async def process_help_command(message: Message, state: FSMContext):
 
 
 async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
-    return {'username': event_from_user.first_name or event_from_user.username}
+    # Получение списка разрешенных ID пользователей из переменной окружения
+    admin_ids = os.getenv('ADMIN_IDS')
+    # Преобразование строки в список целых чисел
+    admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
+    response = {'username': event_from_user.first_name or event_from_user.username}
+    if event_from_user.id in admin_ids:
+        response['is_admin'] = True
+    else:
+        response['is_admin'] = False
+    return response
 
 
 async def category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     keyboard = create_inline_kb(1, **get_folders('original_files'))
     await callback.message.answer(
-        text=f"{LEXICON_RU['/start']}{LEXICON_RU['select_category']}",
+        text=f"{LEXICON_RU['select_category']}",
         reply_markup=keyboard
     )
     await dialog_manager.done()
@@ -67,25 +82,49 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
     await dialog_manager.start(state=TextToSpeechSG.start)
 
 
+async def main_page_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+
+
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    response = await text_to_speech(text)
+    user_id = message.from_user.id
     # Создать имя файла из строки
     filename = re.sub(r'[^\w\s-]', '', text).replace(' ', '_')
-    # сохранить файл в темп
-    file_on_disk = Path("", f"temp/{filename}.ogg")
-    response.write_to_file(file_on_disk)
-    # отправить файл
-    file_input = FSInputFile(file_on_disk)
-    await message.answer_voice(voice=file_input, caption=f'{text}\nСлушайте и повторяйте')
-    # записать ого в базу данных
-    # удалить файл
+    # проверить есть ли в базе уже такая фраза
+    voice = await TextToSpeech.get(text=filename)
+
+    if voice:
+        print(voice.text)
+        await message.answer_voice(voice=voice.voice_id, caption=f'{text}\nСлушайте и повторяйте')
+
+    else:
+        response = await text_to_speech(text)
+        voice = BufferedInputFile(response.content, filename="voice_tts.txt")
+        msg = await message.answer_voice(voice=voice, caption=f'{text}\nСлушайте и повторяйте')
+        voice_id = msg.voice.file_id
+        await TextToSpeech.create(
+            voice_id=voice_id,
+            user_id=user_id,
+            text=filename,
+            voice=response.content,
+        )
+
+
+async def settings_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await callback.answer(text='Настройки для админов (в разработке)')
 
 
 
 start_dialog = Dialog(
     # Стартовое окно админки
     Window(
-        Format('Приветствую тебя, {username}! \nО мой повелитель!!!'),
+        Multi(
+            Format('日本語を勉強しよう\n'
+                   '<b>Привет, {username}!</b>\nЯ бот-помощник Анны-сэнсэй 😃\n'
+                   'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
+                   'Хотите говорить по-японски как японцы?\n'
+                   ),
+        ),
         # кнопки Настройки и т.д.
         Button(
             text=Const('Категории'),
@@ -95,6 +134,13 @@ start_dialog = Dialog(
             text=Const('Озвучить текст'),
             id='tts',
             on_click=tts_button_clicked),
+        Row(
+            Button(
+                text=Const('Настройки(для админов)'),
+                id='settings',
+                on_click=settings_button_clicked),
+            when='is_admin',
+        ),
         getter=username_getter,
         # Состояние этого окна для переключения на него
         state=StartDialogSG.start
@@ -104,6 +150,11 @@ start_dialog = Dialog(
 text_to_speech_dialog = Dialog(
     Window(
         Const('Отправь мне фразу и я ее озвучу'),
+        Button(
+            text=Const('На главную'),
+            id='main_page',
+            on_click=main_page_button_clicked,
+        ),
         TextInput(
             id='tts_input',
             on_success=phrase_to_speech,
@@ -112,23 +163,6 @@ text_to_speech_dialog = Dialog(
         state=TextToSpeechSG.start
     ),
 )
-
-
-
-
-
-
-
-#
-# # Этот хэндлер срабатывает на команду /start вне состояний
-# # рисуем клавиатуру с категориями
-# @router.message(CommandStart(), StateFilter(default_state))
-# async def process_start_command(message: Message):
-#     keyboard = create_inline_kb(1, **get_folders('original_files'))
-#     await message.answer(
-#         text=f"{LEXICON_RU['/start']}{LEXICON_RU['select_category']}",
-#         reply_markup=keyboard
-#     )
 
 
 # Этот хэндлер срабатывает на команду /start в состоянии original_phrase
@@ -141,9 +175,6 @@ text_to_speech_dialog = Dialog(
 #         text=LEXICON_RU['choose_phrase'],
 #         reply_markup=keyboard
 #     )
-
-
-
 
 
 @router.message(Command(commands='contact'))
@@ -221,8 +252,6 @@ async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     # TODO добавить кнопку грамматический комментарий
 
 
-
-
 # Хэндлер на голосовое сообщение
 @router.message(F.voice, ~StateFilter(default_state))
 async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
@@ -263,6 +292,3 @@ async def process_send_voice(message: Message, bot: Bot, state: FSMContext):
 
     # os.remove(file_on_disk)  # Удаление временного файла
     # os.remove(f'temp/{file_name}.png')
-
-
-

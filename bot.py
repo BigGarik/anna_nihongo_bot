@@ -3,6 +3,8 @@ import logging.config
 
 import yaml
 from aiogram import Bot, Dispatcher
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 
@@ -47,7 +49,7 @@ async def main() -> None:
     await init_db(database_url)
 
     # Инициализируем бот и диспетчер
-    bot = Bot(token=config.tg_bot.token) # , parse_mode='HTML')
+    bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=storage)
 
     # Настраиваем кнопку Menu

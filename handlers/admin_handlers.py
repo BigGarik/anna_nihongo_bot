@@ -11,7 +11,7 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-# Этот хэндлер срабатывает на команду /help
+# Этот хэндлер срабатывает на команду /settings
 @router.message(Command(commands='settings'), F.from_user.id.in_({815174734, 693131974}))
-async def process_help_command(message: Message):
+async def process_settings_command(message: Message):
     await message.answer(text='/settings')
