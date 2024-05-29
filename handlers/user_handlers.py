@@ -94,7 +94,6 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
     voice = await TextToSpeech.filter(text=filename).first()
 
     if voice:
-        print(voice.text)
         await message.answer_voice(voice=voice.voice_id, caption=f'{text}\nСлушайте и повторяйте')
 
     else:
