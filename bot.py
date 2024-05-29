@@ -42,18 +42,18 @@ async def on_startup(bot: Bot) -> None:
 
 
 # Функция конфигурирования и запуска бота
-async def main() -> None:
+def main() -> None:
     redis = Redis(host=config.redis.redis_dsn)
     storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
     database_url = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
-    await init_db(database_url)
+    init_db(database_url)
 
     # Инициализируем бот и диспетчер
     bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher(storage=storage)
 
     # Настраиваем кнопку Menu
-    await set_main_menu(bot)
+    set_main_menu(bot)
 
     # Регистрируем роутеры в диспетчере
     dp.include_router(admin_router)
@@ -66,7 +66,7 @@ async def main() -> None:
     setup_dialogs(dp)
 
     # Пропускаем накопившиеся апдейты и запускаем polling
-    await bot.delete_webhook(drop_pending_updates=True)
+    bot.delete_webhook(drop_pending_updates=True)
     # await dp.start_polling(bot, allowed_updates=[])
 
     # Регистрируем хук на старт для инициализации webhook
@@ -95,5 +95,6 @@ async def main() -> None:
 
 if __name__ == "__main__":
     logger.info('Бот запущен и работает...')
-    asyncio.run(main())
+    # asyncio.run(main())
+    main()
 
