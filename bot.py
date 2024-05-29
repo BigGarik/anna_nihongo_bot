@@ -45,7 +45,6 @@ async def main() -> None:
     redis = Redis(host=config.redis.redis_dsn)
     storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
     database_url = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
-    print(database_url)
     await init_db(database_url)
 
     # Инициализируем бот и диспетчер

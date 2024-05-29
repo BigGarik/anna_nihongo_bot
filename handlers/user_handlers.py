@@ -16,6 +16,7 @@ from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Format, Const, Multi
 
+from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import text_to_speech
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
@@ -97,15 +98,15 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
         await message.answer_voice(voice=voice.voice_id, caption=f'{text}\nСлушайте и повторяйте')
 
     else:
-        response = await text_to_speech(text)
-        voice = BufferedInputFile(response.content, filename="voice_tts.txt")
+        response = google_text_to_speech('ja-JP-Wavenet-A', text)
+        voice = BufferedInputFile(response.audio_content, filename="voice_tts.txt")
         msg = await message.answer_voice(voice=voice, caption=f'{text}\nСлушайте и повторяйте')
         voice_id = msg.voice.file_id
         await TextToSpeech.create(
             voice_id=voice_id,
             user_id=user_id,
             text=filename,
-            voice=response.content,
+            voice=response.audio_content,
         )
 
 
