@@ -41,7 +41,6 @@ async def on_startup(bot: Bot) -> None:
                           secret_token=config.webhook.webhook_secret)
 
 
-# Функция конфигурирования и запуска бота
 async def main() -> None:
     redis = Redis(host=config.redis.redis_dsn)
     storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
@@ -89,8 +88,18 @@ async def main() -> None:
     # Подключаем хуки запуска и завершения работы диспетчера к приложению aiohttp
     setup_application(app, dp, bot=bot)
 
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, host=config.webhook.web_server_host, port=config.webhook.web_server_port)
+    await site.start()
+
+    try:
+        await asyncio.Event().wait()
+    finally:
+        await runner.cleanup()
+
     # И, наконец, запускаем веб-сервер
-    web.run_app(app, host=config.webhook.web_server_host, port=int(config.webhook.web_server_port))
+    # web.run_app(app, host=config.webhook.web_server_host, port=int(config.webhook.web_server_port))
 
 
 if __name__ == "__main__":
