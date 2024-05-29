@@ -91,7 +91,7 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
     # Создать имя файла из строки
     filename = re.sub(r'[^\w\s-]', '', text).replace(' ', '_')
     # проверить есть ли в базе уже такая фраза
-    voice = await TextToSpeech.get(text=filename)
+    voice = await TextToSpeech.filter(text=filename).first()
 
     if voice:
         print(voice.text)
