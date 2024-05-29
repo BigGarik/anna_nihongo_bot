@@ -16,3 +16,4 @@ aiogram-dialog
 httpx
 python-dotenv
 google-cloud-texttospeech
+aiohttp
