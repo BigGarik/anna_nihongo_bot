@@ -3,6 +3,7 @@ import io
 import logging
 import os
 import re
+import uuid
 from pathlib import Path
 
 import librosa
@@ -10,16 +11,19 @@ from aiogram import Router, F, Bot, types
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state, StatesGroup, State
-from aiogram.types import Message, FSInputFile, CallbackQuery, User, InputFile, BufferedInputFile
+from aiogram.types import Message, FSInputFile, CallbackQuery, User, InputFile, BufferedInputFile, InlineKeyboardMarkup, \
+    InlineKeyboardButton
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
 from aiogram_dialog.widgets.kbd import Button, Row
 from aiogram_dialog.widgets.text import Format, Const, Multi
 
+from db.requests import get_user_ids
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import text_to_speech
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
+from handlers.admin_handlers import settings_button_clicked
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
 from models import TextToSpeech
@@ -27,6 +31,7 @@ from services.services import create_kb_file, get_folders, get_all_ogg_files, ge
 from states.states import FSMInLearn, user_dict
 from dotenv import load_dotenv
 
+from bot_init import bot, redis
 
 load_dotenv()
 
@@ -40,6 +45,10 @@ class StartDialogSG(StatesGroup):
     start = State()
 
 
+class UserStartDialogSG(StatesGroup):
+    start = State()
+
+
 class TextToSpeechSG(StatesGroup):
     start = State()
 
@@ -47,12 +56,20 @@ class TextToSpeechSG(StatesGroup):
 # Этот хэндлер будет срабатывать на /start
 @router.message(CommandStart())
 async def process_start_command(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+    # получить пользователей из БД
+    # Если ИД в базе, то user_start_dialog
+    user_ids = await get_user_ids()
+    if message.from_user.id in user_ids:
+        await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
+    # иначе start_dialog
+    else:
+        await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
 
 
 @router.message(Command(commands='cancel'))
-async def process_help_command(message: Message, state: FSMContext):
+async def process_help_command(message: Message, state: FSMContext, dialog_manager: DialogManager):
     await message.answer(text=LEXICON_RU['/cancel'])
+    await dialog_manager.done()
     await state.clear()
 
 
@@ -84,7 +101,7 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
 
 
 async def main_page_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -110,13 +127,42 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
         )
 
 
-async def settings_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await callback.answer(text='Настройки для админов (в разработке)')
+async def access_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    """ отправить запрос админу (диалог подтверждения)
+        отправить ответ пользователю
 
+     """
+    # Генерируем уникальный идентификатор для запроса
+    request_id = str(uuid.uuid4())
+
+    # Сохраняем данные пользователя в Redis с использованием хеша
+    await redis.hmset(f"access_request:{request_id}", {
+        "user_id": callback.from_user.id,
+        "username": callback.from_user.username or "",
+        "first_name": callback.from_user.first_name or "",
+        "last_name": callback.from_user.last_name or "",
+    })
+
+    # Создаем кнопки
+    button1 = InlineKeyboardButton(text="Подтвердить", callback_data=f"confirm_access:{request_id}")
+    button2 = InlineKeyboardButton(text="Отменить", callback_data="cancel_access")
+
+    # Создаем разметку клавиатуры
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [button1],  # Кнопки располагаются в ряд
+        [button2],
+    ])
+
+    await bot.send_message(
+        815174734,
+        f"Пользователь @{callback.from_user.username} запрашивает доступ.",
+        reply_markup=keyboard
+    )
+    await dialog_manager.done()
+    await callback.message.answer('Заявка отправлена администратору.')
 
 
 start_dialog = Dialog(
-    # Стартовое окно админки
     Window(
         Multi(
             Format('日本語を勉強しよう\n'
@@ -125,15 +171,36 @@ start_dialog = Dialog(
                    'Хотите говорить по-японски как японцы?\n'
                    ),
         ),
-        # кнопки Настройки и т.д.
-        Button(
-            text=Const('Категории'),
-            id='category',
-            on_click=category_button_clicked),
-        Button(
-            text=Const('Озвучить текст'),
-            id='tts',
-            on_click=tts_button_clicked),
+        Row(
+            Button(
+                text=Const('Запросить доступ'),
+                id='access',
+                on_click=access_button_clicked),
+        ),
+        getter=username_getter,
+        state=StartDialogSG.start
+    ),
+)
+
+user_start_dialog = Dialog(
+    Window(
+        Multi(
+            Format('日本語を勉強しよう\n'
+                   '<b>Привет, {username}!</b>\nЯ бот-помощник Анны-сэнсэй 😃\n'
+                   'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
+                   'Хотите говорить по-японски как японцы?\n'
+                   ),
+        ),
+        Row(
+            Button(
+                text=Const('Категории'),
+                id='category',
+                on_click=category_button_clicked),
+            Button(
+                text=Const('Озвучить текст'),
+                id='tts',
+                on_click=tts_button_clicked),
+        ),
         Row(
             Button(
                 text=Const('Настройки(для админов)'),
@@ -143,7 +210,7 @@ start_dialog = Dialog(
         ),
         getter=username_getter,
         # Состояние этого окна для переключения на него
-        state=StartDialogSG.start
+        state=UserStartDialogSG.start
     ),
 )
 
@@ -166,7 +233,6 @@ text_to_speech_dialog = Dialog(
 
 
 # Диалог тренировки фразы
-
 
 
 # Этот хэндлер срабатывает на команду /start в состоянии original_phrase
@@ -222,7 +288,6 @@ async def process_select_category(callback: CallbackQuery, state: FSMContext):
 # Колбек на нажатие кнопки с выбором категории
 @router.callback_query(F.data.in_(list(get_folders('original_files').values())))
 async def process_select_category(callback: CallbackQuery, state: FSMContext):
-    print(callback.data)
     # Сохраняем выбранную категорию в хранилище состояний
     await state.update_data(select_category=callback.data)
     # Создаем клавиатуру с файлами

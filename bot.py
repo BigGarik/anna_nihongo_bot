@@ -1,16 +1,12 @@
 import asyncio
 import logging.config
-
 import yaml
-from aiogram import Bot, Dispatcher
-from aiogram.client.default import DefaultBotProperties
-from aiogram.enums import ParseMode
-from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 
+from bot_init import bot, dp
 from config_data.config import Config, load_config
 from db import init as init_db
-from handlers.user_handlers import router as user_router, start_dialog, text_to_speech_dialog
+from handlers.user_handlers import router as user_router, start_dialog, text_to_speech_dialog, user_start_dialog
 from handlers.admin_handlers import router as admin_router
 from handlers.other_handlers import router as other_router
 from keyboards.set_menu import set_main_menu
@@ -42,14 +38,9 @@ config: Config = load_config()
 
 
 async def main() -> None:
-    redis = Redis(host=config.redis.redis_dsn)
-    storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=True))
+
     database_url = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
     await init_db(database_url)
-
-    # Инициализируем бот и диспетчер
-    bot = Bot(token=config.tg_bot.token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-    dp = Dispatcher(storage=storage)
 
     # Настраиваем кнопку Menu
     await set_main_menu(bot)
@@ -58,6 +49,7 @@ async def main() -> None:
     dp.include_router(admin_router)
     dp.include_router(user_router)
     dp.include_router(start_dialog)
+    dp.include_router(user_start_dialog)
     dp.include_router(text_to_speech_dialog)
     dp.include_router(other_router)
 
