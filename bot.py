@@ -14,7 +14,6 @@ from keyboards.set_menu import set_main_menu
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
 ''' TODO проверка комментария '''
-# TODO база данных
 # TODO отправлять файлы по ID
 # TODO создать админку с добавлением категорий и загрузкой файлов в нее
 # TODO добавить раздел собеседника
@@ -40,6 +39,7 @@ config: Config = load_config()
 async def main() -> None:
 
     database_url = f'postgres://{config.db.db_user}:{config.db.db_password}@{config.db.db_host}:{config.db.db_port}/{config.db.database}'
+    print(database_url)
     await init_db(database_url)
 
     # Настраиваем кнопку Menu
