@@ -6,7 +6,11 @@ from aiogram_dialog import setup_dialogs
 from bot_init import bot, dp
 from config_data.config import Config, load_config
 from db import init as init_db
-from handlers.user_handlers import router as user_router, start_dialog, text_to_speech_dialog, user_start_dialog
+from handlers.training.grammar_handlers import grammar_training_dialog
+from handlers.training.listening_handlers import text_to_speech_dialog
+from handlers.training.pronunciation_handlers import pronunciation_training_dialog
+from handlers.training.training_handlers import user_training_dialog
+from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
 from handlers.admin_handlers import router as admin_router
 from handlers.other_handlers import router as other_router
 from keyboards.set_menu import set_main_menu
@@ -50,7 +54,12 @@ async def main() -> None:
     dp.include_router(user_router)
     dp.include_router(start_dialog)
     dp.include_router(user_start_dialog)
+
     dp.include_router(text_to_speech_dialog)
+    dp.include_router(grammar_training_dialog)
+    dp.include_router(pronunciation_training_dialog)
+
+    dp.include_router(user_training_dialog)
     dp.include_router(other_router)
 
     # dp.include_router(other_handlers.router)

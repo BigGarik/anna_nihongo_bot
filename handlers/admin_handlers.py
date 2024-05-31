@@ -18,42 +18,8 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-# запрос на добавление пользователя
-
-class RequestAccessSG(StatesGroup):
-    start = State()
-
-
-async def confirm_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    pass
-
-
-async def cancel_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    pass
-
-
 async def settings_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.answer(text='Настройки для админов (в разработке)')
-
-
-request_access_dialog = Dialog(
-    Window(
-        Format(
-            'Пользователь запрашивает доступ'
-        ),
-        Row(
-            Button(
-                text=Const('Подтвердить'),
-                id='confirm',
-                on_click=confirm_clicked),
-            Button(
-                text=Const('И меня!'),
-                id='cancel',
-                on_click=cancel_clicked),
-        ),
-        state=RequestAccessSG.start
-    )
-)
 
 
 @router.callback_query(F.data.startswith('confirm_access:'))
@@ -88,15 +54,15 @@ async def process_confirm_access(callback: CallbackQuery):
 
     # удалить запись из Redis
     await redis.delete(f"access_request:{request_id}")
-    await bot.delete_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
+    await callback.message.delete()
+    # await bot.delete_message(chat_id=callback.message.chat.id, message_id=callback.message.message_id)
 
 
-@router.callback_query(F.data == 'cancel_access')
+@router.callback_query(F.data.startswith('cancel_access:'))
 async def process_cancel_access(callback: CallbackQuery):
-    pass
+    # Извлекаем уникальный идентификатор запроса из callback_data
+    _, request_id = callback.data.split(':')
+    await redis.delete(f"access_request:{request_id}")
+    await callback.message.delete()
+    await callback.answer("Запрос отменён.", show_alert=True)
 
-
-# Этот хэндлер срабатывает на команду /settings
-@router.message(Command(commands='settings'), F.from_user.id.in_({815174734, 693131974}))
-async def process_settings_command(message: Message):
-    await message.answer(text='/settings')
