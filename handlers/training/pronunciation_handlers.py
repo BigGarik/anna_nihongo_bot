@@ -3,7 +3,7 @@ from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
 from .states import PronunciationTrainingSG
@@ -21,6 +21,7 @@ pronunciation_training_dialog = Dialog(
             func=voice_message_handler,
             content_types=ContentType.VOICE,
         ),
+        Cancel(Const('❌ Отмена'), id='button_cancel'),
         state=PronunciationTrainingSG.start
     ),
 )

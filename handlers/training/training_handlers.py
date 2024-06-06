@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
 from .states import PronunciationTrainingSG, GrammarTrainingSG, TextToSpeechSG, UserTrainingSG
@@ -15,9 +15,7 @@ async def grammar_button_clicked(callback: CallbackQuery, button: Button, dialog
     await dialog_manager.start(state=GrammarTrainingSG.start)
 
 
-async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    # await dialog_manager.done()
-    await dialog_manager.start(state=TextToSpeechSG.start)
+
 
 
 user_training_dialog = Dialog(
@@ -31,10 +29,7 @@ user_training_dialog = Dialog(
             text=Const('Грамматика'),
             id='grammar',
             on_click=grammar_button_clicked),
-        Button(
-            text=Const('Прослушивание (Озвучить текст)'),
-            id='tts',
-            on_click=tts_button_clicked),
+        Cancel(Const('❌ Отмена'), id='button_cancel'),
         state=UserTrainingSG.start
     ),
 )

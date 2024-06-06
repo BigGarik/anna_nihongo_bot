@@ -1,9 +1,10 @@
 import re
 
+from aiogram.enums import ContentType
 from aiogram.types import BufferedInputFile, Message, CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
-from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.input import ManagedTextInput, TextInput, MessageInput
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group
 from aiogram_dialog.widgets.text import Const
 
 from external_services.google_cloud_services import google_text_to_speech
@@ -35,17 +36,31 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
         )
 
 
+async def voice_message_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:
+    # Обработать аудио от пользователя
+
+    await message.answer(message.from_user.first_name)
+
+
 text_to_speech_dialog = Dialog(
     Window(
         Const('Отправь мне фразу и я ее озвучу'),
-        Button(
-            text=Const('На главную'),
-            id='main_page',
-            on_click=main_page_button_clicked,
-        ),
         TextInput(
             id='tts_input',
             on_success=phrase_to_speech,
+        ),
+        MessageInput(
+            func=voice_message_handler,
+            content_types=ContentType.VOICE,
+        ),
+        Group(
+            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Button(
+                text=Const('🏠 На главную'),
+                id='main_page',
+                on_click=main_page_button_clicked,
+            ),
+            width=3
         ),
         state=TextToSpeechSG.start
     ),

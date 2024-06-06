@@ -11,15 +11,14 @@ from aiogram.fsm.state import default_state, StatesGroup, State
 from aiogram.types import Message, FSInputFile, CallbackQuery, User, InlineKeyboardMarkup, \
     InlineKeyboardButton
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
-from aiogram_dialog.widgets.kbd import Button, Row, Column
+from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
 from db.requests import get_user_ids
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
-from handlers.admin_handlers import settings_button_clicked
 from . import username_getter
-from .states import StartDialogSG, UserStartDialogSG
-from .training.states import UserTrainingSG
+from .states import StartDialogSG, UserStartDialogSG, AdminDialogSG
+from .training.states import UserTrainingSG, TextToSpeechSG
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
 from services.services import create_kb_file, get_folders, get_all_ogg_files, get_tag
@@ -34,6 +33,11 @@ load_dotenv()
 router = Router()
 
 logger = logging.getLogger(__name__)
+
+
+async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    # await dialog_manager.done()
+    await dialog_manager.start(state=TextToSpeechSG.start)
 
 
 async def category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -119,16 +123,20 @@ user_start_dialog = Dialog(
             ),
             Row(
                 Button(
-                    text=Const('Тренировки'),
+                    text=Const('💪 Тренировки'),
                     id='training',
                     on_click=training_button_clicked),
-            ),
+                Button(
+                    text=Const('🔊 Прослушивание (Озвучить текст)'),
+                    id='tts',
+                    on_click=tts_button_clicked),
+                ),
         ),
         Row(
-            Button(
-                text=Const('Настройки(для админов)'),
-                id='settings',
-                on_click=settings_button_clicked),
+            Start(Const('⚙️ Настройки(для админов)'),
+                  id='settings',
+                  state=AdminDialogSG.start
+                  ),
             when='is_admin',
         ),
         getter=username_getter,
@@ -184,7 +192,7 @@ async def process_select_category(callback: CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == 'new_phrase')
-async def process_select_category(callback: CallbackQuery, state: FSMContext):
+async def process_choose_phrase(callback: CallbackQuery, state: FSMContext):
     # Сохраняем выбранную категорию в хранилище состояний
     # await state.update_data(select_category=callback.data)
     dir_to_files = f'{user_dict[callback.from_user.id]["select_category"]}'

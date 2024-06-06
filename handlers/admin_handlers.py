@@ -6,10 +6,11 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
-from aiogram_dialog.widgets.kbd import Button, Row
+from aiogram_dialog.widgets.kbd import Button, Row, Cancel, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
 
 from bot_init import redis, bot
+from handlers.states import AddOriginalPhraseSG, AdminDialogSG
 from models import User
 
 # Инициализируем роутер уровня модуля
@@ -18,8 +19,17 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-async def settings_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await callback.answer(text='Настройки для админов (в разработке)')
+admin_dialog = Dialog(
+    Window(
+        Const('Админка'),
+        Start(Const('🆕 Добавить оригинальную фразу'),
+              id='go_add_original_phrase_dialog',
+              state=AddOriginalPhraseSG.category
+              ),
+        Cancel(Const('❌ Отмена'), id='button_cancel'),
+        state=AdminDialogSG.start,
+    ),
+)
 
 
 @router.callback_query(F.data.startswith('confirm_access:'))
@@ -65,4 +75,3 @@ async def process_cancel_access(callback: CallbackQuery):
     await redis.delete(f"access_request:{request_id}")
     await callback.message.delete()
     await callback.answer("Запрос отменён.", show_alert=True)
-

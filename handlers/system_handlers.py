@@ -21,4 +21,4 @@ async def username_getter(dialog_manager: DialogManager, event_from_user: User, 
 
 
 async def main_page_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(state=UserStartDialogSG.start)

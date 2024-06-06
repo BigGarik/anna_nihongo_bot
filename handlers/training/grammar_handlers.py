@@ -2,7 +2,7 @@
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
-from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
 from .states import GrammarTrainingSG
@@ -25,12 +25,14 @@ grammar_training_dialog = Dialog(
         ),
         TextInput(
             id='grammar_training_text_input',
+            # проверка на правильность текста
             on_success=grammar_training_text,
         ),
+        Cancel(Const('❌ Отмена'), id='button_cancel'),
         state=GrammarTrainingSG.start
     ),
-    Window(
-
-    ),
+    # Window(
+    #
+    # ),
 )
 
