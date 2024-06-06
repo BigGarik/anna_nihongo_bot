@@ -3,6 +3,7 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Row, Group
 from aiogram_dialog.widgets.text import Const
+from tortoise.exceptions import DoesNotExist
 
 from bot_init import bot
 from external_services.openai_services import gpt_add_space
@@ -16,9 +17,12 @@ from .. import main_page_button_clicked
 async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     # Запикать звездочками часть слов
     spaced_phrase = gpt_add_space(text)
-    if not await LexisPhrase.get(phrase=text):
+    try:
+        await LexisPhrase.get(phrase=text)
+    except DoesNotExist:
         user = User.get(id=message.from_user.id)
         await LexisPhrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
+
     with_gap_phrase = replace_random_words(spaced_phrase)
     # Удаление сообщения пользователя
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
