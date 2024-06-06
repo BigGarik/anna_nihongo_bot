@@ -7,7 +7,7 @@ from bot_init import bot, dp
 from config_data.config import Config, load_config
 from db import init as init_db
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
-from handlers.training.grammar_handlers import grammar_training_dialog
+from handlers.training.lexis_handlers import lexis_training_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
 from handlers.training.pronunciation_handlers import pronunciation_training_dialog
 from handlers.training.training_handlers import user_training_dialog
@@ -59,7 +59,7 @@ async def main() -> None:
     dp.include_router(admin_dialog)
 
     dp.include_router(text_to_speech_dialog)
-    dp.include_router(grammar_training_dialog)
+    dp.include_router(lexis_training_dialog)
     dp.include_router(pronunciation_training_dialog)
 
     dp.include_router(user_training_dialog)

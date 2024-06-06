@@ -1,4 +1,5 @@
 import os
+import random
 
 from mutagen import File
 
@@ -57,6 +58,25 @@ def create_kb_file(dir_to_files: str) -> dict[str, str]:
         kb_name[title] = file
 
     return kb_name
+
+
+def replace_random_words(phrase):
+    words = phrase.split()
+    print(words)
+    # Убедимся, что в фразе есть более двух слов для замены
+    if len(words) < 3:
+        return phrase
+
+    # Выбираем два разных случайных индекса слов, которые не находятся рядом
+    first_index = random.randint(0, len(words) - 3)
+    second_index = random.randint(first_index + 2, len(words) - 1)
+
+    # Заменяем выбранные слова на три звездочки
+    words[first_index] = '___'
+    words[second_index] = '___'
+
+    # Возвращаем измененную фразу
+    return ''.join(words)
 
 
 BUTTONS: dict[str, str] = {

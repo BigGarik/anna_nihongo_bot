@@ -43,9 +43,10 @@ class OriginalPhrase(models.Model):
         return f"{self.text[:20]}..."
 
 
-class GrammarPhrase(models.Model):
+class LexisPhrase(models.Model):
     id = fields.IntField(pk=True)
     phrase = fields.CharField(max_length=255, unique=True)
     spaced_phrase = fields.CharField(max_length=255, unique=True)
-    group = fields.ForeignKeyField('models.UserGroup', related_name='grammar_group')
-    teacher = fields.ForeignKeyField('models.Teacher', related_name='grammar_teacher')
+    group = fields.ForeignKeyField('models.UserGroup', related_name='lexis_group', null=True)
+    teacher = fields.ForeignKeyField('models.Teacher', related_name='lexis_teacher', null=True)
+    user = fields.ForeignKeyField('models.User', related_name='lexis_user', null=True)

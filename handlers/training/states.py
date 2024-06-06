@@ -5,8 +5,9 @@ class UserTrainingSG(StatesGroup):
     start = State()
 
 
-class GrammarTrainingSG(StatesGroup):
+class LexisTrainingSG(StatesGroup):
     start = State()
+    waiting_answer = State()
 
 
 class PronunciationTrainingSG(StatesGroup):

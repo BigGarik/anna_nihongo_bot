@@ -21,7 +21,7 @@ async def text_to_speech(text: str):
     return response
 
 
-def gpt(text):
+def gpt_add_space(text):
     client = OpenAI() if proxy_url is None or proxy_url == "" else OpenAI(http_client=httpx.Client(proxy=proxy_url))
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
