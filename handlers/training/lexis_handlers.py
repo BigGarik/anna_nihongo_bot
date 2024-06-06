@@ -17,10 +17,8 @@ from .. import main_page_button_clicked
 async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     # Запикать звездочками часть слов
     spaced_phrase = gpt_add_space(text)
-    phrase = await LexisPhrase.get_or_none(phrase=text)
-    if phrase:
-        return
-    else:
+    # phrase = await LexisPhrase.get_or_none(phrase=text)
+    if not await LexisPhrase.get_or_none(phrase=text):
         user = await User.get_or_none(id=message.from_user.id)
         await LexisPhrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
 
