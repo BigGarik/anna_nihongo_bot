@@ -62,7 +62,6 @@ def create_kb_file(dir_to_files: str) -> dict[str, str]:
 
 def replace_random_words(phrase):
     words = phrase.split()
-    print(words)
     # Убедимся, что в фразе есть более двух слов для замены
     if len(words) < 3:
         return phrase
