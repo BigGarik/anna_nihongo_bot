@@ -7,8 +7,8 @@ from tortoise.exceptions import DoesNotExist
 
 from bot_init import bot
 from external_services.openai_services import gpt_add_space
-from models import User
-from models.phrase import LexisPhrase
+from models import User, LexisPhrase
+
 from services.services import replace_random_words
 from .states import LexisTrainingSG
 from .. import main_page_button_clicked
