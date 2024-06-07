@@ -50,9 +50,11 @@ async def audio_handler(message: Message, widget: MessageInput, dialog_manager: 
 
     dialog_manager.dialog_data['answer'] = spoken_answer
     if dialog_manager.dialog_data['question'] == spoken_answer:
-        await message.answer('Ура!!! Ты лучший! 🥳')
+        await message.answer(f'Ты произнес:\n{spoken_answer}\n\nУра!!! Ты лучший! 🥳')
         dialog_manager.dialog_data.pop('answer', None)
         await dialog_manager.back()
+    else:
+        await message.answer(f'Кажется ты произнес:\n{spoken_answer}')
 
 
 
