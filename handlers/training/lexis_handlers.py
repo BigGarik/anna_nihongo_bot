@@ -1,12 +1,17 @@
+import os
+from pathlib import Path
+
+from aiogram.enums import ContentType
 from aiogram.types import Message
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
-from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
+from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Row, Group
 from aiogram_dialog.widgets.text import Const
 from tortoise.exceptions import DoesNotExist
 
 from bot_init import bot
 from external_services.openai_services import gpt_add_space
+from external_services.voice_recognizer import SpeechRecognizer
 from models import User, LexisPhrase
 
 from services.services import replace_random_words
@@ -21,6 +26,35 @@ def first_answer_getter(data, widget, dialog_manager: DialogManager):
 
 def second_answer_getter(data, widget, dialog_manager: DialogManager):
     return not first_answer_getter(data, widget, dialog_manager)
+
+
+async def audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
+    user_id = message.from_user.id
+    """ TODO Скачать аудио
+        Передать его в SpeechRecognizer
+        Полученный текст поделить на на слова
+        Сохранить в базу данных
+        Удалить временный файл"""
+    # Скачиваем файл
+    file_id = message.voice.file_id
+    file = await bot.get_file(file_id)
+    file_path = file.file_path
+    file_on_disk = Path("", f"temp/{file_id}.ogg")
+    await bot.download_file(file_path, destination=file_on_disk)
+
+    spoken_recognizer = SpeechRecognizer(file_on_disk, user_id)
+    spoken_answer = spoken_recognizer.recognize_speech()
+
+    # Удаление временного файла
+    os.remove(file_on_disk)
+
+    dialog_manager.dialog_data['answer'] = spoken_answer
+    if dialog_manager.dialog_data['question'] == spoken_answer:
+        await message.answer('Ура!!! Ты лучший! 🥳')
+        dialog_manager.dialog_data.pop('answer', None)
+        await dialog_manager.back()
+
+
 
 
 async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -51,7 +85,11 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
 
 lexis_training_dialog = Dialog(
     Window(
-        Const('Отправь мне сообщение и мы потренируемся в грамматике'),
+        Const('Отправь мне фразу в голосовом сообщении и мы потренируемся в грамматике'),
+        MessageInput(
+            func=audio_handler,
+            content_types=ContentType.VOICE,
+        ),
         TextInput(
             id='grammar_training_text_input',
             on_success=lexis_training_text,
@@ -72,10 +110,14 @@ lexis_training_dialog = Dialog(
               when=first_answer_getter),
         Const('Отправь ответ',
               when=second_answer_getter),
-        TextInput(
-            id='answer_input',
-            on_success=check_answer_text,
+        MessageInput(
+            func=audio_handler,
+            content_types=ContentType.VOICE,
         ),
+        # TextInput(
+        #     id='answer_input',
+        #     on_success=check_answer_text,
+        # ),
         Group(
             Cancel(Const('❌ Отмена'), id='button_cancel'),
             Button(

@@ -26,11 +26,16 @@ class UserPhrase(models.Model):
                                                                           recognized_text=self.recognized_text)
 
 
-class OriginalPhrase(models.Model):
+class PronunciationCategory(models.Model):
+    id = fields.IntField(pk=True)
+    name = fields.TextField()
+
+
+class PronunciationPhrase(models.Model):
     id = fields.IntField(pk=True)
     slug = fields.CharField(max_length=255, unique=True)
     audio = fields.ForeignKeyField('models.AudioFile', related_name='phrases_audio')
-    category = fields.ForeignKeyField('models.Category', related_name='categories')
+    category = fields.ForeignKeyField('models.PronunciationCategory', related_name='categories')
     text = fields.CharField(max_length=255, unique=True)
     translation = fields.TextField()
     comment = fields.TextField()
