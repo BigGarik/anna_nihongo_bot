@@ -28,13 +28,8 @@ def second_answer_getter(data, widget, dialog_manager: DialogManager):
     return not first_answer_getter(data, widget, dialog_manager)
 
 
-async def audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
+async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     user_id = message.from_user.id
-    """ TODO Скачать аудио
-        Передать его в SpeechRecognizer
-        Полученный текст поделить на на слова
-        Сохранить в базу данных
-        Удалить временный файл"""
     # Скачиваем файл
     file_id = message.voice.file_id
     file = await bot.get_file(file_id)
@@ -85,13 +80,17 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         await dialog_manager.back()
 
 
+async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
+    await message.answer('Моя твоя не понимать 🤔')
+
+
 lexis_training_dialog = Dialog(
     Window(
         Const('Отправь мне фразу в голосовом сообщении и мы потренируемся в грамматике'),
-        MessageInput(
-            func=audio_handler,
-            content_types=ContentType.VOICE,
-        ),
+        # MessageInput(
+        #     func=question_audio_handler,
+        #     content_types=ContentType.VOICE,
+        # ),
         TextInput(
             id='grammar_training_text_input',
             on_success=lexis_training_text,
@@ -113,13 +112,17 @@ lexis_training_dialog = Dialog(
         Const('Отправь ответ',
               when=second_answer_getter),
         MessageInput(
-            func=audio_handler,
+            func=answer_audio_handler,
             content_types=ContentType.VOICE,
         ),
-        # TextInput(
-        #     id='answer_input',
-        #     on_success=check_answer_text,
-        # ),
+        TextInput(
+            id='answer_input',
+            on_success=check_answer_text,
+        ),
+        MessageInput(
+            func=error_handler,
+            content_types=ContentType.ANY,
+        ),
         Group(
             Cancel(Const('❌ Отмена'), id='button_cancel'),
             Button(
