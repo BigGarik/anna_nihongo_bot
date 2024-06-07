@@ -25,13 +25,14 @@ def second_answer_getter(data, widget, dialog_manager: DialogManager):
 
 async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     dialog_manager.dialog_data['question'] = text
+    phrase = await LexisPhrase.get_or_none(phrase=text)
     # Запикать звездочками часть слов
-    spaced_phrase = gpt_add_space(text)
-    # phrase = await LexisPhrase.get_or_none(phrase=text)
-    if not await LexisPhrase.get_or_none(phrase=text):
+    if not phrase:
         user = await User.get_or_none(id=message.from_user.id)
-        await LexisPhrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
+        spaced_phrase = gpt_add_space(text)
+        phrase = await LexisPhrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
 
+    spaced_phrase = phrase.spaced_phrase
     with_gap_phrase = replace_random_words(spaced_phrase)
     # Удаление сообщения пользователя
     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
