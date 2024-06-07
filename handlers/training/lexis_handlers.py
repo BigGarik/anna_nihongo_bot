@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Row, Group
 from aiogram_dialog.widgets.text import Const
@@ -12,6 +12,15 @@ from models import User, LexisPhrase
 from services.services import replace_random_words
 from .states import LexisTrainingSG
 from .. import main_page_button_clicked
+
+
+def first_answer_getter(data, widget, dialog_manager: DialogManager):
+    # до первого ответа вернет False
+    return 'answer' in dialog_manager.dialog_data
+
+
+def second_answer_getter(data, widget, dialog_manager: DialogManager):
+    return not first_answer_getter(data, widget, dialog_manager)
 
 
 async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -32,11 +41,12 @@ async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog
 
 
 async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    dialog_manager.dialog_data['answer'] = text
     if dialog_manager.dialog_data['question'] == text:
         await message.answer('Ура!!! Ты лучший! 🥳')
         await dialog_manager.back()
     else:
-        await message.answer('Попробуй еще раз ))')
+        dialog_manager.show_mode = ShowMode.NO_UPDATE
 
 
 lexis_training_dialog = Dialog(
@@ -58,7 +68,10 @@ lexis_training_dialog = Dialog(
         state=LexisTrainingSG.start
     ),
     Window(
-        Const('Отправь ответ'),
+        Const('Попробуй еще раз ))',
+              when=first_answer_getter),
+        Const('Отправь ответ',
+              when=second_answer_getter),
         TextInput(
             id='answer_input',
             on_success=check_answer_text,
