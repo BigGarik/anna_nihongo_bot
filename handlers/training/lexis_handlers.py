@@ -44,6 +44,7 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
     dialog_manager.dialog_data['answer'] = text
     if dialog_manager.dialog_data['question'] == text:
         await message.answer('Ура!!! Ты лучший! 🥳')
+        dialog_manager.dialog_data.pop('answer', None)
         await dialog_manager.back()
 
 
