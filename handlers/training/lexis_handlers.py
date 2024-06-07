@@ -15,6 +15,7 @@ from .. import main_page_button_clicked
 
 
 async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
+    dialog_manager.dialog_data['question'] = text
     # Запикать звездочками часть слов
     spaced_phrase = gpt_add_space(text)
     # phrase = await LexisPhrase.get_or_none(phrase=text)
@@ -31,8 +32,11 @@ async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog
 
 
 async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-
-    pass
+    if dialog_manager.dialog_data['question'] == text:
+        await message.answer('Ура!!! Ты лучший! 🥳')
+        await dialog_manager.back()
+    else:
+        await message.answer('Попробуй еще раз ))')
 
 
 lexis_training_dialog = Dialog(
