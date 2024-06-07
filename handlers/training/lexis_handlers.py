@@ -45,8 +45,6 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
     if dialog_manager.dialog_data['question'] == text:
         await message.answer('Ура!!! Ты лучший! 🥳')
         await dialog_manager.back()
-    else:
-        dialog_manager.show_mode = ShowMode.NO_UPDATE
 
 
 lexis_training_dialog = Dialog(
