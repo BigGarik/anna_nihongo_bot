@@ -7,6 +7,7 @@ from openai import OpenAI
 
 load_dotenv()
 location = os.getenv('LOCATION')
+print(location)
 
 
 # proxy_url = 'http://192.168.67.6:24575'

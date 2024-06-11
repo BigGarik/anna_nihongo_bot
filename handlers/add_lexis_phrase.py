@@ -38,7 +38,8 @@ async def category_selection(callback: CallbackQuery, widget: Select, dialog_man
 
 # Хэндлер для ввода новой категории
 async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    category = await Category.create(name=text)
+    user_id = dialog_manager.event.from_user.id
+    category = await Category.create(name=text, user_id=user_id)
     dialog_manager.dialog_data['category'] = category.name
     await dialog_manager.next()
 
@@ -46,8 +47,8 @@ async def category_input(message: Message, widget: ManagedTextInput, dialog_mana
 # Хэндлер для ввода текста фразы
 async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     spaced_phrase = gpt_add_space(text)
-    user = dialog_manager.event.from_user
-    user = await User.get_or_none(id=user.id)
+    user_id = dialog_manager.event.from_user.id
+    user = await User.get_or_none(id=user_id)
     category_name = dialog_manager.dialog_data['category']
     category = await Category.get(name=category_name)
     await LexisPhrase.create(
