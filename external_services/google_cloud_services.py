@@ -40,9 +40,7 @@ def list_voices(language_code=None):
 def google_text_to_speech(voice_name: str, text: str):
     language_code = "-".join(voice_name.split("-")[:2])
     text_input = tts.SynthesisInput(text=text)
-    voice_params = tts.VoiceSelectionParams(
-        language_code=language_code, name=voice_name
-    )
+    voice_params = tts.VoiceSelectionParams( language_code=language_code, name=voice_name)
     audio_config = tts.AudioConfig(audio_encoding=tts.AudioEncoding.OGG_OPUS)
 
     client = tts.TextToSpeechClient()

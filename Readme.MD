@@ -1,35 +1,77 @@
 # Бот для изучения языков
 
 ### Установка:
-
-`git clone git@github.com:BigGarik/anna_nihongo_bot.git`
-
+```bash
+git clone git@github.com:BigGarik/anna_nihongo_bot.git
+```
 Установить зависимости
+```bash
+sudo apt install redis-server ffmpeg
+```
+```bash
+sudo service redis-server start
+```
+```bash
+sudo service redis-server  status
+```
 
-`sudo apt install redis-server ffmpeg`
-
-`sudo service redis-server start`
-
-`sudo service redis-server  status`
 
 Создание виртуального окружения
+```bash
+python3 -m venv venv
+```
+```bash
+source venv/bin/activate
+```
+```bash
+pip install --upgrade pip
+```
+```bash
+pip install -r requirements.txt
+```
 
-`python3 -m venv venv`
+### Миграция
 
-`source venv/bin/activate`
+Инициализация Aerich:
+```bash
+aerich init -t db.config.TORTOISE_ORM
+```
+Создание первой миграции:
+```bash
+aerich init-db
+```
+Создание новой миграции:
+```bash
+aerich migrate
+```
+Применение миграций:
+```bash
+aerich upgrade
+```
+Откат последней миграции:
+```bash
+aerich downgrade
+```
+Просмотр статуса миграций:
+```bash
+aerich history
+```
+Просмотр текущего состояния базы данных:
+```bash
+aerich heads
+```
 
-`pip install --upgrade pip`
-
-`pip install -r requirements.txt`
-
-Запуск
-
-`python3 -m bot`
-
+#### Запуск бота
+```bash
+python3 -m bot
+```
 ### Docker
-
-`docker build -t anna_nihongo_bot:latest .`
-
-`docker compose up`
-
-`docker compose down`
+```bash
+docker build -t anna_nihongo_bot:latest .
+```
+```bash
+docker compose up
+```
+```bash
+docker compose down
+```

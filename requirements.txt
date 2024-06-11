@@ -8,8 +8,8 @@ openai
 pydub
 PyYAML
 SpeechRecognition==3.10.4
-tortoise-orm==0.21.1
-asyncpg==0.29.0
+tortoise-orm
+asyncpg
 redis==5.0.4
 aiogram-dialog
 
@@ -17,3 +17,4 @@ httpx
 python-dotenv
 google-cloud-texttospeech
 aiohttp
+aerich

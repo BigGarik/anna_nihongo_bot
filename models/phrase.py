@@ -5,6 +5,7 @@ from aiogram.utils.i18n import gettext as _
 class Category(models.Model):
     id = fields.IntField(pk=True)
     name = fields.TextField()
+    user = fields.ForeignKeyField('models.User', related_name='categories', null=True)
 
 
 class AudioFile(models.Model):
@@ -33,14 +34,16 @@ class PronunciationCategory(models.Model):
 
 class PronunciationPhrase(models.Model):
     id = fields.IntField(pk=True)
-    slug = fields.CharField(max_length=255, unique=True)
-    audio = fields.ForeignKeyField('models.AudioFile', related_name='phrases_audio')
+    slug = fields.CharField(max_length=255, unique=True, null=True)
+
     category = fields.ForeignKeyField('models.PronunciationCategory', related_name='categories')
     text = fields.CharField(max_length=255, unique=True)
     translation = fields.TextField()
-    comment = fields.TextField()
-    plot_image = fields.BinaryField()
-    image = fields.BinaryField()
+
+    audio = fields.ForeignKeyField('models.AudioFile', related_name='phrases_audio')
+    comment = fields.TextField(null=True)
+    plot_image = fields.BinaryField(null=True)
+    image = fields.BinaryField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
@@ -50,8 +53,9 @@ class PronunciationPhrase(models.Model):
 
 class LexisPhrase(models.Model):
     id = fields.IntField(pk=True)
+    category = fields.ForeignKeyField('models.Category', related_name='lexis_phrases')
     phrase = fields.CharField(max_length=255, unique=True)
     spaced_phrase = fields.CharField(max_length=255, unique=True)
-    group = fields.ForeignKeyField('models.UserGroup', related_name='lexis_group', null=True)
-    teacher = fields.ForeignKeyField('models.Teacher', related_name='lexis_teacher', null=True)
-    user = fields.ForeignKeyField('models.User', related_name='lexis_user', null=True)
+    group = fields.ForeignKeyField('models.UserGroup', related_name='lexis_phrases', null=True)
+    teacher = fields.ForeignKeyField('models.Teacher', related_name='lexis_phrases', null=True)
+    user = fields.ForeignKeyField('models.User', related_name='lexis_phrases', null=True)

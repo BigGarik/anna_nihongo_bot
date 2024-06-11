@@ -1,7 +1,12 @@
 import os
 import random
 
+from dotenv import load_dotenv
 from mutagen import File
+
+
+load_dotenv()
+location = os.getenv('LOCATION')
 
 
 def get_folders(dir_to_folders: str) -> dict[str, str]:
@@ -75,7 +80,10 @@ def replace_random_words(phrase):
     words[second_index] = '___'
 
     # Возвращаем измененную фразу
-    return ''.join(words)
+    if location == 'ja-JP':
+        return ''.join(words)
+    else:
+        return ' '.join(words)
 
 
 BUTTONS: dict[str, str] = {
@@ -94,4 +102,4 @@ if __name__ == "__main__":
     # print(get_folders('../original_files'))
     # print(create_kb_file('../original_files/Spy Family'))
     print(get_all_tags('../original_files/Spy Family/kawaisouni.ogg'))
-    print(get_tag('../original_files/Spy Family/kawaisouni.ogg', 'translation'))
+    # print(get_tag('../original_files/Spy Family/kawaisouni.ogg', 'translation'))

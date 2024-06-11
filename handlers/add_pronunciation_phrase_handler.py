@@ -14,12 +14,12 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 from bot_init import bot
 from external_services.openai_services import text_to_speech
 from handlers.states import AddOriginalPhraseSG
-from models import Category, AudioFile
+from models import PronunciationCategory, PronunciationPhrase, AudioFile
 
 
 # Функция для динамического создания кнопок
 async def get_categories(**kwargs):
-    categories = await Category.all()
+    categories = await PronunciationCategory.all()
     items = [(category.name, str(category.id)) for category in categories]
     return {'categories': items}
 
@@ -36,13 +36,13 @@ def first_state_audio_getter(data, widget, dialog_manager: DialogManager):
 async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str) -> None:
     # Добавить категорию в dialog_data
     dialog_manager.dialog_data['category'] = text
-    await Category.create(name=text)
+    await PronunciationCategory.create(name=text)
     await dialog_manager.next()
 
 
 # Это хэндлер, срабатывающий на нажатие кнопки с категорией фразы
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    category = await Category.get(id=item_id)
+    category = await PronunciationCategory.get_or_none(id=item_id)
     dialog_manager.dialog_data['category'] = category.name
     await dialog_manager.next()
 
@@ -68,17 +68,17 @@ async def audio_handler(message: Message, widget: MessageInput, dialog_manager: 
 
         # Конвертирование аудио в формат .OGG с кодеком OPUS
         audio = AudioSegment.from_file(file_name)
-        audio.export('output_audio.ogg', format='ogg', codec='libopus')
+        audio.export(f'{file_id}.ogg', format='ogg', codec='libopus')
 
         # Чтение сконвертированного аудио файла
-        with open('output_audio.ogg', 'rb') as f:
+        with open(f'{file_id}.ogg', 'rb') as f:
             audio_data = f.read()
 
         audio_data_base64 = base64.b64encode(audio_data).decode('utf-8')
 
         # Удаление временных файлов
         os.remove(file_name)
-        os.remove('output_audio.ogg')
+        os.remove(f'{file_id}.ogg')
 
         audio = {
             'tg_id': '',
@@ -89,29 +89,22 @@ async def audio_handler(message: Message, widget: MessageInput, dialog_manager: 
     elif message.voice:
         file = await bot.get_file(file_id)
         file_path = file.file_path
-        await bot.download_file(file_path, 'output_audio.ogg')
+        await bot.download_file(file_path, f'{file_id}.ogg')
 
         # Чтение голосового сообщения
-        with open('output_audio.ogg', 'rb') as f:
+        with open(f'{file_id}.ogg', 'rb') as f:
             audio_data = f.read()
 
         audio_data_base64 = base64.b64encode(audio_data).decode('utf-8')
 
         # Удаление временного файла
-        os.remove('output_audio.ogg')
+        os.remove(f'{file_id}.ogg')
 
         audio = {
             'tg_id': file_id,
             'audio': audio_data_base64
         }
         dialog_manager.dialog_data['audio'] = audio
-
-
-async def save_audio(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    if 'audio' in dialog_manager.dialog_data:
-        await dialog_manager.next()
-    else:
-        await callback.answer("Пока нет аудио для сохранения")
 
 
 async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -122,6 +115,52 @@ async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manag
         'audio': audio_data
     }
     dialog_manager.dialog_data['audio'] = audio
+
+
+async def save_audio(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    if 'audio' in dialog_manager.dialog_data:
+        await dialog_manager.next()
+    else:
+        await callback.answer("Пока нет аудио для сохранения")
+
+
+async def image_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
+    # Обработчик для загрузки изображения
+    file_id = message.photo[-1].file_id
+    file = await bot.get_file(file_id)
+    file_path = file.file_path
+    await bot.download_file(file_path, f'{file_id}.jpg')
+    with open(f'{file_id}.jpg', 'rb') as f:
+        image_data = f.read()
+    image_data_base64 = base64.b64encode(image_data).decode('utf-8')
+    os.remove(f'{file_id}.jpg')
+    image = {'tg_id': file_id, 'image': image_data_base64}
+    dialog_manager.dialog_data['image'] = image
+
+
+async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    # Функция для генерации изображения автоматически
+    # Пример: image_data = await generate_image(dialog_manager.dialog_data['text'])
+    image_data = 'base64_encoded_image_data'
+    image = {'tg_id': '', 'image': image_data}
+    dialog_manager.dialog_data['image'] = image
+
+
+async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str) -> None:
+    dialog_manager.dialog_data['comment'] = text
+    await dialog_manager.next()
+
+
+async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    category = await PronunciationCategory.get_or_none(name=dialog_manager.dialog_data['category'])
+    audio = await AudioFile.create(tg_id=dialog_manager.dialog_data['audio']['tg_id'],
+                                   audio=dialog_manager.dialog_data['audio']['audio'])
+    await PronunciationPhrase.create(
+        category=category,
+        text=dialog_manager.dialog_data['text'],
+        translation=dialog_manager.dialog_data['translation'],
+        audio=audio,
+    )
 
 
 add_original_phrase_dialog = Dialog(
@@ -211,7 +250,8 @@ add_original_phrase_dialog = Dialog(
     # image = State()
     Window(
         Const(text='Отправьте иллюстрацию для фразы, сгенерируйте или просто пропустите этот шаг:'),
-
+        MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
+        Button(Const('🖼 Сгенерировать'), id='ai_image', on_click=ai_image),
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
@@ -224,12 +264,31 @@ add_original_phrase_dialog = Dialog(
     # comment = State()
     Window(
         Const(text='Здесь можно добавить комментарий к фразе:'),
+        TextInput(id='comment_input', on_success=comment_input),
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
-
+            Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
         state=AddOriginalPhraseSG.comment
+    ),
+    # save = State()
+    Window(
+        Multi(
+            Format('Суммарная информация'),
+            Const(text='Сохранить фразу?'),
+        ),
+        Group(
+            Back(Const('◀️ Назад'), id='back'),
+            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Button(
+                text=Const('✅ Сохранить'),
+                id='save_phrase',
+                on_click=save_phrase_button_clicked,
+            ),
+            width=3
+        ),
+        state=AddOriginalPhraseSG.save
     ),
 )

@@ -1,3 +1,4 @@
+import os
 import re
 
 from aiogram.enums import ContentType
@@ -6,11 +7,16 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group
 from aiogram_dialog.widgets.text import Const
+from dotenv import load_dotenv
 
 from external_services.google_cloud_services import google_text_to_speech
 from .states import TextToSpeechSG
 from .. import main_page_button_clicked
 from models import TextToSpeech
+
+
+load_dotenv()
+voice_name = os.getenv('VOICE_NAME')
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -24,7 +30,7 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
         await message.answer_voice(voice=voice.voice_id, caption=f'{text}\nСлушайте и повторяйте')
 
     else:
-        response = google_text_to_speech('ja-JP-Wavenet-A', text)
+        response = google_text_to_speech(voice_name, text)
         voice = BufferedInputFile(response.audio_content, filename="voice_tts.txt")
         msg = await message.answer_voice(voice=voice, caption=f'{text}\nСлушайте и повторяйте')
         voice_id = msg.voice.file_id

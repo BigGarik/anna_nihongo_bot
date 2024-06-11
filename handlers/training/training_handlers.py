@@ -3,19 +3,16 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
-from .states import PronunciationTrainingSG, LexisTrainingSG, TextToSpeechSG, UserTrainingSG
+from .states import PronunciationTrainingSG, TextToSpeechSG, UserTrainingSG, LexisSG
 
 
 async def pronunciation_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=PronunciationTrainingSG.start)
+    await dialog_manager.start(state=PronunciationTrainingSG.select_category)
 
 
-async def grammar_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+async def lexis_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     # await dialog_manager.done()
-    await dialog_manager.start(state=LexisTrainingSG.start)
-
-
-
+    await dialog_manager.start(state=LexisSG.start)
 
 
 user_training_dialog = Dialog(
@@ -27,8 +24,8 @@ user_training_dialog = Dialog(
             on_click=pronunciation_button_clicked),
         Button(
             text=Const('🎯 Лексика'),
-            id='grammar',
-            on_click=grammar_button_clicked),
+            id='lexis',
+            on_click=lexis_button_clicked),
         Cancel(Const('❌ Отмена'), id='button_cancel'),
         state=UserTrainingSG.start
     ),

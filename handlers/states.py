@@ -20,4 +20,10 @@ class AddOriginalPhraseSG(StatesGroup):
     audio = State()
     image = State()
     comment = State()
+    save = State()
+
+
+class AddPhraseSG(StatesGroup):
+    category = State()
+    phrase = State()
 

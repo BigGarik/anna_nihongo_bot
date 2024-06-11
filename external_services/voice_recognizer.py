@@ -2,12 +2,17 @@ import logging
 import os
 
 import speech_recognition as sr
+from dotenv import load_dotenv
 from pydub import AudioSegment
 from speech_recognition import UnknownValueError
 
 from lexicon.lexicon_ru import LEXICON_RU
 
 logger = logging.getLogger(__name__)
+
+
+load_dotenv()
+location = os.getenv('LOCATION')
 
 
 class SpeechRecognizer:
@@ -26,7 +31,7 @@ class SpeechRecognizer:
         with sr.AudioFile(f"{self.user_id}temp.wav") as source:
             audio_data = recognizer.record(source)
             try:
-                text = recognizer.recognize_google(audio_data, language="ja-JP")
+                text = recognizer.recognize_google(audio_data, language=location)
             # text = recognizer.recognize_google(audio_data, language="en-US")
             except UnknownValueError:
                 text = LEXICON_RU['value_error']
