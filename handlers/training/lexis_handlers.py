@@ -90,9 +90,6 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
 
 
 async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    print(text)
-    print(dialog_manager.dialog_data['question'])
-
     dialog_manager.dialog_data['answer'] = text
     if dialog_manager.dialog_data['question'] == text:
         await message.answer('Ура!!! Ты лучший! 🥳')
@@ -113,7 +110,6 @@ async def category_selection(callback: CallbackQuery, widget: Select, dialog_man
     random_phrase = await LexisPhrase.filter(category_id=item_id).annotate(
         random_order=RawSQL("RANDOM()")).order_by("random_order").first()
     with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
-    print(random_phrase.phrase)
     dialog_manager.dialog_data['question'] = random_phrase.phrase
     category = await Category.get_or_none(id=item_id)
     dialog_manager.dialog_data['category'] = category.name
