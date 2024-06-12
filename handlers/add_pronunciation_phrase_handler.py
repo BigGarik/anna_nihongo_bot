@@ -12,14 +12,14 @@ from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Next, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from bot_init import bot
-from external_services.openai_services import text_to_speech
+from external_services.openai_services import openai_text_to_speech
 from handlers.states import AddOriginalPhraseSG
-from models import PronunciationCategory, PronunciationPhrase, AudioFile
+from models import AudioFile, Category, Phrase
 
 
 # Функция для динамического создания кнопок
 async def get_categories(**kwargs):
-    categories = await PronunciationCategory.all()
+    categories = await Category.all()
     items = [(category.name, str(category.id)) for category in categories]
     return {'categories': items}
 
@@ -33,28 +33,28 @@ def first_state_audio_getter(data, widget, dialog_manager: DialogManager):
 
 
 # Это хэндлер, срабатывающий на ввод категории пользователем
-async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str) -> None:
+async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, category: str) -> None:
     # Добавить категорию в dialog_data
-    dialog_manager.dialog_data['category'] = text
-    await PronunciationCategory.create(name=text)
+    dialog_manager.dialog_data['category'] = category
+    await Category.create(name=category)
     await dialog_manager.next()
 
 
 # Это хэндлер, срабатывающий на нажатие кнопки с категорией фразы
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    category = await PronunciationCategory.get_or_none(id=item_id)
+    category = await Category.get_or_none(id=item_id)
     dialog_manager.dialog_data['category'] = category.name
     await dialog_manager.next()
 
 
-async def text_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str) -> None:
-    dialog_manager.dialog_data['text'] = text
+async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str) -> None:
+    dialog_manager.dialog_data['text_phrase'] = text_phrase
     await dialog_manager.next()
 
 
 async def translation_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
-                            text: str) -> None:
-    dialog_manager.dialog_data['translation'] = text
+                            translation: str) -> None:
+    dialog_manager.dialog_data['translation'] = translation
     await dialog_manager.next()
 
 
@@ -108,8 +108,8 @@ async def audio_handler(message: Message, widget: MessageInput, dialog_manager: 
 
 
 async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    text = dialog_manager.dialog_data['text']
-    audio_data = await text_to_speech(text)
+    text_phrase = dialog_manager.dialog_data['text_phrase']
+    audio_data = await openai_text_to_speech(text_phrase)
     audio = {
         'tg_id': '',
         'audio': audio_data
@@ -146,18 +146,18 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     dialog_manager.dialog_data['image'] = image
 
 
-async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str) -> None:
-    dialog_manager.dialog_data['comment'] = text
+async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, comment: str) -> None:
+    dialog_manager.dialog_data['comment'] = comment
     await dialog_manager.next()
 
 
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    category = await PronunciationCategory.get_or_none(name=dialog_manager.dialog_data['category'])
+    category = await Category.get_or_none(name=dialog_manager.dialog_data['category'])
     audio = await AudioFile.create(tg_id=dialog_manager.dialog_data['audio']['tg_id'],
                                    audio=dialog_manager.dialog_data['audio']['audio'])
-    await PronunciationPhrase.create(
+    await Phrase.create(
         category=category,
-        text=dialog_manager.dialog_data['text'],
+        text_phrase=dialog_manager.dialog_data['text_phrase'],
         translation=dialog_manager.dialog_data['translation'],
         audio=audio,
     )
@@ -193,8 +193,8 @@ add_original_phrase_dialog = Dialog(
     Window(
         Const(text='Введите текст новой фразы:'),
         TextInput(
-            id='text_input',
-            on_success=text_input,
+            id='text_phrase_input',
+            on_success=text_phrase_input,
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
@@ -202,7 +202,7 @@ add_original_phrase_dialog = Dialog(
             Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
-        state=AddOriginalPhraseSG.text
+        state=AddOriginalPhraseSG.text_phrase
     ),
 
     # translation = State()

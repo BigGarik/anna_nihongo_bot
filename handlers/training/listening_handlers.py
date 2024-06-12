@@ -15,10 +15,6 @@ from .. import main_page_button_clicked
 from models import TextToSpeech
 
 
-load_dotenv()
-voice_name = os.getenv('VOICE_NAME')
-
-
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     user_id = message.from_user.id
     # Создать имя файла из строки
@@ -30,7 +26,7 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
         await message.answer_voice(voice=voice.voice_id, caption=f'{text}\nСлушайте и повторяйте')
 
     else:
-        response = google_text_to_speech(voice_name, text)
+        response = google_text_to_speech(text)
         voice = BufferedInputFile(response.audio_content, filename="voice_tts.txt")
         msg = await message.answer_voice(voice=voice, caption=f'{text}\nСлушайте и повторяйте')
         voice_id = msg.voice.file_id

@@ -19,10 +19,10 @@ class User(models.Model):
 
 
 class Teacher(User):
-    id = fields.CharField(max_length=100, pk=True)
+    code = fields.CharField(max_length=100)
+    group = fields.ManyToManyField('models.UserGroup', related_name='teachers', null=True)
 
 
 class Student(User):
-    id = fields.IntField(pk=True)
-    group = fields.ManyToManyField('models.UserGroup', related_name='user_group', null=True)
-    teacher = fields.ManyToManyField('models.Teacher', related_name='teacher', null=True)
+    teacher = fields.ManyToManyField('models.Teacher', related_name='students', null=True)
+    group = fields.ManyToManyField('models.UserGroup', related_name='students', null=True)

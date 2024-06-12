@@ -8,22 +8,22 @@ from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
-from models import PronunciationCategory, PronunciationPhrase
+from models import Phrase, Category
 from .states import PronunciationTrainingSG
 from .. import main_page_button_clicked
 
 
 # Функция для динамического создания кнопок
 async def get_categories(**kwargs):
-    categories = await PronunciationCategory.all()
+    categories = await Category.all()
     items = [(category.name, str(category.id)) for category in categories]
     return {'categories': items}
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
     category_id = dialog_manager.dialog_data['category_id']
-    phrases = await PronunciationPhrase.filter(category_id=category_id).all()
-    items = [(phrase.text, str(phrase.id)) for phrase in phrases]
+    phrases = await Phrase.filter(category_id=category_id).all()
+    items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
     return {'phrases': items}
 
 
@@ -35,22 +35,22 @@ async def voice_message_handler(message: Message, widget: MessageInput, dialog_m
 async def category_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
     # нужно создать словарь и положить его в dialog_data с именами и ИД фраз из выбранной категории
 
-    category = await PronunciationCategory.get(id=item_id)
+    category = await Category.get(id=item_id)
     dialog_manager.dialog_data['category_id'] = category.id
 
     await dialog_manager.next()
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
-    phrase = await PronunciationPhrase.get_or_none(id=item_id)
+    phrase = await Phrase.get_or_none(id=item_id)
     if phrase:
-        await callback.message.answer(f"Selected phrase: {phrase.slug}")
+        await callback.message.answer(f"Selected phrase: {phrase.text_phrase}")
     else:
         await callback.message.answer("Phrase not found.")
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    phrases = await PronunciationPhrase.all()
+    phrases = await Phrase.all()
     if phrases:
         random_phrase = random.choice(phrases)
         await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))

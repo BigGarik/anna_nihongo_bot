@@ -14,9 +14,9 @@ from tortoise.exceptions import DoesNotExist
 from tortoise.expressions import RawSQL
 
 from bot_init import bot
-from external_services.openai_services import gpt_add_space
+from external_services.openai_services import openai_gpt_add_space
 from external_services.voice_recognizer import SpeechRecognizer
-from models import User, LexisPhrase, Category
+from models import User, Phrase, Category
 
 from services.services import replace_random_words
 from .states import LexisTrainingSG, LexisSG
@@ -73,12 +73,12 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
 
 # async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
 #     dialog_manager.dialog_data['question'] = text
-#     phrase = await LexisPhrase.get_or_none(phrase=text)
+#     phrase = await Phrase.get_or_none(phrase=text)
 #     # Запикать звездочками часть слов
 #     if not phrase:
 #         user = await User.get_or_none(id=message.from_user.id)
 #         spaced_phrase = gpt_add_space(text)
-#         phrase = await LexisPhrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
+#         phrase = await Phrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
 #
 #     spaced_phrase = phrase.spaced_phrase
 #     with_gap_phrase = replace_random_words(spaced_phrase)
@@ -107,10 +107,10 @@ async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dia
 
 # Хэндлер для выбора категории
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    random_phrase = await LexisPhrase.filter(category_id=item_id).annotate(
+    random_phrase = await Phrase.filter(category_id=item_id).annotate(
         random_order=RawSQL("RANDOM()")).order_by("random_order").first()
     with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
-    dialog_manager.dialog_data['question'] = random_phrase.phrase
+    dialog_manager.dialog_data['question'] = random_phrase.text_phrase
     category = await Category.get_or_none(id=item_id)
     dialog_manager.dialog_data['category'] = category.name
 

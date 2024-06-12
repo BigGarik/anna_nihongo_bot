@@ -1,6 +1,10 @@
 import os
 from typing import Sequence
 import google.cloud.texttospeech as tts
+from dotenv import load_dotenv
+
+load_dotenv()
+voice_name = os.getenv('VOICE_NAME')
 
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "anna-nihongo-bot-96c6f518f0cd.json"
 
@@ -37,7 +41,7 @@ def list_voices(language_code=None):
         print(f"{languages:<8} | {name:<24} | {gender:<8} | {rate:,} Hz")
 
 
-def google_text_to_speech(voice_name: str, text: str):
+def google_text_to_speech(text: str):
     language_code = "-".join(voice_name.split("-")[:2])
     text_input = tts.SynthesisInput(text=text)
     voice_params = tts.VoiceSelectionParams( language_code=language_code, name=voice_name)

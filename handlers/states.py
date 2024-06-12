@@ -15,7 +15,7 @@ class AdminDialogSG(StatesGroup):
 
 class AddOriginalPhraseSG(StatesGroup):
     category = State()
-    text = State()
+    text_phrase = State()
     translation = State()
     audio = State()
     image = State()

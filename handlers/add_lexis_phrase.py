@@ -9,10 +9,11 @@ from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Next, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
 from tortoise import fields, models
 from bot_init import bot
-from external_services.openai_services import gpt_add_space
+from external_services.google_cloud_services import google_text_to_speech
+from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers import main_page_button_clicked
 from handlers.states import AddPhraseSG
-from models import Category, LexisPhrase, User
+from models import Category, Phrase, User, AudioFile
 
 
 # Функция для динамического создания кнопок с категориями
@@ -45,16 +46,23 @@ async def category_input(message: Message, widget: ManagedTextInput, dialog_mana
 
 
 # Хэндлер для ввода текста фразы
-async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    spaced_phrase = gpt_add_space(text)
-    user_id = dialog_manager.event.from_user.id
-    user = await User.get_or_none(id=user_id)
+async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str):
     category_name = dialog_manager.dialog_data['category']
     category = await Category.get(name=category_name)
-    await LexisPhrase.create(
+    spaced_phrase = openai_gpt_add_space(text_phrase)
+
+    translation = openai_gpt_translate(text_phrase),
+    audio = await AudioFile.create(audio=google_text_to_speech(text_phrase))
+
+    user_id = dialog_manager.event.from_user.id
+    user = await User.get_or_none(id=user_id)
+
+    await Phrase.create(
         category=category,
-        phrase=text,
+        text_phrase=text_phrase,
         spaced_phrase=spaced_phrase,
+        translation=translation,
+        audio=audio,
         user=user
     )
     await message.answer('Фраза добавлена! ✅')
