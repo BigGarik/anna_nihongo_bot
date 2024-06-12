@@ -51,8 +51,10 @@ async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manage
     category = await Category.get(name=category_name)
     spaced_phrase = openai_gpt_add_space(text_phrase)
 
-    translation = openai_gpt_translate(text_phrase),
-    audio = await AudioFile.create(audio=google_text_to_speech(text_phrase))
+    translation = openai_gpt_translate(text_phrase)
+
+    text_to_speech = google_text_to_speech(text_phrase)
+    audio = await AudioFile.create(audio=text_to_speech.audio_content)
 
     user_id = dialog_manager.event.from_user.id
     user = await User.get_or_none(id=user_id)
