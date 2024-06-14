@@ -2,22 +2,16 @@ import os
 from pathlib import Path
 
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
+from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Row, Group, Select
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
-from dotenv import load_dotenv
-from tortoise.contrib.postgres.functions import Random
-
-from tortoise.exceptions import DoesNotExist
 from tortoise.expressions import RawSQL
 
 from bot_init import bot
-from external_services.openai_services import openai_gpt_add_space
 from external_services.voice_recognizer import SpeechRecognizer
-from models import User, Phrase, Category
-
+from models import User, Phrase, Category, UserAnswer, AudioFile
 from services.services import replace_random_words
 from .states import LexisTrainingSG, LexisSG
 from .. import main_page_button_clicked
@@ -27,15 +21,37 @@ from ..states import AddPhraseSG
 # Функция для динамического создания кнопок с категориями
 async def get_user_categories(dialog_manager: DialogManager, **kwargs):
     user_id = dialog_manager.event.from_user.id
-    categories = await Category.filter(lexis_phrases__user_id=user_id).distinct().all()
+    categories = await Category.filter(phrases__user_id=user_id).distinct().all()
 
     items = [(category.name, str(category.id)) for category in categories]
     return {'categories': items}
 
 
-async def get_current_category(dialog_manager: DialogManager, **kwargs):
+async def get_category(dialog_manager: DialogManager, **kwargs):
     category_name = dialog_manager.dialog_data['category']
     return {'category': category_name}
+
+
+async def get_context(dialog_manager: DialogManager, **kwargs):
+    with_gap_phrase = dialog_manager.dialog_data['with_gap_phrase']
+    question = dialog_manager.dialog_data['question']
+    translation = dialog_manager.dialog_data['translation']
+    counter = dialog_manager.dialog_data['counter']
+    category = dialog_manager.dialog_data['category']
+
+    return {'with_gap_phrase': with_gap_phrase,
+            'question': question,
+            'translation': translation,
+            'counter': counter,
+            'category': category}
+
+
+def get_counter(data, widget, dialog_manager: DialogManager):
+    ''' проверить столько неправильных ответоа
+     если 3 и больше, то count_answer = True '''
+    if dialog_manager.dialog_data.get('counter', 0) >= 3:
+        return True
+    return False
 
 
 def first_answer_getter(data, widget, dialog_manager: DialogManager):
@@ -54,7 +70,7 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
     file = await bot.get_file(file_id)
     file_path = file.file_path
     file_on_disk = Path("", f"temp/{file_id}.ogg")
-    await bot.download_file(file_path, destination=file_on_disk)
+    file = await bot.download_file(file_path, destination=file_on_disk)
 
     spoken_recognizer = SpeechRecognizer(file_on_disk, user_id)
     spoken_answer = spoken_recognizer.recognize_speech()
@@ -62,39 +78,55 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
     # Удаление временного файла
     os.remove(file_on_disk)
 
+    audio_file = AudioFile(tg_id=file_id, audio=file.read())
+    await audio_file.save()
+
     dialog_manager.dialog_data['answer'] = spoken_answer
+    text_phrase = dialog_manager.dialog_data['question']
+    phrase = await Phrase.get_or_none(text_phrase=text_phrase)
+    user_id = dialog_manager.event.from_user.id
+    user = await User.get_or_none(id=user_id)
+    user_answer = UserAnswer(
+        user=user,
+        phrase=phrase,
+        answer_text=spoken_answer,
+        audio=audio_file,
+    )
     if dialog_manager.dialog_data['question'] == spoken_answer:
+        dialog_manager.dialog_data['counter'] = 0
+        user_answer.result = True
         await message.answer(f'Ты произнес:\n{spoken_answer}\n\nУра!!! Ты лучший! 🥳')
         dialog_manager.dialog_data.pop('answer', None)
         await dialog_manager.back()
     else:
         await message.answer(f'Кажется ты произнес:\n{spoken_answer}')
+        user_answer.result = False
+    await user_answer.save()
 
 
-# async def lexis_training_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-#     dialog_manager.dialog_data['question'] = text
-#     phrase = await Phrase.get_or_none(phrase=text)
-#     # Запикать звездочками часть слов
-#     if not phrase:
-#         user = await User.get_or_none(id=message.from_user.id)
-#         spaced_phrase = gpt_add_space(text)
-#         phrase = await Phrase.create(phrase=text, spaced_phrase=spaced_phrase, user=user)
-#
-#     spaced_phrase = phrase.spaced_phrase
-#     with_gap_phrase = replace_random_words(spaced_phrase)
-#     # Удаление сообщения пользователя
-#     await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
-#
-#     await message.answer(with_gap_phrase)
-#     await dialog_manager.next()
-
-
-async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    dialog_manager.dialog_data['answer'] = text
-    if dialog_manager.dialog_data['question'] == text:
+async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
+                            answer_text: str):
+    dialog_manager.dialog_data['answer'] = answer_text
+    text_phrase = dialog_manager.dialog_data['question']
+    phrase = await Phrase.get_or_none(text_phrase=text_phrase)
+    user_id = dialog_manager.event.from_user.id
+    user = await User.get_or_none(id=user_id)
+    user_answer = UserAnswer(
+        user=user,
+        phrase=phrase,
+        answer_text=answer_text,
+    )
+    if dialog_manager.dialog_data['question'] == answer_text:
+        dialog_manager.dialog_data['counter'] = 0
+        user_answer.result = True
         await message.answer('Ура!!! Ты лучший! 🥳')
         dialog_manager.dialog_data.pop('answer', None)
         await dialog_manager.back()
+
+    else:
+        dialog_manager.dialog_data['counter'] += 1
+        user_answer.result = False
+    await user_answer.save()
 
 
 async def exercises_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -110,12 +142,34 @@ async def category_selection(callback: CallbackQuery, widget: Select, dialog_man
     random_phrase = await Phrase.filter(category_id=item_id).annotate(
         random_order=RawSQL("RANDOM()")).order_by("random_order").first()
     with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
+    dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
     dialog_manager.dialog_data['question'] = random_phrase.text_phrase
+    dialog_manager.dialog_data['audio_id'] = random_phrase.audio_id
+    dialog_manager.dialog_data['translation'] = random_phrase.translation
+    dialog_manager.dialog_data['counter'] = 0
     category = await Category.get_or_none(id=item_id)
     dialog_manager.dialog_data['category'] = category.name
 
-    await callback.message.answer(with_gap_phrase)
+    # await callback.message.answer(with_gap_phrase)
     await dialog_manager.next()
+
+
+async def listen_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    audio_id = dialog_manager.dialog_data['audio_id']
+    audio = await AudioFile.get_or_none(id=audio_id)
+    if audio.tg_id:
+        # Если tg_id заполнено, отправляем по ID
+        await bot.send_voice(chat_id=callback.from_user.id, voice=audio.tg_id)
+    else:
+        # Если tg_id пустое, отправляем аудиофайл и сохраняем его ID
+        # Создаем временный файл для отправки
+        with open(f"{dialog_manager.dialog_data['question']}.ogg", 'wb') as f:
+            f.write(audio.audio)
+        sent_message = await callback.message.answer_voice(
+            FSInputFile(f"{dialog_manager.dialog_data['question']}.ogg"))
+        audio.tg_id = sent_message.voice.file_id
+        await audio.save()
+        os.remove(f"{dialog_manager.dialog_data['question']}.ogg")
 
 
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
@@ -177,10 +231,13 @@ lexis_training_dialog = Dialog(
     Window(
         Multi(
             Format('Выбранная категория: <b>{category}</b>'),
+            Format('Фраза:\n <strong>{with_gap_phrase}</strong>'),
+            Format('Перевод:\n <tg-spoiler>{translation}</tg-spoiler>'),
             Const('Попробуй еще раз ))',
                   when=first_answer_getter),
-            Const('Введите текст ответа:',
+            Const('Введи текст ответа:',
                   when=second_answer_getter),
+            sep='\n\n'
         ),
         MessageInput(
             func=answer_audio_handler,
@@ -194,6 +251,12 @@ lexis_training_dialog = Dialog(
             func=error_handler,
             content_types=ContentType.ANY,
         ),
+        Button(
+            text=Const('Послушать'),
+            id='listen',
+            on_click=listen_button_clicked,
+            when=get_counter
+        ),
         Group(
             Cancel(Const('❌ Отмена'), id='button_cancel'),
             Button(
@@ -203,7 +266,7 @@ lexis_training_dialog = Dialog(
             ),
             width=3
         ),
-        getter=get_current_category,
+        getter=get_context,
         state=LexisTrainingSG.waiting_answer,
     ),
 )

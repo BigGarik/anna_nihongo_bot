@@ -3,13 +3,13 @@ from tortoise import fields, models
 
 class Category(models.Model):
     id = fields.IntField(pk=True)
-    name = fields.TextField()
+    name = fields.CharField(max_length=255, unique=True)
     user = fields.ForeignKeyField('models.User', related_name='categories', null=True)
 
 
 class AudioFile(models.Model):
     id = fields.IntField(pk=True)
-    tg_id = fields.IntField(null=True)
+    tg_id = fields.CharField(max_length=255, null=True)
     audio = fields.BinaryField()
 
 
@@ -30,7 +30,7 @@ class Phrase(models.Model):
 
     text_phrase = fields.CharField(max_length=255, unique=True)
     spaced_phrase = fields.CharField(max_length=255, unique=True)
-    translation = fields.TextField(null=True)
+    translation = fields.CharField(max_length=255, null=True)
 
     category = fields.ForeignKeyField('models.Category', related_name='phrases')
     audio = fields.ForeignKeyField('models.AudioFile', related_name='phrases', null=True)
