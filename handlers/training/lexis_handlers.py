@@ -37,12 +37,29 @@ async def get_context(dialog_manager: DialogManager, **kwargs):
     translation = dialog_manager.dialog_data['translation']
     counter = dialog_manager.dialog_data['counter']
     category = dialog_manager.dialog_data['category']
+    category_id = dialog_manager.dialog_data['category_id']
 
     return {'with_gap_phrase': with_gap_phrase,
             'question': question,
             'translation': translation,
             'counter': counter,
-            'category': category}
+            'category': category,
+            'category_id': category_id}
+
+
+async def get_random_phrase(dialog_manager: DialogManager, item_id: str, **kwargs):
+    random_phrase = await Phrase.filter(category_id=item_id).annotate(
+        random_order=RawSQL("RANDOM()")).order_by("random_order").first()
+    with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
+    dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
+    dialog_manager.dialog_data['question'] = random_phrase.text_phrase
+    dialog_manager.dialog_data['audio_id'] = random_phrase.audio_id
+    dialog_manager.dialog_data['translation'] = random_phrase.translation
+    dialog_manager.dialog_data['counter'] = 0
+    category = await Category.get_or_none(id=item_id)
+    dialog_manager.dialog_data['category'] = category.name
+    dialog_manager.dialog_data['category_id'] = item_id
+
 
 
 def get_counter(data, widget, dialog_manager: DialogManager):
@@ -117,7 +134,9 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         user_answer.result = True
         await message.answer('Ура!!! Ты лучший! 🥳')
         dialog_manager.dialog_data.pop('answer', None)
-        await dialog_manager.back()
+        # await dialog_manager.back()
+        category_id = dialog_manager.dialog_data['category_id']
+        await get_random_phrase(dialog_manager, category_id)
 
     else:
         dialog_manager.dialog_data['counter'] += 1
@@ -135,16 +154,7 @@ async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dia
 
 # Хэндлер для выбора категории
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    random_phrase = await Phrase.filter(category_id=item_id).annotate(
-        random_order=RawSQL("RANDOM()")).order_by("random_order").first()
-    with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
-    dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
-    dialog_manager.dialog_data['question'] = random_phrase.text_phrase
-    dialog_manager.dialog_data['audio_id'] = random_phrase.audio_id
-    dialog_manager.dialog_data['translation'] = random_phrase.translation
-    dialog_manager.dialog_data['counter'] = 0
-    category = await Category.get_or_none(id=item_id)
-    dialog_manager.dialog_data['category'] = category.name
+    await get_random_phrase(dialog_manager, item_id)
 
     # await callback.message.answer(with_gap_phrase)
     await dialog_manager.next()
