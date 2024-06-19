@@ -1,31 +1,30 @@
 import datetime
 import logging
-import os
 import uuid
 from pathlib import Path
+
 import librosa
 from aiogram import Router, F, Bot
 from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import default_state, StatesGroup, State
-from aiogram.types import Message, FSInputFile, CallbackQuery, User, InlineKeyboardMarkup, \
+from aiogram.fsm.state import default_state
+from aiogram.types import Message, FSInputFile, CallbackQuery, InlineKeyboardMarkup, \
     InlineKeyboardButton
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
+from dotenv import load_dotenv
+
+from bot_init import bot, redis
 from db.requests import get_user_ids
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
-from . import username_getter
-from .states import StartDialogSG, UserStartDialogSG, AdminDialogSG
-from .training.states import UserTrainingSG, TextToSpeechSG
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
 from services.services import create_kb_file, get_folders, get_all_ogg_files, get_tag
 from states.states import FSMInLearn, user_dict
-from dotenv import load_dotenv
-from bot_init import bot, redis
-
+from . import username_getter
+from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG
 
 load_dotenv()
 
@@ -130,7 +129,7 @@ user_start_dialog = Dialog(
                     text=Const('🔊 Прослушивание (Озвучить текст)'),
                     id='tts',
                     on_click=tts_button_clicked),
-                ),
+            ),
         ),
         Row(
             Start(Const('⚙️ Настройки(для админов)'),

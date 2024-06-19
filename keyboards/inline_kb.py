@@ -3,9 +3,9 @@ import logging
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-# from services.services import BUTTONS
-
 logger = logging.getLogger(__name__)
+
+
 # Функция для генерации инлайн-клавиатур "на лету"
 def create_inline_kb(width: int,
                      *args: str,

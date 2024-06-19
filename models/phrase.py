@@ -19,7 +19,7 @@ class UserAnswer(models.Model):
     phrase = fields.ForeignKeyField('models.Phrase', related_name='user_answers')
 
     answer_text = fields.CharField(max_length=255, null=True)
-    audio = fields.ForeignKeyField('models.AudioFile', related_name='user_answers', null=True)
+    audio_id = fields.CharField(max_length=255, null=True)
     result = fields.BooleanField(default=False)
 
     created_at = fields.DatetimeField(auto_now_add=True)
@@ -33,13 +33,13 @@ class Phrase(models.Model):
     translation = fields.CharField(max_length=255, null=True)
 
     category = fields.ForeignKeyField('models.Category', related_name='phrases')
-    audio = fields.ForeignKeyField('models.AudioFile', related_name='phrases', null=True)
+    audio_id = fields.CharField(max_length=255, null=True)
     user = fields.ForeignKeyField('models.User', related_name='phrases', null=True)
     group = fields.ForeignKeyField('models.UserGroup', related_name='phrases', null=True)
     teacher = fields.ForeignKeyField('models.Teacher', related_name='phrases', null=True)
 
     plot_image = fields.BinaryField(null=True)
-    image = fields.BinaryField(null=True)
+    image_id = fields.CharField(max_length=255, null=True)
     comment = fields.TextField(null=True)
 
     created_at = fields.DatetimeField(auto_now_add=True)

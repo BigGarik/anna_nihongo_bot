@@ -13,9 +13,8 @@ from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, Category, UserAnswer, AudioFile
 from services.services import replace_random_words
-from .states import LexisTrainingSG, LexisSG
 from .. import main_page_button_clicked
-from ..states import AddPhraseSG
+from states import LexisTrainingSG, LexisSG, AddPhraseSG
 
 
 # Функция для динамического создания кнопок с категориями
@@ -66,20 +65,17 @@ def second_answer_getter(data, widget, dialog_manager: DialogManager):
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     user_id = message.from_user.id
     # Скачиваем файл
-    file_id = message.voice.file_id
-    file = await bot.get_file(file_id)
+    voice_id = message.voice.file_id
+    file = await bot.get_file(voice_id)
     file_path = file.file_path
-    file_on_disk = Path("", f"temp/{file_id}.ogg")
-    file = await bot.download_file(file_path, destination=file_on_disk)
+    file_on_disk = Path("", f"temp/{voice_id}.ogg")
+    await bot.download_file(file_path, destination=file_on_disk)
 
     spoken_recognizer = SpeechRecognizer(file_on_disk, user_id)
     spoken_answer = spoken_recognizer.recognize_speech()
 
     # Удаление временного файла
     os.remove(file_on_disk)
-
-    audio_file = AudioFile(tg_id=file_id, audio=file.read())
-    await audio_file.save()
 
     dialog_manager.dialog_data['answer'] = spoken_answer
     text_phrase = dialog_manager.dialog_data['question']
@@ -90,7 +86,7 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
         user=user,
         phrase=phrase,
         answer_text=spoken_answer,
-        audio=audio_file,
+        audio_id=voice_id,
     )
     if dialog_manager.dialog_data['question'] == spoken_answer:
         dialog_manager.dialog_data['counter'] = 0
@@ -155,21 +151,8 @@ async def category_selection(callback: CallbackQuery, widget: Select, dialog_man
 
 
 async def listen_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    audio_id = dialog_manager.dialog_data['audio_id']
-    audio = await AudioFile.get_or_none(id=audio_id)
-    if audio.tg_id:
-        # Если tg_id заполнено, отправляем по ID
-        await bot.send_voice(chat_id=callback.from_user.id, voice=audio.tg_id)
-    else:
-        # Если tg_id пустое, отправляем аудиофайл и сохраняем его ID
-        # Создаем временный файл для отправки
-        with open(f"{dialog_manager.dialog_data['question']}.ogg", 'wb') as f:
-            f.write(audio.audio)
-        sent_message = await callback.message.answer_voice(
-            FSInputFile(f"{dialog_manager.dialog_data['question']}.ogg"))
-        audio.tg_id = sent_message.voice.file_id
-        await audio.save()
-        os.remove(f"{dialog_manager.dialog_data['question']}.ogg")
+    voice_id = dialog_manager.dialog_data['audio_id']
+    await bot.send_voice(chat_id=callback.from_user.id, voice=voice_id)
 
 
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):

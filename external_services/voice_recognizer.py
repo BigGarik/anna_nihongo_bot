@@ -10,7 +10,6 @@ from lexicon.lexicon_ru import LEXICON_RU
 
 logger = logging.getLogger(__name__)
 
-
 load_dotenv()
 location = os.getenv('LOCATION')
 

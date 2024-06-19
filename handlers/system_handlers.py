@@ -1,10 +1,10 @@
 import os
 
 from aiogram.types import User, CallbackQuery
-from aiogram_dialog import DialogManager, StartMode
+from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button
 
-from .states import UserStartDialogSG
+from states import UserStartDialogSG
 
 
 async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):

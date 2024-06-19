@@ -1,7 +1,7 @@
 import os
+
 from dotenv import load_dotenv
 from tortoise import Tortoise
-
 
 load_dotenv()
 db_user = os.getenv('DB_USER')
@@ -10,7 +10,6 @@ db_host = os.getenv('DB_HOST')
 db_port = os.getenv('DB_PORT')
 database = os.getenv('DATABASE')
 db_url = f'postgres://{db_user}:{db_password}@{db_host}:{db_port}/{database}'
-
 
 TORTOISE_ORM = {
     "connections": {
@@ -31,11 +30,3 @@ async def init():
 
     # Генерируем схемы базы данных на основе моделей
     await Tortoise.generate_schemas()
-
-
-# async def init():
-#     await Tortoise.init(
-#         db_url=db_url,
-#         modules={'models': ['models.user', 'models.phrase', 'models.tts']}
-#     )
-#     await Tortoise.generate_schemas()

@@ -1,16 +1,15 @@
+import io
 import random
 
-from aiogram.enums import ContentType
-
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, InputFile
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
-from models import Phrase, Category
-from .states import PronunciationTrainingSG
+from models import Phrase, Category, AudioFile
 from .. import main_page_button_clicked
+from states import PronunciationTrainingSG
 
 
 # Функция для динамического создания кнопок
@@ -42,11 +41,17 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
-    phrase = await Phrase.get_or_none(id=item_id)
-    if phrase:
-        await callback.message.answer(f"Selected phrase: {phrase.text_phrase}")
-    else:
-        await callback.message.answer("Phrase not found.")
+    phrase = await Phrase.get_or_none(id=item_id).prefetch_related('audio')
+    audio = phrase.audio
+    audio_bytes = io.BytesIO(audio.audio)
+    # Перематываем указатель в начало файла
+    audio_bytes.seek(0)
+    input_file = InputFile(audio_bytes, filename="audio.ogg")
+    await callback.message.answer_voice(input_file)
+    # await callback.message.answer_photo(FSInputFile(f'{user_dict[callback.from_user.id]["select_category"]}/'
+    #                                                 f'{callback.data.replace(".ogg", ".png")}'))
+    # Тут нужно отправить оригинальный файл аудио
+    # await callback.message.answer_voice(audio_bytes, caption='Послушайте оригинал и попробуйте повторить')
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -56,9 +61,6 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
         await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))
     else:
         await callback.message.answer("No phrases available.")
-
-
-
 
 
 pronunciation_training_dialog = Dialog(
@@ -95,7 +97,7 @@ pronunciation_training_dialog = Dialog(
             Const('Выбирай фразу или тренируй случайную'),
             Format(''),
 
-              ),
+        ),
         Group(
             Select(
                 Format('{item[0]}'),

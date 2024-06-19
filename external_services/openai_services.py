@@ -4,13 +4,13 @@ import httpx
 from dotenv import load_dotenv
 from openai import OpenAI
 
-
 load_dotenv()
 location = os.getenv('LOCATION')
 
-
 # proxy_url = 'http://192.168.67.6:24575'
 proxy_url = ''
+
+
 # api_key = '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'
 
 

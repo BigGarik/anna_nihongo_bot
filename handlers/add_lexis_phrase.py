@@ -1,19 +1,14 @@
-import base64
-import os
-
-from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Next, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
-from tortoise import fields, models
-from bot_init import bot
+
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers import main_page_button_clicked
-from handlers.states import AddPhraseSG
 from models import Category, Phrase, User, AudioFile
+from states import AddPhraseSG
 
 
 # Функция для динамического создания кнопок с категориями
@@ -47,28 +42,33 @@ async def category_input(message: Message, widget: ManagedTextInput, dialog_mana
 
 # Хэндлер для ввода текста фразы
 async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str):
-    category_name = dialog_manager.dialog_data['category']
-    category = await Category.get(name=category_name)
-    spaced_phrase = openai_gpt_add_space(text_phrase)
-    # TODO раскомментировать перед пушем
-    translation = openai_gpt_translate(text_phrase)
+    if not await Phrase.get_or_none(text_phrase=text_phrase):
+        category_name = dialog_manager.dialog_data['category']
+        category = await Category.get(name=category_name)
+        spaced_phrase = openai_gpt_add_space(text_phrase)
+        # TODO раскомментировать перед пушем
+        translation = openai_gpt_translate(text_phrase)
 
-    text_to_speech = google_text_to_speech(text_phrase)
-    audio = await AudioFile.create(audio=text_to_speech.audio_content)
+        text_to_speech = await google_text_to_speech(text_phrase)
+        voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
+        msg = await message.answer_voice(voice=voice, caption=f'Озвучка')
+        voice_id = msg.voice.file_id
 
-    user_id = dialog_manager.event.from_user.id
-    user = await User.get_or_none(id=user_id)
+        user_id = dialog_manager.event.from_user.id
+        user = await User.get_or_none(id=user_id)
 
-    await Phrase.create(
-        category=category,
-        text_phrase=text_phrase,
-        spaced_phrase=spaced_phrase,
-        translation=translation,
-        audio=audio,
-        user=user
-    )
-    await message.answer('Фраза добавлена! ✅')
-    # await dialog_manager.done()
+        await Phrase.create(
+            category=category,
+            text_phrase=text_phrase,
+            spaced_phrase=spaced_phrase,
+            translation=translation,
+            audio_id=voice_id,
+            user=user
+        )
+        await message.answer('Фраза добавлена! ✅')
+        # await dialog_manager.done()
+    else:
+        await message.answer('Фраза уже существует.')
 
 
 # Описание диалога

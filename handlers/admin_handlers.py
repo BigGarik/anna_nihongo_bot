@@ -1,23 +1,19 @@
 import logging
 
 from aiogram import Router, F
-from aiogram.filters import Command
-from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager, StartMode
-from aiogram_dialog.widgets.input import ManagedTextInput, TextInput
-from aiogram_dialog.widgets.kbd import Button, Row, Cancel, Start
-from aiogram_dialog.widgets.text import Format, Const, Multi
+from aiogram.types import CallbackQuery
+from aiogram_dialog import Dialog, Window
+from aiogram_dialog.widgets.kbd import Cancel, Start
+from aiogram_dialog.widgets.text import Const
 
 from bot_init import redis, bot
-from handlers.states import AddOriginalPhraseSG, AdminDialogSG
 from models import User
+from states import AddOriginalPhraseSG, AdminDialogSG
 
 # Инициализируем роутер уровня модуля
 router = Router()
 
 logger = logging.getLogger(__name__)
-
 
 admin_dialog = Dialog(
     Window(

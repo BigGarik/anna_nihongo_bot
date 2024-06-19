@@ -1,18 +1,16 @@
-import os
 import re
 
 from aiogram.enums import ContentType
-from aiogram.types import BufferedInputFile, Message, CallbackQuery
+from aiogram.types import BufferedInputFile, Message
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group
 from aiogram_dialog.widgets.text import Const
-from dotenv import load_dotenv
 
 from external_services.google_cloud_services import google_text_to_speech
-from .states import TextToSpeechSG
-from .. import main_page_button_clicked
 from models import TextToSpeech
+from .. import main_page_button_clicked
+from states import TextToSpeechSG
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):

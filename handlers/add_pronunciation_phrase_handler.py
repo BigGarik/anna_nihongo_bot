@@ -2,19 +2,18 @@ import base64
 import os
 
 from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery, Message, User
-from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
-from pydub import AudioSegment
-from tortoise import fields, models
-from aiogram.utils.i18n import gettext as _
+from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Next, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
+from pydub import AudioSegment
 
 from bot_init import bot
-from external_services.openai_services import openai_text_to_speech
-from handlers.states import AddOriginalPhraseSG
-from models import AudioFile, Category, Phrase
+from external_services.google_cloud_services import google_text_to_speech
+from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
+from models import AudioFile, Category, Phrase, User
+from states import AddOriginalPhraseSG
 
 
 # Функция для динамического создания кнопок
@@ -32,8 +31,25 @@ def first_state_audio_getter(data, widget, dialog_manager: DialogManager):
     return not second_state_audio_getter(data, widget, dialog_manager)
 
 
+async def get_data(dialog_manager: DialogManager, **kwargs):
+    text_phrase = dialog_manager.dialog_data['text_phrase']
+    translation = dialog_manager.dialog_data['translation']
+    comment = dialog_manager.dialog_data['comment']
+    category = dialog_manager.dialog_data['category']
+    image_id = dialog_manager.dialog_data['image_id']
+    audio_data = dialog_manager.dialog_data['audio_data']
+
+    return {'text_phrase': text_phrase,
+            'translation': translation,
+            'comment': comment,
+            'category': category,
+            'image_id': image_id,
+            'audio_data': audio_data}
+
+
 # Это хэндлер, срабатывающий на ввод категории пользователем
-async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, category: str) -> None:
+async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
+                         category: str) -> None:
     # Добавить категорию в dialog_data
     dialog_manager.dialog_data['category'] = category
     await Category.create(name=category)
@@ -47,8 +63,11 @@ async def category_selection(callback: CallbackQuery, widget: Select, dialog_man
     await dialog_manager.next()
 
 
-async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str) -> None:
+async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
+                            text_phrase: str) -> None:
     dialog_manager.dialog_data['text_phrase'] = text_phrase
+    spaced_phrase = openai_gpt_add_space(text_phrase)
+    dialog_manager.dialog_data['spaced_phrase'] = spaced_phrase
     await dialog_manager.next()
 
 
@@ -56,6 +75,11 @@ async def translation_input(message: Message, widget: ManagedTextInput, dialog_m
                             translation: str) -> None:
     dialog_manager.dialog_data['translation'] = translation
     await dialog_manager.next()
+
+
+async def translate_phrase(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    translation = openai_gpt_translate(dialog_manager.dialog_data['text_phrase'])
+    dialog_manager.dialog_data['translation'] = translation
 
 
 async def audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
@@ -106,36 +130,42 @@ async def audio_handler(message: Message, widget: MessageInput, dialog_manager: 
         }
         dialog_manager.dialog_data['audio'] = audio
 
+    await dialog_manager.next()
+
 
 async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     text_phrase = dialog_manager.dialog_data['text_phrase']
-    audio_data = await openai_text_to_speech(text_phrase)
-    audio = {
-        'tg_id': '',
-        'audio': audio_data
+
+    text_to_speech = await google_text_to_speech(text_phrase)
+    voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
+    msg = await callback.message.answer_voice(voice=voice, caption=f'Озвучка')
+    voice_id = msg.voice.file_id
+
+    audio = await AudioFile.create(
+        tg_id=voice_id,
+        audio=voice.data
+    )
+
+    audio_data = {
+        'tg_id': voice_id,
+        'audio_id': audio.id
     }
-    dialog_manager.dialog_data['audio'] = audio
+    dialog_manager.dialog_data['audio_data'] = audio_data
 
+    await dialog_manager.next()
 
-async def save_audio(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    if 'audio' in dialog_manager.dialog_data:
-        await dialog_manager.next()
-    else:
-        await callback.answer("Пока нет аудио для сохранения")
+#
+# async def save_audio(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+#     if 'audio' in dialog_manager.dialog_data:
+#         await dialog_manager.next()
+#     else:
+#         await callback.answer("Пока нет аудио для сохранения")
 
 
 async def image_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    # Обработчик для загрузки изображения
-    file_id = message.photo[-1].file_id
-    file = await bot.get_file(file_id)
-    file_path = file.file_path
-    await bot.download_file(file_path, f'{file_id}.jpg')
-    with open(f'{file_id}.jpg', 'rb') as f:
-        image_data = f.read()
-    image_data_base64 = base64.b64encode(image_data).decode('utf-8')
-    os.remove(f'{file_id}.jpg')
-    image = {'tg_id': file_id, 'image': image_data_base64}
-    dialog_manager.dialog_data['image'] = image
+    image_id = message.photo[-1].file_id
+    dialog_manager.dialog_data['image_id'] = image_id
+    await dialog_manager.next()
 
 
 async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -146,21 +176,35 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     dialog_manager.dialog_data['image'] = image
 
 
-async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, comment: str) -> None:
+async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
+                        comment: str) -> None:
     dialog_manager.dialog_data['comment'] = comment
     await dialog_manager.next()
 
 
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     category = await Category.get_or_none(name=dialog_manager.dialog_data['category'])
-    audio = await AudioFile.create(tg_id=dialog_manager.dialog_data['audio']['tg_id'],
-                                   audio=dialog_manager.dialog_data['audio']['audio'])
-    await Phrase.create(
+    user_id = dialog_manager.event.from_user.id
+    user = await User.get_or_none(id=user_id)
+    text_phrase = dialog_manager.dialog_data['text_phrase']
+    voice_id = dialog_manager.dialog_data['audio_data']['tg_id']
+    phrase = Phrase(
         category=category,
-        text_phrase=dialog_manager.dialog_data['text_phrase'],
-        translation=dialog_manager.dialog_data['translation'],
-        audio=audio,
+        user=user,
+        text_phrase=text_phrase,
+        audio_id=voice_id,
     )
+    if dialog_manager.dialog_data.get('translation'):
+        phrase.translation = dialog_manager.dialog_data['translation']
+    if dialog_manager.dialog_data.get('image_id'):
+        phrase.image_id = dialog_manager.dialog_data.get('image_id')
+    if dialog_manager.dialog_data.get('comment'):
+        phrase.comment = dialog_manager.dialog_data.get('comment')
+    if dialog_manager.dialog_data.get('spaced_phrase'):
+        phrase.spaced_phrase = dialog_manager.dialog_data.get('spaced_phrase')
+
+    await phrase.save()
+    await dialog_manager.done()
 
 
 add_original_phrase_dialog = Dialog(
@@ -199,7 +243,6 @@ add_original_phrase_dialog = Dialog(
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
         state=AddOriginalPhraseSG.text_phrase
@@ -215,7 +258,7 @@ add_original_phrase_dialog = Dialog(
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next'),
+            Next(Const('▶️ Пропустить'), id='next', on_click=translate_phrase),
             width=3
         ),
         state=AddOriginalPhraseSG.translation
@@ -225,8 +268,8 @@ add_original_phrase_dialog = Dialog(
     Window(
         Multi(
             Const('<b>Добавление аудио</b>'),
-            Const('Сейчас отправьте мне аудио новой фразы, '
-                  'голосовое сообщение или нажмите <code>Озвучить с помощью ИИ</code>.',
+            Const('Отправь мне аудио новой фразы, '
+                  'голосовое сообщение или нажми <code>Озвучить с помощью ИИ</code>.',
                   when=first_state_audio_getter),
             Const('Если все ОК, жми <code>Сохранить</code> или отправь еще раз',
                   when=second_state_audio_getter),
@@ -240,7 +283,7 @@ add_original_phrase_dialog = Dialog(
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Button(Const('✅ Сохранить'), id='save', on_click=save_audio),
+            # Button(Const('✅ Сохранить'), id='save', on_click=save_audio),
             # Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
@@ -251,7 +294,7 @@ add_original_phrase_dialog = Dialog(
     Window(
         Const(text='Отправьте иллюстрацию для фразы, сгенерируйте или просто пропустите этот шаг:'),
         MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
-        Button(Const('🖼 Сгенерировать'), id='ai_image', on_click=ai_image),
+        Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
@@ -275,8 +318,17 @@ add_original_phrase_dialog = Dialog(
     ),
     # save = State()
     Window(
+        #     'text_phrase': text_phrase,
+        #     'translation': translation,
+        #     'comment': comment,
+        #     'category': category,
+        #     'image_id': image_id,
+        #     'audio_id': audio_id}
         Multi(
             Format('Суммарная информация'),
+            Format('{text_phrase}'),
+            Format('{translation}'),
+            Format('{comment}'),
             Const(text='Сохранить фразу?'),
         ),
         Group(
@@ -289,6 +341,7 @@ add_original_phrase_dialog = Dialog(
             ),
             width=3
         ),
+        getter=get_data,
         state=AddOriginalPhraseSG.save
     ),
 )

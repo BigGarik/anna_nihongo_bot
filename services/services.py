@@ -4,7 +4,6 @@ import random
 from dotenv import load_dotenv
 from mutagen import File
 
-
 load_dotenv()
 location = os.getenv('LOCATION')
 
@@ -87,10 +86,10 @@ def replace_random_words(phrase):
 
 
 BUTTONS: dict[str, str] = {
-#     'kawaisouni.ogg': 'かわいそうに - бедняга',
-#     'tasukaru.ogg': 'たすかる - спасибо за помощь',
-#     'utide_party.ogg': 'うちでパーティ - вечеринка у меня дома',
-#     'sashiire.ogg': 'さしいれ - угощение'
+    #     'kawaisouni.ogg': 'かわいそうに - бедняга',
+    #     'tasukaru.ogg': 'たすかる - спасибо за помощь',
+    #     'utide_party.ogg': 'うちでパーティ - вечеринка у меня дома',
+    #     'sashiire.ogg': 'さしいれ - угощение'
 }
 #
 # BUTTONS_LIST = list(BUTTONS.keys())

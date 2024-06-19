@@ -1,5 +1,6 @@
 import asyncio
 import logging.config
+
 import yaml
 from aiogram_dialog import setup_dialogs
 
@@ -8,14 +9,15 @@ from config_data.config import Config, load_config
 from db import init as init_db
 from handlers.add_lexis_phrase import add_lexis_phrase_dialog
 from handlers.add_pronunciation_phrase_handler import add_original_phrase_dialog
+from handlers.admin_handlers import router as admin_router, admin_dialog
+from handlers.other_handlers import router as other_router
 from handlers.training.lexis_handlers import lexis_training_dialog, lexis_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
 from handlers.training.pronunciation_handlers import pronunciation_training_dialog
 from handlers.training.training_handlers import user_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
-from handlers.admin_handlers import router as admin_router, admin_dialog
-from handlers.other_handlers import router as other_router
 from keyboards.set_menu import set_main_menu
+
 # from aiohttp import web
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
@@ -106,6 +108,8 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    logger.info('Бот запущен и работает...')
-    asyncio.run(main())
-
+    try:
+        logger.info('Бот запущен и работает...')
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
