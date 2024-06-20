@@ -12,18 +12,9 @@ from tortoise.expressions import RawSQL
 from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, Category, UserAnswer
-from services.services import replace_random_words
+from services.services import replace_random_words, get_user_categories
 from .. import main_page_button_clicked
 from states import LexisTrainingSG, LexisSG, AddPhraseSG
-
-
-# Функция для динамического создания кнопок с категориями
-async def get_user_categories(dialog_manager: DialogManager, **kwargs):
-    user_id = dialog_manager.event.from_user.id
-    categories = await Category.filter(phrases__user_id=user_id).distinct().all()
-
-    items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
 
 
 async def get_category(dialog_manager: DialogManager, **kwargs):

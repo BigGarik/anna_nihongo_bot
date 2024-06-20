@@ -15,20 +15,15 @@ from bot_init import bot
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from models import Phrase, Category, AudioFile
+from services.services import get_user_categories
 from .. import main_page_button_clicked
 from states import PronunciationTrainingSG, PronunciationSG, AddOriginalPhraseSG
 
 
-# Функция для динамического создания кнопок
-async def get_categories(**kwargs):
-    categories = await Category.all()
-    items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
-
-
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
+    user_id = dialog_manager.event.from_user.id
     category_id = dialog_manager.dialog_data['category_id']
-    phrases = await Phrase.filter(category_id=category_id).all()
+    phrases = await Phrase.filter(category_id=category_id, user_id=user_id).all()
     items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
     return {'phrases': items}
 
@@ -178,7 +173,7 @@ pronunciation_training_dialog = Dialog(
             ),
             width=3
         ),
-        getter=get_categories,
+        getter=get_user_categories,
         state=PronunciationTrainingSG.select_category
     ),
     Window(

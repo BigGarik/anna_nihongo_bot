@@ -8,16 +8,8 @@ from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers import main_page_button_clicked
 from models import Category, Phrase, User, AudioFile
+from services.services import get_user_categories
 from states import AddPhraseSG
-
-
-# Функция для динамического создания кнопок с категориями
-async def get_user_categories(dialog_manager: DialogManager, **kwargs):
-    user_id = dialog_manager.event.from_user.id
-    categories = await Category.filter(user__id=user_id).distinct().all()
-
-    items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
 
 
 async def get_current_category(dialog_manager: DialogManager, **kwargs):
@@ -96,7 +88,6 @@ add_lexis_phrase_dialog = Dialog(
                 id='main_page',
                 on_click=main_page_button_clicked,
             ),
-            Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
         state=AddPhraseSG.category,

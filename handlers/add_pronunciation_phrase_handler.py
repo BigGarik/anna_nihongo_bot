@@ -13,14 +13,8 @@ from bot_init import bot
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
 from models import AudioFile, Category, Phrase, User
+from services.services import get_user_categories
 from states import AddOriginalPhraseSG
-
-
-# Функция для динамического создания кнопок
-async def get_categories(**kwargs):
-    categories = await Category.all()
-    items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
 
 
 def second_state_audio_getter(data, widget, dialog_manager: DialogManager):
@@ -233,7 +227,7 @@ add_original_phrase_dialog = Dialog(
             width=3
         ),
         state=AddOriginalPhraseSG.category,
-        getter=get_categories
+        getter=get_user_categories
     ),
 
     # ввести текст text = State()

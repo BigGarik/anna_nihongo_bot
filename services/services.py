@@ -1,11 +1,21 @@
 import os
 import random
 
+from aiogram_dialog import DialogManager
 from dotenv import load_dotenv
 from mutagen import File
 
+from models import Category
+
 load_dotenv()
 location = os.getenv('LOCATION')
+
+
+async def get_user_categories(dialog_manager: DialogManager, **kwargs):
+    user_id = dialog_manager.event.from_user.id
+    categories = await Category.filter(user_id=user_id).all()
+    items = [(category.name, str(category.id)) for category in categories]
+    return {'categories': items}
 
 
 def get_folders(dir_to_folders: str) -> dict[str, str]:
