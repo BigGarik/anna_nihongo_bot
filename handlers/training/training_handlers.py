@@ -3,7 +3,7 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
-from states import UserTrainingSG, LexisSG, PronunciationSG, TranslationSG, TranslationTrainingSG
+from states import UserTrainingSG, LexisSG, PronunciationSG, TranslationTrainingSG
 
 
 async def pronunciation_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
