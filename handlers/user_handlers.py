@@ -23,7 +23,7 @@ from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
 from services.services import create_kb_file, get_folders, get_all_ogg_files, get_tag
 from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, FSMInLearn, \
-    user_dict
+    user_dict, AddOriginalPhraseSG
 from . import username_getter
 
 load_dotenv()
@@ -83,6 +83,10 @@ async def training_button_clicked(callback: CallbackQuery, button: Button, dialo
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
+async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=AddOriginalPhraseSG.category)
+
+
 start_dialog = Dialog(
     Window(
         Multi(
@@ -122,6 +126,11 @@ user_start_dialog = Dialog(
                     text=Const('🔊 Прослушивание (Озвучить текст)'),
                     id='tts',
                     on_click=tts_button_clicked),
+                Button(
+                    text=Const('📝 Добавить фразы'),
+                    id='add_phrase',
+                    on_click=add_phrase_button_clicked,
+                ),
             ),
         ),
         Row(

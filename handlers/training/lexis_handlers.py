@@ -13,7 +13,7 @@ from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, UserAnswer
 from services.services import get_user_categories, normalize_text, get_context, \
     first_answer_getter, second_answer_getter, get_random_phrase
-from states import LexisTrainingSG, LexisSG, AddPhraseSG
+from states import LexisTrainingSG
 from .. import main_page_button_clicked
 
 
@@ -96,19 +96,9 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
     await user_answer.save()
 
 
-async def exercises_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=LexisTrainingSG.start)
-
-
-async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=AddPhraseSG.category)
-
-
 # Хэндлер для выбора категории
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
     await get_random_phrase(dialog_manager, item_id)
-
-    # await callback.message.answer(with_gap_phrase)
     await dialog_manager.next()
 
 
@@ -120,33 +110,6 @@ async def listen_button_clicked(callback: CallbackQuery, button: Button, dialog_
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     await message.answer('Моя твоя не понимать 🤔')
 
-
-lexis_dialog = Dialog(
-    Window(
-        Const('Раздел тренировки лексики'),
-        Button(
-            text=Const('Упражнения'),
-            id='exercises',
-            on_click=exercises_button_clicked,
-        ),
-        Button(
-            text=Const('Добавить фразы'),
-            id='add_phrase',
-            on_click=add_phrase_button_clicked,
-        ),
-
-        Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
-            width=3
-        ),
-        state=LexisSG.start
-    ),
-)
 
 lexis_training_dialog = Dialog(
     Window(

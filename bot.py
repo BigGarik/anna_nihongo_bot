@@ -8,12 +8,12 @@ from bot_init import bot, dp
 from config_data.config import Config, load_config
 from db import init as init_db
 from handlers.add_lexis_phrase import add_lexis_phrase_dialog
-from handlers.add_pronunciation_phrase_handler import add_original_phrase_dialog
+from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
-from handlers.training.lexis_handlers import lexis_training_dialog, lexis_dialog
+from handlers.training.lexis_handlers import lexis_training_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
-from handlers.training.pronunciation_handlers import pronunciation_training_dialog, pronunciation_dialog
+from handlers.training.pronunciation_handlers import pronunciation_training_dialog
 from handlers.training.training_handlers import user_training_dialog
 from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
@@ -53,11 +53,9 @@ async def main() -> None:
     dp.include_router(user_start_dialog)
     dp.include_router(add_original_phrase_dialog)
     dp.include_router(admin_dialog)
-    dp.include_router(lexis_dialog)
     dp.include_router(add_lexis_phrase_dialog)
     dp.include_router(text_to_speech_dialog)
     dp.include_router(lexis_training_dialog)
-    dp.include_router(pronunciation_dialog)
     dp.include_router(pronunciation_training_dialog)
     dp.include_router(translation_training_dialog)
 

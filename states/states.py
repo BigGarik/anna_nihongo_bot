@@ -45,17 +45,9 @@ class UserTrainingSG(StatesGroup):
     start = State()
 
 
-class LexisSG(StatesGroup):
-    start = State()
-
-
 class LexisTrainingSG(StatesGroup):
     start = State()
     waiting_answer = State()
-
-
-class PronunciationSG(StatesGroup):
-    start = State()
 
 
 class PronunciationTrainingSG(StatesGroup):

@@ -15,7 +15,7 @@ from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from models import Phrase, Category
 from services.services import get_user_categories
-from states import PronunciationTrainingSG, PronunciationSG, AddOriginalPhraseSG
+from states import PronunciationTrainingSG
 from .. import main_page_button_clicked
 
 
@@ -29,10 +29,6 @@ async def get_phrases(dialog_manager: DialogManager, **kwargs):
 
 async def exercises_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.start(state=PronunciationTrainingSG.select_category)
-
-
-async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=AddOriginalPhraseSG.category)
 
 
 async def voice_message_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:
@@ -116,33 +112,6 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     await message.answer('Моя твоя не понимать 🤔')
 
-
-pronunciation_dialog = Dialog(
-    Window(
-        Const('Раздел тренировки произношения'),
-        Button(
-            text=Const('Упражнения'),
-            id='exercises',
-            on_click=exercises_button_clicked,
-        ),
-        Button(
-            text=Const('Добавить фразы'),
-            id='add_phrase',
-            on_click=add_phrase_button_clicked,
-        ),
-
-        Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
-            width=3
-        ),
-        state=PronunciationSG.start
-    ),
-)
 
 pronunciation_training_dialog = Dialog(
     Window(
