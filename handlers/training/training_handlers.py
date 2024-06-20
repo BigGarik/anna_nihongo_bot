@@ -3,11 +3,11 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
-from states import PronunciationTrainingSG, UserTrainingSG, LexisSG
+from states import UserTrainingSG, LexisSG, PronunciationSG
 
 
 async def pronunciation_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=PronunciationTrainingSG.select_category)
+    await dialog_manager.start(state=PronunciationSG.start)
 
 
 async def lexis_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

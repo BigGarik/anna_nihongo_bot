@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select
@@ -11,7 +11,7 @@ from tortoise.expressions import RawSQL
 
 from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
-from models import User, Phrase, Category, UserAnswer, AudioFile
+from models import User, Phrase, Category, UserAnswer
 from services.services import replace_random_words
 from .. import main_page_button_clicked
 from states import LexisTrainingSG, LexisSG, AddPhraseSG
@@ -133,8 +133,10 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         dialog_manager.dialog_data['counter'] = 0
         user_answer.result = True
         await message.answer('Ура!!! Ты лучший! 🥳')
+        # voice_id = dialog_manager.dialog_data['audio_id']
+        # if voice_id:
+        #     await bot.send_voice(chat_id=message.from_user.id, voice=voice_id)
         dialog_manager.dialog_data.pop('answer', None)
-        # await dialog_manager.back()
         category_id = dialog_manager.dialog_data['category_id']
         await get_random_phrase(dialog_manager, category_id)
 

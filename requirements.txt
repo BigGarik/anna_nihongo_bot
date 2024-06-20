@@ -12,6 +12,7 @@ tortoise-orm
 asyncpg
 redis==5.0.4
 aiogram-dialog
+setuptools
 
 httpx
 python-dotenv

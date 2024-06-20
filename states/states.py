@@ -54,9 +54,14 @@ class LexisTrainingSG(StatesGroup):
     waiting_answer = State()
 
 
+class PronunciationSG(StatesGroup):
+    start = State()
+
+
 class PronunciationTrainingSG(StatesGroup):
     select_category = State()
     select_phrase = State()
+    waiting_answer = State()
 
 
 class TextToSpeechSG(StatesGroup):

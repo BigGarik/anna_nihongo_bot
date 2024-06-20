@@ -182,6 +182,10 @@ async def comment_input(message: Message, widget: ManagedTextInput, dialog_manag
     await dialog_manager.next()
 
 
+async def comment_next_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['comment'] = ''
+
+
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     category = await Category.get_or_none(name=dialog_manager.dialog_data['category'])
     user_id = dialog_manager.event.from_user.id
@@ -226,7 +230,6 @@ add_original_phrase_dialog = Dialog(
         ),
         Group(
             Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
         state=AddOriginalPhraseSG.category,
@@ -311,19 +314,13 @@ add_original_phrase_dialog = Dialog(
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('❌ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next'),
+            Next(Const('▶️ Пропустить'), id='next', on_click=comment_next_button_clicked),
             width=3
         ),
         state=AddOriginalPhraseSG.comment
     ),
     # save = State()
     Window(
-        #     'text_phrase': text_phrase,
-        #     'translation': translation,
-        #     'comment': comment,
-        #     'category': category,
-        #     'image_id': image_id,
-        #     'audio_id': audio_id}
         Multi(
             Format('Суммарная информация'),
             Format('{text_phrase}'),

@@ -15,19 +15,19 @@ location = os.getenv('LOCATION')
 
 
 class SpeechRecognizer:
-    def __init__(self, spoken_file, user_id):
+    def __init__(self, spoken_file, voice_id):
         self.spoken_file = spoken_file
-        self.user_id = user_id
+        self.voice_id = voice_id
 
     def recognize_speech(self):
         recognizer = sr.Recognizer()
 
         # Загрузка аудиофайла и конвертация во временный WAV-файл
         audio = AudioSegment.from_ogg(self.spoken_file)
-        audio.export(f"{self.user_id}temp.wav", format="wav")
+        audio.export(f"{self.voice_id}temp.wav", format="wav")
 
         # Распознавание речи на японском языке из временного WAV-файла
-        with sr.AudioFile(f"{self.user_id}temp.wav") as source:
+        with sr.AudioFile(f"{self.voice_id}temp.wav") as source:
             audio_data = recognizer.record(source)
             try:
                 text = recognizer.recognize_google(audio_data, language=location)
@@ -36,7 +36,7 @@ class SpeechRecognizer:
                 text = LEXICON_RU['value_error']
 
         # Удаление временного WAV-файла
-        os.remove(f"{self.user_id}temp.wav")
+        os.remove(f"{self.voice_id}temp.wav")
 
         return text
 

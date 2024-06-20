@@ -13,7 +13,7 @@ from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
 from handlers.training.lexis_handlers import lexis_training_dialog, lexis_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
-from handlers.training.pronunciation_handlers import pronunciation_training_dialog
+from handlers.training.pronunciation_handlers import pronunciation_training_dialog, pronunciation_dialog
 from handlers.training.training_handlers import user_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
 from keyboards.set_menu import set_main_menu
@@ -21,11 +21,6 @@ from keyboards.set_menu import set_main_menu
 # from aiohttp import web
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 
-
-# TODO отправлять файлы по ID
-
-# TODO добавить раздел собеседника
-# TODO переписать код под aiogram_dialog
 
 with open('config_data/logging_config.yaml', 'rt') as f:
     logging_config = yaml.safe_load(f.read())
@@ -61,6 +56,7 @@ async def main() -> None:
     dp.include_router(add_lexis_phrase_dialog)
     dp.include_router(text_to_speech_dialog)
     dp.include_router(lexis_training_dialog)
+    dp.include_router(pronunciation_dialog)
     dp.include_router(pronunciation_training_dialog)
 
     dp.include_router(user_training_dialog)
