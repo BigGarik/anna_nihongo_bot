@@ -113,13 +113,6 @@ user_start_dialog = Dialog(
                    ),
         ),
         Column(
-            # Row(
-            #     Button(
-            #         text=Const('Категории фраз'),
-            #         id='category',
-            #         on_click=category_button_clicked),
-            #
-            # ),
             Row(
                 Button(
                     text=Const('💪 Тренировки'),
