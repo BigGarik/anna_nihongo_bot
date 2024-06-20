@@ -66,3 +66,8 @@ class PronunciationTrainingSG(StatesGroup):
 
 class TextToSpeechSG(StatesGroup):
     start = State()
+
+
+class TranslationTrainingSG(StatesGroup):
+    start = State()
+    waiting_answer = State()

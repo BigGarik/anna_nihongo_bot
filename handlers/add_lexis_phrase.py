@@ -38,7 +38,7 @@ async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manage
         category_name = dialog_manager.dialog_data['category']
         category = await Category.get(name=category_name)
         spaced_phrase = openai_gpt_add_space(text_phrase)
-        # TODO раскомментировать перед пушем
+        # TODO раскомментировать перед git push
         translation = openai_gpt_translate(text_phrase)
 
         text_to_speech = await google_text_to_speech(text_phrase)

@@ -7,49 +7,14 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
-from tortoise.expressions import RawSQL
 
 from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
-from models import User, Phrase, Category, UserAnswer
-from services.services import replace_random_words, get_user_categories, normalize_text
+from models import User, Phrase, UserAnswer
+from services.services import get_user_categories, normalize_text, get_context, \
+    first_answer_getter, second_answer_getter, get_random_phrase
 from states import LexisTrainingSG, LexisSG, AddPhraseSG
 from .. import main_page_button_clicked
-
-
-async def get_category(dialog_manager: DialogManager, **kwargs):
-    category_name = dialog_manager.dialog_data['category']
-    return {'category': category_name}
-
-
-async def get_context(dialog_manager: DialogManager, **kwargs):
-    with_gap_phrase = dialog_manager.dialog_data['with_gap_phrase']
-    question = dialog_manager.dialog_data['question']
-    translation = dialog_manager.dialog_data['translation']
-    counter = dialog_manager.dialog_data['counter']
-    category = dialog_manager.dialog_data['category']
-    category_id = dialog_manager.dialog_data['category_id']
-
-    return {'with_gap_phrase': with_gap_phrase,
-            'question': question,
-            'translation': translation,
-            'counter': counter,
-            'category': category,
-            'category_id': category_id}
-
-
-async def get_random_phrase(dialog_manager: DialogManager, item_id: str, **kwargs):
-    random_phrase = await Phrase.filter(category_id=item_id).annotate(
-        random_order=RawSQL("RANDOM()")).order_by("random_order").first()
-    with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
-    dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
-    dialog_manager.dialog_data['question'] = random_phrase.text_phrase
-    dialog_manager.dialog_data['audio_id'] = random_phrase.audio_id
-    dialog_manager.dialog_data['translation'] = random_phrase.translation
-    dialog_manager.dialog_data['counter'] = 0
-    category = await Category.get_or_none(id=item_id)
-    dialog_manager.dialog_data['category'] = category.name
-    dialog_manager.dialog_data['category_id'] = item_id
 
 
 def get_counter(data, widget, dialog_manager: DialogManager):
@@ -58,15 +23,6 @@ def get_counter(data, widget, dialog_manager: DialogManager):
     if dialog_manager.dialog_data.get('counter', 0) >= 3:
         return True
     return False
-
-
-def first_answer_getter(data, widget, dialog_manager: DialogManager):
-    # до первого ответа вернет False
-    return 'answer' in dialog_manager.dialog_data
-
-
-def second_answer_getter(data, widget, dialog_manager: DialogManager):
-    return not first_answer_getter(data, widget, dialog_manager)
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):

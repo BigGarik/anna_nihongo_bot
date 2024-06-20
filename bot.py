@@ -15,6 +15,7 @@ from handlers.training.lexis_handlers import lexis_training_dialog, lexis_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
 from handlers.training.pronunciation_handlers import pronunciation_training_dialog, pronunciation_dialog
 from handlers.training.training_handlers import user_training_dialog
+from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
 from keyboards.set_menu import set_main_menu
 
@@ -58,6 +59,7 @@ async def main() -> None:
     dp.include_router(lexis_training_dialog)
     dp.include_router(pronunciation_dialog)
     dp.include_router(pronunciation_training_dialog)
+    dp.include_router(translation_training_dialog)
 
     dp.include_router(user_training_dialog)
     dp.include_router(other_router)
