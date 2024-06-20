@@ -1,13 +1,13 @@
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
-from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Next, Back
+from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers import main_page_button_clicked
-from models import Category, Phrase, User, AudioFile
+from models import Category, Phrase, User
 from services.services import get_user_categories
 from states import AddPhraseSG
 

@@ -22,9 +22,9 @@ from external_services.voice_recognizer import SpeechRecognizer
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU, LEXICON_KB_FAST_BUTTONS_RU
 from services.services import create_kb_file, get_folders, get_all_ogg_files, get_tag
-from states.states import FSMInLearn, user_dict
+from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, FSMInLearn, \
+    user_dict
 from . import username_getter
-from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG
 
 load_dotenv()
 

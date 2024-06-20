@@ -1,12 +1,11 @@
-import io
 import os
 import random
 from pathlib import Path
 
 import librosa
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, InputFile, FSInputFile
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
+from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
@@ -14,10 +13,10 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 from bot_init import bot
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
-from models import Phrase, Category, AudioFile
+from models import Phrase, Category
 from services.services import get_user_categories
-from .. import main_page_button_clicked
 from states import PronunciationTrainingSG, PronunciationSG, AddOriginalPhraseSG
+from .. import main_page_button_clicked
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
@@ -51,7 +50,6 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
-    print(item_id)
     phrase = await Phrase.get_or_none(id=item_id)
     dialog_manager.dialog_data['phrase_id'] = phrase.id
     # отправить изображение и голосовое с подписью
@@ -67,8 +65,6 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
     phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
     if phrases:
         random_phrase = random.choice(phrases)
-        print(random_phrase)
-        print(random_phrase.id)
         await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))
     else:
         await callback.message.answer("No phrases available.")
@@ -147,7 +143,6 @@ pronunciation_dialog = Dialog(
         state=PronunciationSG.start
     ),
 )
-
 
 pronunciation_training_dialog = Dialog(
     Window(

@@ -12,9 +12,9 @@ from tortoise.expressions import RawSQL
 from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, Category, UserAnswer
-from services.services import replace_random_words, get_user_categories
-from .. import main_page_button_clicked
+from services.services import replace_random_words, get_user_categories, normalize_text
 from states import LexisTrainingSG, LexisSG, AddPhraseSG
+from .. import main_page_button_clicked
 
 
 async def get_category(dialog_manager: DialogManager, **kwargs):
@@ -50,7 +50,6 @@ async def get_random_phrase(dialog_manager: DialogManager, item_id: str, **kwarg
     category = await Category.get_or_none(id=item_id)
     dialog_manager.dialog_data['category'] = category.name
     dialog_manager.dialog_data['category_id'] = item_id
-
 
 
 def get_counter(data, widget, dialog_manager: DialogManager):
@@ -120,7 +119,11 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         phrase=phrase,
         answer_text=answer_text,
     )
-    if dialog_manager.dialog_data['question'] == answer_text:
+    question = dialog_manager.dialog_data.get('question', '')
+    normalized_question = normalize_text(question)
+    normalized_answer = normalize_text(answer_text)
+
+    if normalized_question == normalized_answer:
         dialog_manager.dialog_data['counter'] = 0
         user_answer.result = True
         await message.answer('Ура!!! Ты лучший! 🥳')

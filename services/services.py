@@ -1,5 +1,6 @@
 import os
 import random
+import string
 
 from aiogram_dialog import DialogManager
 from dotenv import load_dotenv
@@ -9,6 +10,13 @@ from models import Category
 
 load_dotenv()
 location = os.getenv('LOCATION')
+
+
+def normalize_text(text):
+    text = text.lower()
+    text = text.translate(str.maketrans('', '', string.punctuation))
+    text = text.strip()
+    return text
 
 
 async def get_user_categories(dialog_manager: DialogManager, **kwargs):

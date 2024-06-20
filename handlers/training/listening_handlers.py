@@ -9,8 +9,8 @@ from aiogram_dialog.widgets.text import Const
 
 from external_services.google_cloud_services import google_text_to_speech
 from models import TextToSpeech
-from .. import main_page_button_clicked
 from states import TextToSpeechSG
+from .. import main_page_button_clicked
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
