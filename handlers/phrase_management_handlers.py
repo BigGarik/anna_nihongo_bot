@@ -28,9 +28,9 @@ async def add_category_button_clicked(callback: CallbackQuery, button: Button, d
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    if dialog_manager.dialog_data[''] > 15:
+    if dialog_manager.dialog_data.get('phrases_count') > 15:
         await callback.answer('Лимит на количество фраз в категории 15.\nЧто бы добавить новую фразу, сначала удали '
-                              'старую.')
+                              'старую.', show_alert=True)
     else:
         category_id = dialog_manager.dialog_data['category_id']
         await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id})
@@ -51,6 +51,12 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
         multiselect_widget = dialog_manager.find('multi_phrases')
         await multiselect_widget.reset_checked()
     dialog_manager.dialog_data['category_id'] = item_id
+    user_id = dialog_manager.event.from_user.id
+    phrases = await Phrase.filter(category_id=item_id, user_id=user_id).all()
+    items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
+    dialog_manager.dialog_data['phrases'] = items
+    count = len(items)
+    dialog_manager.dialog_data['phrases_count'] = count
     await dialog_manager.switch_to(state=ManagementSG.select_phrase)
 
 

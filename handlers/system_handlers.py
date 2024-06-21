@@ -31,12 +31,8 @@ async def get_user_categories(dialog_manager: DialogManager, **kwargs):
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
-    user_id = dialog_manager.event.from_user.id
-    category_id = dialog_manager.dialog_data['category_id']
-    phrases = await Phrase.filter(category_id=category_id, user_id=user_id).all()
-    items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
-    count = len(items)
-    return {'phrases': items, 'phrases_count': count}
+    items = dialog_manager.dialog_data['phrases']
+    return {'phrases': items}
 
 
 async def category_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):

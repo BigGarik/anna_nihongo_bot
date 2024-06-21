@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 admin_dialog = Dialog(
     Window(
         Const('Админка'),
+
         Start(Const('🆕 Добавить оригинальную фразу'),
               id='go_add_original_phrase_dialog',
               state=AddOriginalPhraseSG.text_phrase
