@@ -38,6 +38,10 @@ async def get_phrases(dialog_manager: DialogManager, **kwargs):
 async def category_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
     category = await Category.get(id=item_id)
     dialog_manager.dialog_data['category_id'] = category.id
+    user_id = dialog_manager.event.from_user.id
+    phrases = await Phrase.filter(category_id=item_id, user_id=user_id).all()
+    items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
+    dialog_manager.dialog_data['phrases'] = items
     await dialog_manager.next()
 
 
