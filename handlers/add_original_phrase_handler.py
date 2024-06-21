@@ -28,7 +28,6 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     text_phrase = dialog_manager.dialog_data['text_phrase']
     translation = dialog_manager.dialog_data['translation']
     comment = dialog_manager.dialog_data['comment']
-    audio_data = dialog_manager.dialog_data['audio_data']
 
     return {'text_phrase': text_phrase,
             'translation': translation,
