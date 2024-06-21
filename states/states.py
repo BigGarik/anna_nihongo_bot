@@ -26,8 +26,11 @@ class AdminDialogSG(StatesGroup):
     start = State()
 
 
+class AddCategorySG(StatesGroup):
+    start = State()
+
+
 class AddOriginalPhraseSG(StatesGroup):
-    category = State()
     text_phrase = State()
     translation = State()
     audio = State()
@@ -63,3 +66,11 @@ class TextToSpeechSG(StatesGroup):
 class TranslationTrainingSG(StatesGroup):
     start = State()
     waiting_answer = State()
+
+
+class ManagementSG(StatesGroup):
+    start = State()
+    select_category = State()
+    confirm_deletion_category = State()
+    select_phrase = State()
+    confirm_deletion_phrase = State()

@@ -13,18 +13,10 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 from bot_init import bot
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
-from models import Phrase, Category
-from services.services import get_user_categories
+from models import Phrase
 from states import PronunciationTrainingSG
 from .. import main_page_button_clicked
-
-
-async def get_phrases(dialog_manager: DialogManager, **kwargs):
-    user_id = dialog_manager.event.from_user.id
-    category_id = dialog_manager.dialog_data['category_id']
-    phrases = await Phrase.filter(category_id=category_id, user_id=user_id).all()
-    items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
-    return {'phrases': items}
+from ..system_handlers import category_selected, get_user_categories, get_phrases
 
 
 async def exercises_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -33,16 +25,6 @@ async def exercises_button_clicked(callback: CallbackQuery, button: Button, dial
 
 async def voice_message_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:
     await message.send_copy(message.chat.id)
-
-
-# Это хэндлер, срабатывающий на нажатие кнопки с категорией фразы
-async def category_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    # нужно создать словарь и положить его в dialog_data с именами и ИД фраз из выбранной категории
-
-    category = await Category.get(id=item_id)
-    dialog_manager.dialog_data['category_id'] = category.id
-
-    await dialog_manager.next()
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
@@ -129,7 +111,7 @@ pronunciation_training_dialog = Dialog(
         ),
 
         Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',
@@ -165,7 +147,7 @@ pronunciation_training_dialog = Dialog(
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',
@@ -188,7 +170,7 @@ pronunciation_training_dialog = Dialog(
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',

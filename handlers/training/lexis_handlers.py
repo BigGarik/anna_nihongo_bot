@@ -11,10 +11,11 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, UserAnswer
-from services.services import get_user_categories, normalize_text, get_context, \
-    first_answer_getter, second_answer_getter, get_random_phrase
+from services.services import normalize_text
 from states import LexisTrainingSG
 from .. import main_page_button_clicked
+from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
+    get_context
 
 
 def get_counter(data, widget, dialog_manager: DialogManager):
@@ -125,7 +126,7 @@ lexis_training_dialog = Dialog(
             width=2
         ),
         Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',
@@ -166,7 +167,7 @@ lexis_training_dialog = Dialog(
             when=get_counter
         ),
         Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',

@@ -20,9 +20,9 @@ admin_dialog = Dialog(
         Const('Админка'),
         Start(Const('🆕 Добавить оригинальную фразу'),
               id='go_add_original_phrase_dialog',
-              state=AddOriginalPhraseSG.category
+              state=AddOriginalPhraseSG.text_phrase
               ),
-        Cancel(Const('❌ Отмена'), id='button_cancel'),
+        Cancel(Const('↩️ Отмена'), id='button_cancel'),
         state=AdminDialogSG.start,
     ),
 )

@@ -6,9 +6,10 @@ from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from handlers import main_page_button_clicked
+from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
+    get_context
 from models import Phrase, User, UserAnswer
-from services.services import get_user_categories, get_context, first_answer_getter, second_answer_getter, \
-    normalize_text, get_random_phrase
+from services.services import normalize_text
 from states import TranslationTrainingSG
 
 
@@ -67,7 +68,7 @@ translation_training_dialog = Dialog(
             width=2
         ),
         Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',
@@ -97,7 +98,7 @@ translation_training_dialog = Dialog(
             content_types=ContentType.ANY,
         ),
         Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',

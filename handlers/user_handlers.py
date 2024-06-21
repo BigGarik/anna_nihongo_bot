@@ -1,5 +1,4 @@
 import logging
-import logging
 import os
 import uuid
 
@@ -18,7 +17,7 @@ from db.requests import get_user_ids
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU
 from services.services import get_folders
-from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, AddOriginalPhraseSG
+from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, ManagementSG
 from . import username_getter
 
 load_dotenv()
@@ -79,15 +78,15 @@ async def training_button_clicked(callback: CallbackQuery, button: Button, dialo
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
-async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=AddOriginalPhraseSG.category)
+async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=ManagementSG.start)
 
 
 start_dialog = Dialog(
     Window(
         Multi(
             Format('日本語を勉強しよう\n'
-                   '<b>Привет, {username}!</b>\nЯ бот-помощник <b>Анны-様</b> 😃\n'
+                   '<b>Привет, {username}!</b>\nЯ бот-помощник <b>Анны 様</b> 😃\n'
                    'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
                    'Хотите говорить по-японски как японцы?\n'
                    ),
@@ -107,7 +106,7 @@ user_start_dialog = Dialog(
     Window(
         Multi(
             Format('日本語を勉強しよう\n'
-                   '<b>Привет, {username}!</b>\nЯ бот-помощник <b>Анны-様</b> 😃\n'
+                   '<b>Привет, {username}!</b>\nЯ бот-помощник <b>Анны 様</b> 😃\n'
                    'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
                    'Хотите говорить по-японски как японцы?\n'
                    ),
@@ -123,9 +122,9 @@ user_start_dialog = Dialog(
                     id='tts',
                     on_click=tts_button_clicked),
                 Button(
-                    text=Const('📝 Добавить фразы'),
-                    id='add_phrase',
-                    on_click=add_phrase_button_clicked,
+                    text=Const('📝 Управление моими фразами'),
+                    id='phrase_management',
+                    on_click=phrase_management_button_clicked,
                 ),
             ),
         ),

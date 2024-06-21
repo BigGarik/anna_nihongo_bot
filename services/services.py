@@ -2,7 +2,9 @@ import os
 import random
 import string
 
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
+from aiogram_dialog.widgets.kbd import Select
 from dotenv import load_dotenv
 from mutagen import File
 from tortoise.expressions import RawSQL
@@ -18,52 +20,6 @@ def normalize_text(text):
     text = text.translate(str.maketrans('', '', string.punctuation))
     text = text.strip()
     return text
-
-
-async def get_user_categories(dialog_manager: DialogManager, **kwargs):
-    user_id = dialog_manager.event.from_user.id
-    categories = await Category.filter(user_id=user_id).all()
-    items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
-
-
-async def get_random_phrase(dialog_manager: DialogManager, item_id: str, **kwargs):
-    random_phrase = await Phrase.filter(category_id=item_id).annotate(
-        random_order=RawSQL("RANDOM()")).order_by("random_order").first()
-    with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
-    dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
-    dialog_manager.dialog_data['question'] = random_phrase.text_phrase
-    dialog_manager.dialog_data['audio_id'] = random_phrase.audio_id
-    dialog_manager.dialog_data['translation'] = random_phrase.translation
-    dialog_manager.dialog_data['counter'] = 0
-    category = await Category.get_or_none(id=item_id)
-    dialog_manager.dialog_data['category'] = category.name
-    dialog_manager.dialog_data['category_id'] = item_id
-
-
-async def get_context(dialog_manager: DialogManager, **kwargs):
-    with_gap_phrase = dialog_manager.dialog_data['with_gap_phrase']
-    question = dialog_manager.dialog_data['question']
-    translation = dialog_manager.dialog_data['translation']
-    counter = dialog_manager.dialog_data['counter']
-    category = dialog_manager.dialog_data['category']
-    category_id = dialog_manager.dialog_data['category_id']
-
-    return {'with_gap_phrase': with_gap_phrase,
-            'question': question,
-            'translation': translation,
-            'counter': counter,
-            'category': category,
-            'category_id': category_id}
-
-
-def first_answer_getter(data, widget, dialog_manager: DialogManager):
-    # до первого ответа вернет False
-    return 'answer' in dialog_manager.dialog_data
-
-
-def second_answer_getter(data, widget, dialog_manager: DialogManager):
-    return not first_answer_getter(data, widget, dialog_manager)
 
 
 def get_folders(dir_to_folders: str) -> dict[str, str]:

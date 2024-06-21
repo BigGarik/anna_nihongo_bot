@@ -5,7 +5,7 @@ from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Next, Back
+from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Next, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
 from pydub import AudioSegment
 
@@ -13,7 +13,6 @@ from bot_init import bot
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
 from models import AudioFile, Category, Phrase, User
-from services.services import get_user_categories
 from states import AddOriginalPhraseSG
 
 
@@ -29,32 +28,14 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     text_phrase = dialog_manager.dialog_data['text_phrase']
     translation = dialog_manager.dialog_data['translation']
     comment = dialog_manager.dialog_data['comment']
-    category = dialog_manager.dialog_data['category']
     image_id = dialog_manager.dialog_data['image_id']
     audio_data = dialog_manager.dialog_data['audio_data']
 
     return {'text_phrase': text_phrase,
             'translation': translation,
             'comment': comment,
-            'category': category,
             'image_id': image_id,
             'audio_data': audio_data}
-
-
-# Это хэндлер, срабатывающий на ввод категории пользователем
-async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
-                         category: str) -> None:
-    # Добавить категорию в dialog_data
-    dialog_manager.dialog_data['category'] = category
-    await Category.create(name=category)
-    await dialog_manager.next()
-
-
-# Это хэндлер, срабатывающий на нажатие кнопки с категорией фразы
-async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    category = await Category.get_or_none(id=item_id)
-    dialog_manager.dialog_data['category'] = category.name
-    await dialog_manager.next()
 
 
 async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
@@ -181,7 +162,7 @@ async def comment_next_button_clicked(callback: CallbackQuery, button: Button, d
 
 
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    category = await Category.get_or_none(name=dialog_manager.dialog_data['category'])
+    category = await Category.get_or_none(id=dialog_manager.start_data['category_id'])
     user_id = dialog_manager.event.from_user.id
     user = await User.get_or_none(id=user_id)
     text_phrase = dialog_manager.dialog_data['text_phrase']
@@ -207,44 +188,17 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
 
 add_original_phrase_dialog = Dialog(
     Window(
-        Const(text='Выберите категорию или напишите новую:'),
-        Group(
-            Select(
-                Format('{item[0]}'),
-                id='categ',
-                item_id_getter=lambda x: x[1],
-                items='categories',
-                on_click=category_selection,
-            ),
-            width=2
-        ),
-        TextInput(
-            id='category_input',
-            on_success=category_input,
-        ),
-        Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
-            width=3
-        ),
-        state=AddOriginalPhraseSG.category,
-        getter=get_user_categories
-    ),
-
-    # ввести текст text = State()
-    Window(
         Const(text='Введите текст новой фразы:'),
         TextInput(
             id='text_phrase_input',
             on_success=text_phrase_input,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             width=3
         ),
         state=AddOriginalPhraseSG.text_phrase
     ),
-
     # translation = State()
     Window(
         Const(text='Введите перевод новой фразы или жмите "Пропустить" и я переведу автоматически:'),
@@ -254,7 +208,7 @@ add_original_phrase_dialog = Dialog(
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Next(Const('▶️ Пропустить'), id='next', on_click=translate_phrase),
             width=3
         ),
@@ -279,7 +233,7 @@ add_original_phrase_dialog = Dialog(
         Button(Const('🤖 Озвучить с помощью ИИ'), id='voice_message', on_click=ai_voice_message),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             # Button(Const('✅ Сохранить'), id='save', on_click=save_audio),
             # Next(Const('▶️ Пропустить'), id='next'),
             width=3
@@ -294,7 +248,7 @@ add_original_phrase_dialog = Dialog(
         Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
@@ -307,7 +261,7 @@ add_original_phrase_dialog = Dialog(
         TextInput(id='comment_input', on_success=comment_input),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Next(Const('▶️ Пропустить'), id='next', on_click=comment_next_button_clicked),
             width=3
         ),
@@ -324,7 +278,7 @@ add_original_phrase_dialog = Dialog(
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('✅ Сохранить'),
                 id='save_phrase',

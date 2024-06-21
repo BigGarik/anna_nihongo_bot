@@ -7,8 +7,8 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers import main_page_button_clicked
+from handlers.system_handlers import get_user_categories
 from models import Category, Phrase, User
-from services.services import get_user_categories
 from states import AddPhraseSG
 
 
@@ -82,7 +82,7 @@ add_lexis_phrase_dialog = Dialog(
             on_success=category_input,
         ),
         Group(
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',
@@ -104,7 +104,7 @@ add_lexis_phrase_dialog = Dialog(
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('❌ Отмена'), id='button_cancel'),
+            Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',

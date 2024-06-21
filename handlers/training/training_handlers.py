@@ -33,7 +33,7 @@ user_training_dialog = Dialog(
             text=Const('🌍 Перевод'),
             id='translation',
             on_click=translation_button_clicked),
-        Cancel(Const('❌ Отмена'), id='button_cancel'),
+        Cancel(Const('↩️ Отмена'), id='button_cancel'),
         state=UserTrainingSG.start
     ),
 )
