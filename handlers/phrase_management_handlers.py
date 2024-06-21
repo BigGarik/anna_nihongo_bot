@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect, Back
+from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
 from handlers import main_page_button_clicked
@@ -28,8 +28,12 @@ async def add_category_button_clicked(callback: CallbackQuery, button: Button, d
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    category_id = dialog_manager.dialog_data['category_id']
-    await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id})
+    if dialog_manager.dialog_data[''] > 15:
+        await callback.answer('Лимит на количество фраз в категории 15.\nЧто бы добавить новую фразу, сначала удали '
+                              'старую.')
+    else:
+        category_id = dialog_manager.dialog_data['category_id']
+        await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id})
 
 
 async def category_filled(callback: CallbackQuery, checkbox: ManagedMultiselect, dialog_manager: DialogManager, *args,
@@ -61,7 +65,8 @@ async def delite_categories_button_clicked(callback: CallbackQuery, button: Butt
     await dialog_manager.next()
 
 
-async def delite_selected_categories_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+async def delite_selected_categories_button_clicked(callback: CallbackQuery, button: Button,
+                                                    dialog_manager: DialogManager):
     await dialog_manager.next()
 
 

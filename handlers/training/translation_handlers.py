@@ -6,11 +6,11 @@ from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from handlers import main_page_button_clicked
-from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
-    get_context
 from models import Phrase, User, UserAnswer
 from services.services import normalize_text
 from states import TranslationTrainingSG
+from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
+    get_context
 
 
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):

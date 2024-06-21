@@ -173,7 +173,6 @@ async def process_help_command(message: Message):
 async def process_help_command(message: Message):
     await message.answer(text=LEXICON_RU['/help'])
 
-
 # Хендлер обрабатывающий нажатие инлайн кнопки выбора фразы
 # установит состояние в original_phrase
 # отправить пользователю оригинальное произношение и предложит повторить
@@ -274,5 +273,5 @@ async def process_help_command(message: Message):
 #     await message.answer_photo(photo, caption=f'Оригинал\n{original_script}\n{original_translation}\n\n'
 #                                               f'Ваш вариант {spoken_text}', reply_markup=keyboard)
 
-    # os.remove(file_on_disk)  # Удаление временного файла
-    # os.remove(f'temp/{file_name}.png')
+# os.remove(file_on_disk)  # Удаление временного файла
+# os.remove(f'temp/{file_name}.png')

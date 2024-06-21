@@ -81,17 +81,17 @@ def create_kb_file(dir_to_files: str) -> dict[str, str]:
 def replace_random_words(phrase):
     words = phrase.split()
     # Убедимся, что в фразе есть более двух слов для замены
-    if len(words) < 3:
-        return phrase
+    if len(words) > 3:
+        # Выбираем два разных случайных индекса слов, которые не находятся рядом
+        first_index = random.randint(0, len(words) - 3)
+        second_index = random.randint(first_index + 2, len(words) - 1)
 
-    # Выбираем два разных случайных индекса слов, которые не находятся рядом
-    first_index = random.randint(0, len(words) - 3)
-    second_index = random.randint(first_index + 2, len(words) - 1)
-
-    # Заменяем выбранные слова на три звездочки
-    words[first_index] = '___'
-    words[second_index] = '___'
-
+        # Заменяем выбранные слова на три подчеркивания
+        words[first_index] = '___'
+        words[second_index] = '___'
+    else:
+        index = random.randint(0, len(words) - 1)
+        words[index] = '___'
     # Возвращаем измененную фразу
     if location == 'ja-JP':
         return ''.join(words)

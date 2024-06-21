@@ -28,14 +28,11 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     text_phrase = dialog_manager.dialog_data['text_phrase']
     translation = dialog_manager.dialog_data['translation']
     comment = dialog_manager.dialog_data['comment']
-    image_id = dialog_manager.dialog_data['image_id']
     audio_data = dialog_manager.dialog_data['audio_data']
 
     return {'text_phrase': text_phrase,
             'translation': translation,
-            'comment': comment,
-            'image_id': image_id,
-            'audio_data': audio_data}
+            'comment': comment}
 
 
 async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
@@ -128,6 +125,7 @@ async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manag
     dialog_manager.dialog_data['audio_data'] = audio_data
 
     await dialog_manager.next()
+
 
 #
 # async def save_audio(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
