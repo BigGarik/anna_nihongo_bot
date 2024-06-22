@@ -1,4 +1,5 @@
 import os
+import random
 
 from aiogram.types import User, CallbackQuery
 from aiogram_dialog import DialogManager
@@ -10,7 +11,10 @@ from services.services import replace_random_words
 from states import UserStartDialogSG
 
 
-async def username_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
+location = os.getenv('LOCATION')
+
+
+async def start_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
     # Получение списка разрешенных ID пользователей из переменной окружения
     admin_ids = os.getenv('ADMIN_IDS')
     # Преобразование строки в список целых чисел
@@ -20,7 +24,19 @@ async def username_getter(dialog_manager: DialogManager, event_from_user: User, 
         response['is_admin'] = True
     else:
         response['is_admin'] = False
+
+    if location == 'ja-JP':
+        response['is_jp'] = True
+    else:
+        response['is_jp'] = False
+
+    if location == 'en-US':
+        response['is_en'] = True
+    else:
+        response['is_en'] = False
+
     return response
+
 
 
 async def get_user_categories(dialog_manager: DialogManager, **kwargs):
@@ -46,8 +62,18 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
 
 
 async def get_random_phrase(dialog_manager: DialogManager, item_id: str, **kwargs):
-    random_phrase = await Phrase.filter(category_id=item_id).annotate(
-        random_order=RawSQL("RANDOM()")).order_by("random_order").first()
+    phrases = await Phrase.filter(category_id=item_id).all()
+
+    if dialog_manager.dialog_data.get('question'):
+        text_phrase = dialog_manager.dialog_data['question']
+        if len(phrases) > 1:
+            filtered_phrases = [phrase for phrase in phrases if phrase.text_phrase != text_phrase]
+        else:
+            filtered_phrases = phrases
+    else:
+        filtered_phrases = phrases
+    random_phrase = random.choice(filtered_phrases)
+
     with_gap_phrase = replace_random_words(random_phrase.spaced_phrase)
     dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
     dialog_manager.dialog_data['question'] = random_phrase.text_phrase

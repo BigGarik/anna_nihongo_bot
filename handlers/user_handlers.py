@@ -18,7 +18,7 @@ from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU
 from services.services import get_folders
 from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, ManagementSG
-from . import username_getter
+from . import start_getter
 
 load_dotenv()
 admin_id = os.getenv('ADMIN_ID')
@@ -85,11 +85,18 @@ async def phrase_management_button_clicked(callback: CallbackQuery, button: Butt
 start_dialog = Dialog(
     Window(
         Multi(
-            Format('日本語を勉強しよう\n'
-                   '<b>Привет, {username}!</b>\nЯ бот-помощник <b>Анны 様</b> 😃\n'
-                   'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
-                   'Хотите говорить по-японски как японцы?\n'
-                   ),
+            Const('初めまして', when='is_jp'),
+            Format('<b>Привет, {username}!</b>'),
+            Const('Я бот-помощник <b>Анны様</b> 😃\n'
+                  'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
+                  'Хотите говорить по-японски как японцы?\n',
+                  when='is_jp'
+                  ),
+
+            Const("Меня зовут мистер Хацу, я твой бот-помощник.\nЯ помогу тебе легко запоминать новые слова, "
+                  "тренировать красивое произношение и научиться бегло говорить по-английски.\n\nLet's start!\n",
+                  when='is_en'
+                  ),
         ),
         Row(
             Button(
@@ -97,7 +104,7 @@ start_dialog = Dialog(
                 id='access',
                 on_click=access_button_clicked),
         ),
-        getter=username_getter,
+        getter=start_getter,
         state=StartDialogSG.start
     ),
 )
@@ -105,10 +112,11 @@ start_dialog = Dialog(
 user_start_dialog = Dialog(
     Window(
         Multi(
-            Format('日本語を勉強しよう\n'
-                   '<b>Привет, {username}!</b>\nЯ бот-помощник <b>Анны 様</b> 😃\n'
-                   'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
-                   'Хотите говорить по-японски как японцы?\n'
+            Format('<b>{username}さん</b>、日本語を勉強しましょう！\nДавай выберем следующую тренировку!',
+                   when='is_jp'
+                   ),
+            Format("<b>{username}</b>, let's go to the next level!\nДавай выберем следующую тренировку!",
+                   when='is_en'
                    ),
         ),
         Column(
@@ -135,7 +143,7 @@ user_start_dialog = Dialog(
                   ),
             when='is_admin',
         ),
-        getter=username_getter,
+        getter=start_getter,
         # Состояние этого окна для переключения на него
         state=UserStartDialogSG.start
     ),

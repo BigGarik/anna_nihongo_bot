@@ -41,8 +41,16 @@ async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manage
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
+    if dialog_manager.dialog_data.get('phrase_id'):
+        phrase_id = dialog_manager.dialog_data['phrase_id']
+        if len(phrases) > 1:
+            filtered_phrases = [phrase for phrase in phrases if phrase.id != phrase_id]
+        else:
+            filtered_phrases = phrases
+    else:
+        filtered_phrases = phrases
     if phrases:
-        random_phrase = random.choice(phrases)
+        random_phrase = random.choice(filtered_phrases)
         await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))
     else:
         await callback.message.answer("No phrases available.")

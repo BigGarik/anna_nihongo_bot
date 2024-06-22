@@ -242,7 +242,7 @@ add_original_phrase_dialog = Dialog(
     Window(
         Const(text='Отправьте иллюстрацию для фразы, сгенерируйте или просто пропустите этот шаг:'),
         MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
-        Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
+        # Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('↩️ Отмена'), id='button_cancel'),

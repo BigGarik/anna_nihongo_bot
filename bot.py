@@ -3,6 +3,7 @@ import logging.config
 
 import yaml
 from aiogram_dialog import setup_dialogs
+from fluentogram import TranslatorHub
 
 from bot_init import bot, dp
 from config_data.config import Config, load_config
@@ -20,6 +21,8 @@ from handlers.training.training_handlers import user_training_dialog
 from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
 from keyboards.set_menu import set_main_menu
+from middlewares.i18n import TranslatorRunnerMiddleware
+from services.i18n import create_translator_hub
 
 # from aiohttp import web
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -48,6 +51,9 @@ async def main() -> None:
     # Настраиваем кнопку Menu
     await set_main_menu(bot)
 
+    # Создаем объект типа TranslatorHub
+    # translator_hub: TranslatorHub = create_translator_hub()
+
     # Регистрируем роутеры в диспетчере
     dp.include_router(admin_router)
     dp.include_router(user_router)
@@ -71,9 +77,13 @@ async def main() -> None:
     # dp.include_router(other_handlers.router)
     setup_dialogs(dp)
 
+    # Регистрируем миддлварь для i18n
+    # dp.update.middleware(TranslatorRunnerMiddleware())
+
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, allowed_updates=[])
+    # await dp.start_polling(bot, allowed_updates=[], _translator_hub=translator_hub)
 
     # # Регистрируем хук на старт для инициализации webhook
     # dp.startup.register(on_startup)
