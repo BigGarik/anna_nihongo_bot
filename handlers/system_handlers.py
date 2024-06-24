@@ -4,6 +4,7 @@ import random
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button, Select
+from tortoise.expressions import Q
 
 from models import User, Category, Phrase
 from services.services import replace_random_words
@@ -41,12 +42,15 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, **k
     return response
 
 
-
 async def get_user_categories(dialog_manager: DialogManager, **kwargs):
     user_id = dialog_manager.event.from_user.id
     categories = await Category.filter(user_id=user_id).all()
     items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
+
+    categories_for_all = await Category.filter(public=True).all()
+    cat_for_all = [(category.name, str(category.id)) for category in categories_for_all]
+
+    return {'categories': items, 'categories_for_all': cat_for_all}
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
@@ -58,7 +62,7 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
     category = await Category.get(id=item_id)
     dialog_manager.dialog_data['category_id'] = category.id
     user_id = dialog_manager.event.from_user.id
-    phrases = await Phrase.filter(category_id=item_id, user_id=user_id).all()
+    phrases = await Phrase.filter(Q(category_id=item_id) & (Q(user_id=user_id) | Q(category__public=True))).all()
     items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
     dialog_manager.dialog_data['phrases'] = items
     await dialog_manager.next()

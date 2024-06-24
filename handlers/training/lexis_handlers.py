@@ -126,6 +126,16 @@ lexis_training_dialog = Dialog(
             width=2
         ),
         Group(
+            Select(
+                Format('{item[0]}'),
+                id='cat_for_all',
+                item_id_getter=lambda x: x[1],
+                items='categories_for_all',
+                on_click=category_selection,
+            ),
+            width=2
+        ),
+        Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),

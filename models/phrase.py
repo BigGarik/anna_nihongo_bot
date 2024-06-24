@@ -5,6 +5,7 @@ class Category(models.Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=255, unique=True)
     user = fields.ForeignKeyField('models.User', related_name='categories', null=True)
+    public = fields.BooleanField(default=False)
 
 
 class AudioFile(models.Model):
