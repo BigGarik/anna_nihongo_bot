@@ -134,14 +134,14 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
     user_id = message.from_user.id
     user = await User.filter(id=user_id).first()
     if user:
-        await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+        await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
     else:
         username = message.from_user.username or ""
         first_name = message.from_user.first_name or ""
         last_name = message.from_user.last_name or ""
         await User.create(id=user_id, username=username,
                           first_name=first_name, last_name=last_name)
-        await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
+        await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
 
 
 @router.message(Command(commands='cancel'))
