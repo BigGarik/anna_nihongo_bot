@@ -25,13 +25,24 @@ def first_state_audio_getter(data, widget, dialog_manager: DialogManager):
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
-    text_phrase = dialog_manager.dialog_data['text_phrase']
-    translation = dialog_manager.dialog_data['translation']
-    comment = dialog_manager.dialog_data['comment']
+    category_id = dialog_manager.start_data.get('category_id')
+    category = await Category.get_or_none(id=category_id)
+    # Инициализируем response с именем категории
+    response = {'category_name': category.name}
 
-    return {'text_phrase': text_phrase,
-            'translation': translation,
-            'comment': comment}
+    # Получаем текст фразы
+    text_phrase = dialog_manager.dialog_data.get('text_phrase', '')
+    response['text_phrase'] = text_phrase
+
+    # Получаем перевод фразы
+    translation = dialog_manager.dialog_data.get('translation', '')
+    response['translation'] = translation
+
+    # Получаем комментарий
+    comment = dialog_manager.dialog_data.get('comment', '')
+    response['comment'] = comment
+
+    return response
 
 
 async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
@@ -185,7 +196,11 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
 
 add_original_phrase_dialog = Dialog(
     Window(
-        Const(text='Введите текст новой фразы:'),
+        Multi(
+            Format('Категория: <b>{category_name}</b>'),
+            Const(text='💬 Введи текст новой фразы:'),
+        ),
+
         TextInput(
             id='text_phrase_input',
             on_success=text_phrase_input,
@@ -194,11 +209,17 @@ add_original_phrase_dialog = Dialog(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
             width=3
         ),
+        getter=get_data,
         state=AddOriginalPhraseSG.text_phrase
     ),
     # translation = State()
     Window(
-        Const(text='Введите перевод новой фразы или жмите "Пропустить" и я переведу автоматически:'),
+        Multi(
+            Format('Категория: <b>{category_name}</b>'),
+            Format('Текст: <b>{text_phrase}</b>'),
+            Const(text='🌐 Введи перевод новой фразы или жми "Пропустить" и я переведу автоматически:'),
+        ),
+
         TextInput(
             id='translation_input',
             on_success=translation_input,
@@ -209,17 +230,23 @@ add_original_phrase_dialog = Dialog(
             Next(Const('▶️ Пропустить'), id='next', on_click=translate_phrase),
             width=3
         ),
+        getter=get_data,
         state=AddOriginalPhraseSG.translation
     ),
 
     # audio = State()
     Window(
         Multi(
+            Format('Категория: <b>{category_name}</b>'),
+            Format('Текст: <b>{text_phrase}</b>'),
+            Format('Перевод: <b>{translation}</b>\n'),
+        ),
+        Multi(
             Const('<b>Добавление аудио</b>'),
-            Const('Отправь мне аудио новой фразы, '
-                  'голосовое сообщение или нажми <code>Озвучить с помощью ИИ</code>.',
+            Const('🔊 Отправь мне аудио новой фразы, '
+                  'голосовое сообщение или нажми <b>Озвучить с помощью ИИ</b>.',
                   when=first_state_audio_getter),
-            Const('Если все ОК, жми <code>Сохранить</code> или отправь еще раз',
+            Const('Если все ОК, жми <b>Сохранить</b> или отправь еще раз',
                   when=second_state_audio_getter),
             sep='\n\n'
         ),
@@ -235,12 +262,18 @@ add_original_phrase_dialog = Dialog(
             # Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
+        getter=get_data,
         state=AddOriginalPhraseSG.audio
     ),
 
     # image = State()
     Window(
-        Const(text='Отправьте иллюстрацию для фразы, сгенерируйте или просто пропустите этот шаг:'),
+        Multi(
+            Format('Категория: <b>{category_name}</b>'),
+            Format('Текст: <b>{text_phrase}</b>'),
+            Format('Перевод: <b>{translation}</b>\n'),
+        ),
+        Const(text='🎨 Отправь иллюстрацию для фразы, или просто пропусти этот шаг:'),
         MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
         # Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
         Group(
@@ -249,11 +282,17 @@ add_original_phrase_dialog = Dialog(
             Next(Const('▶️ Пропустить'), id='next'),
             width=3
         ),
+        getter=get_data,
         state=AddOriginalPhraseSG.image
     ),
 
     # comment = State()
     Window(
+        Multi(
+            Format('Категория: <b>{category_name}</b>'),
+            Format('Текст: <b>{text_phrase}</b>'),
+            Format('Перевод: <b>{translation}</b>\n'),
+        ),
         Const(text='Здесь можно добавить комментарий к фразе:'),
         TextInput(id='comment_input', on_success=comment_input),
         Group(
@@ -262,15 +301,17 @@ add_original_phrase_dialog = Dialog(
             Next(Const('▶️ Пропустить'), id='next', on_click=comment_next_button_clicked),
             width=3
         ),
+        getter=get_data,
         state=AddOriginalPhraseSG.comment
     ),
     # save = State()
     Window(
         Multi(
             Format('Суммарная информация'),
-            Format('{text_phrase}'),
-            Format('{translation}'),
-            Format('{comment}'),
+            Format('Категория: <b>{category_name}</b>'),
+            Format('Текст: <b>{text_phrase}</b>'),
+            Format('Перевод: <b>{translation}</b>'),
+            Format('Комментарий: <b>{comment}</b>\n'),
             Const(text='Сохранить фразу?'),
         ),
         Group(

@@ -1,6 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, Dialog, Window
-from aiogram_dialog.widgets.kbd import Button, Cancel
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group
 from aiogram_dialog.widgets.text import Const
 
 from handlers import main_page_button_clicked
@@ -22,18 +22,21 @@ async def translation_button_clicked(callback: CallbackQuery, button: Button, di
 user_training_dialog = Dialog(
     Window(
         Const(text='Ты в разделе тренировок. Выбирай тренировку и погнали...'),
-        Button(
-            text=Const('🗣 Произношение'),
-            id='pronunciation',
-            on_click=pronunciation_button_clicked),
-        Button(
-            text=Const('🎯 Лексика'),
-            id='lexis',
-            on_click=lexis_button_clicked),
-        Button(
-            text=Const('🌍 Перевод'),
-            id='translation',
-            on_click=translation_button_clicked),
+        Group(
+            Button(
+                text=Const('🗣 Произношение'),
+                id='pronunciation',
+                on_click=pronunciation_button_clicked),
+            Button(
+                text=Const('🎯 Лексика'),
+                id='lexis',
+                on_click=lexis_button_clicked),
+            Button(
+                text=Const('🌍 Перевод'),
+                id='translation',
+                on_click=translation_button_clicked),
+            width=2
+        ),
         Button(
             text=Const('🏠 На главную'),
             id='main_page',
