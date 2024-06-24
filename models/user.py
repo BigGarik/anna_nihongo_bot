@@ -11,6 +11,7 @@ class User(models.Model):
     username = fields.CharField(max_length=100, unique=True)
     first_name = fields.CharField(max_length=100, null=True)
     last_name = fields.CharField(max_length=100, null=True)
+    subscription = fields.CharField(max_length=100, null=True, default='Free trial')
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 

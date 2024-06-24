@@ -1,21 +1,18 @@
 import logging
 import os
-import uuid
 
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, \
-    InlineKeyboardButton
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
 from dotenv import load_dotenv
 
-from bot_init import bot, redis
-from db.requests import get_user_ids
 from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU
+from models import User
 from services.services import get_folders
 from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, ManagementSG
 from . import start_getter
@@ -43,37 +40,6 @@ async def category_button_clicked(callback: CallbackQuery, button: Button, dialo
     await dialog_manager.done()
 
 
-async def access_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    # Генерируем уникальный идентификатор для запроса
-    request_id = str(uuid.uuid4())
-
-    # Сохраняем данные пользователя в Redis с использованием хеша
-    await redis.hmset(f"access_request:{request_id}", {
-        "user_id": callback.from_user.id,
-        "username": callback.from_user.username or "",
-        "first_name": callback.from_user.first_name or "",
-        "last_name": callback.from_user.last_name or "",
-    })
-
-    # Создаем кнопки
-    button1 = InlineKeyboardButton(text="Подтвердить", callback_data=f"confirm_access:{request_id}")
-    button2 = InlineKeyboardButton(text="Отменить", callback_data=f"cancel_access:{request_id}")
-
-    # Создаем разметку клавиатуры
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [button1],  # Кнопки располагаются в ряд
-        [button2],
-    ])
-
-    await bot.send_message(
-        admin_id,
-        f"Пользователь @{callback.from_user.username} запрашивает доступ.",
-        reply_markup=keyboard
-    )
-    await dialog_manager.done()
-    await callback.message.answer('Заявка отправлена администратору.')
-
-
 async def training_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.start(state=UserTrainingSG.start)
 
@@ -98,11 +64,22 @@ start_dialog = Dialog(
                   when='is_en'
                   ),
         ),
-        Row(
-            Button(
-                text=Const('Запросить доступ'),
-                id='access',
-                on_click=access_button_clicked),
+        Column(
+            Row(
+                Button(
+                    text=Const('💪 Тренировки'),
+                    id='training',
+                    on_click=training_button_clicked),
+                Button(
+                    text=Const('🔊 Прослушивание (Озвучить текст)'),
+                    id='tts',
+                    on_click=tts_button_clicked),
+                Button(
+                    text=Const('📝 Управление моими фразами'),
+                    id='phrase_management',
+                    on_click=phrase_management_button_clicked,
+                ),
+            ),
         ),
         getter=start_getter,
         state=StartDialogSG.start
@@ -118,6 +95,7 @@ user_start_dialog = Dialog(
             Format("<b>{username}</b>, let's go to the next level!\nДавай выберем следующую тренировку!",
                    when='is_en'
                    ),
+            Format('Подписка: <b>{subscription}</b>'),
         ),
         Column(
             Row(
@@ -153,14 +131,17 @@ user_start_dialog = Dialog(
 # Этот хэндлер будет срабатывать на /start
 @router.message(CommandStart())
 async def process_start_command(message: Message, dialog_manager: DialogManager):
-    # получить пользователей из БД
-    # Если ИД в базе, то user_start_dialog
-    user_ids = await get_user_ids()
-    if message.from_user.id in user_ids:
-        await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
-    # иначе start_dialog
-    else:
+    user_id = message.from_user.id
+    user = await User.filter(id=user_id).first()
+    if user:
         await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+    else:
+        username = message.from_user.username or ""
+        first_name = message.from_user.first_name or ""
+        last_name = message.from_user.last_name or ""
+        await User.create(id=user_id, username=username,
+                          first_name=first_name, last_name=last_name)
+        await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
 
 
 @router.message(Command(commands='cancel'))

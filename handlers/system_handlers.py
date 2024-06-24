@@ -1,15 +1,13 @@
 import os
 import random
 
-from aiogram.types import User, CallbackQuery
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button, Select
-from tortoise.expressions import RawSQL
 
-from models import Category, Phrase
+from models import User, Category, Phrase
 from services.services import replace_random_words
 from states import UserStartDialogSG
-
 
 location = os.getenv('LOCATION')
 
@@ -20,6 +18,11 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, **k
     # Преобразование строки в список целых чисел
     admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
     response = {'username': event_from_user.first_name or event_from_user.username}
+
+    user = await User.filter(id=event_from_user.id).first()
+    if user:
+        response['subscription'] = user.subscription
+
     if event_from_user.id in admin_ids:
         response['is_admin'] = True
     else:
