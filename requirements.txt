@@ -20,5 +20,5 @@ google-cloud-texttospeech
 aiohttp
 aerich
 
-aiogram_dialog
+aiogram_dialog==2.2.0a4
 fluentogram
