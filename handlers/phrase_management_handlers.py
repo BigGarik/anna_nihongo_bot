@@ -10,13 +10,14 @@ from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG
 
 
 async def management_dialog_process_result(statr_data: Data, result: dict, dialog_manager: DialogManager, **kwargs):
-    if 'new_phrase' in result:
-        new_phrase = result["new_phrase"]
-        phrases = dialog_manager.dialog_data['phrases']
-        phrases.append(new_phrase)
-        phrases_count = dialog_manager.dialog_data.get('phrases_count')
-        phrases_count += 1
-        dialog_manager.dialog_data['phrases_count'] = phrases_count
+    if result:
+        if 'new_phrase' in result:
+            new_phrase = result["new_phrase"]
+            phrases = dialog_manager.dialog_data['phrases']
+            phrases.append(new_phrase)
+            phrases_count = dialog_manager.dialog_data.get('phrases_count')
+            phrases_count += 1
+            dialog_manager.dialog_data['phrases_count'] = phrases_count
 
 
 async def get_category_for_delite(dialog_manager: DialogManager, **kwargs):
