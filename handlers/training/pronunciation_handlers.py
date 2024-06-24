@@ -31,7 +31,7 @@ async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manage
     phrase = await Phrase.get_or_none(id=item_id)
     dialog_manager.dialog_data['phrase_id'] = phrase.id
     # отправить изображение и голосовое с подписью
-    await callback.message.delete()
+    # await callback.message.delete()
     if phrase.image_id:
         await callback.message.answer_photo(phrase.image_id)
     await callback.message.answer_voice(phrase.audio_id,
