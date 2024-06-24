@@ -139,7 +139,7 @@ management_dialog = Dialog(
             on_click=delite_categories_button_clicked,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            # Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',

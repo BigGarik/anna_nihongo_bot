@@ -54,7 +54,7 @@ text_to_speech_dialog = Dialog(
             content_types=ContentType.VOICE,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            # Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
                 text=Const('🏠 На главную'),
                 id='main_page',

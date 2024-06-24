@@ -3,6 +3,7 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.kbd import Button, Cancel
 from aiogram_dialog.widgets.text import Const
 
+from handlers import main_page_button_clicked
 from states import UserTrainingSG, TranslationTrainingSG, PronunciationTrainingSG, LexisTrainingSG
 
 
@@ -33,7 +34,11 @@ user_training_dialog = Dialog(
             text=Const('🌍 Перевод'),
             id='translation',
             on_click=translation_button_clicked),
-        Cancel(Const('↩️ Отмена'), id='button_cancel'),
+        Button(
+            text=Const('🏠 На главную'),
+            id='main_page',
+            on_click=main_page_button_clicked,
+        ),
         state=UserTrainingSG.start
     ),
 )
