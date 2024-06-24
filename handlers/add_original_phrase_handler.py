@@ -3,7 +3,7 @@ import os
 
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
-from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Next, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
@@ -134,7 +134,7 @@ async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manag
     }
     dialog_manager.dialog_data['audio_data'] = audio_data
 
-    await dialog_manager.next()
+    await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 #
@@ -191,7 +191,10 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
         phrase.spaced_phrase = dialog_manager.dialog_data.get('spaced_phrase')
 
     await phrase.save()
-    await dialog_manager.done()
+
+    new_phrase = [phrase.text_phrase, phrase.id]
+
+    await dialog_manager.done(result={"new_phrase": new_phrase})
 
 
 add_original_phrase_dialog = Dialog(

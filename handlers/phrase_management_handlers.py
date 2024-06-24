@@ -1,5 +1,5 @@
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, Data
 from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
@@ -7,6 +7,16 @@ from handlers import main_page_button_clicked
 from handlers.system_handlers import get_user_categories, get_phrases
 from models import Category, Phrase
 from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG
+
+
+async def management_dialog_process_result(statr_data: Data, result: dict, dialog_manager: DialogManager, **kwargs):
+    if 'new_phrase' in result:
+        new_phrase = result["new_phrase"]
+        phrases = dialog_manager.dialog_data['phrases']
+        phrases.append(new_phrase)
+        phrases_count = dialog_manager.dialog_data.get('phrases_count')
+        phrases_count += 1
+        dialog_manager.dialog_data['phrases_count'] = phrases_count
 
 
 async def get_category_for_delite(dialog_manager: DialogManager, **kwargs):
@@ -248,7 +258,7 @@ management_dialog = Dialog(
             width=3
         ),
         getter=get_phrases,
-        state=ManagementSG.select_phrase
+        state=ManagementSG.select_phrase,
     ),
     Window(
         List(
@@ -276,4 +286,5 @@ management_dialog = Dialog(
         getter=get_phrases_for_delite,
         state=ManagementSG.confirm_deletion_phrase
     ),
+    on_process_result=management_dialog_process_result
 )
