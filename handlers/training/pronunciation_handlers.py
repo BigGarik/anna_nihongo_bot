@@ -5,7 +5,7 @@ from pathlib import Path
 import librosa
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery, FSInputFile
-from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi
@@ -36,7 +36,7 @@ async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manage
         await callback.message.answer_photo(phrase.image_id)
     await callback.message.answer_voice(phrase.audio_id,
                                         caption='Послушайте оригинал и попробуйте повторить')
-    await dialog_manager.next()
+    await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
