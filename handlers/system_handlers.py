@@ -20,9 +20,19 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, **k
     admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
     response = {'username': event_from_user.first_name or event_from_user.username}
 
-    user = await User.filter(id=event_from_user.id).first()
-    if user:
-        response['subscription'] = user.subscription
+    user = await User.get_or_none(id=event_from_user.id)
+
+    # if user:
+    #     response['subscription'] = user.subscription
+    #     if user.subscription == 'Vip':
+    #         response['is_subscribe'] = True
+    #     else:
+    #         response['is_subscribe'] = False
+    #
+    #     if user.subscription != 'Vip':
+    #         response['is_not_subscribe'] = True
+    #     else:
+    #         response['is_not_subscribe'] = False
 
     if event_from_user.id in admin_ids:
         response['is_admin'] = True
