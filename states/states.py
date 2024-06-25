@@ -74,3 +74,7 @@ class ManagementSG(StatesGroup):
     confirm_deletion_category = State()
     select_phrase = State()
     confirm_deletion_phrase = State()
+
+
+class SubscribeSG(StatesGroup):
+    start = State()
