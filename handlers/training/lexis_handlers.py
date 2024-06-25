@@ -83,7 +83,7 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
     if normalized_question == normalized_answer:
         dialog_manager.dialog_data['counter'] = 0
         user_answer.result = True
-        await message.answer('Ура!!! Ты лучший! 🥳')
+        await message.answer('🏆 Ура!!! Ты лучший! 🥳')
         # voice_id = dialog_manager.dialog_data['audio_id']
         # if voice_id:
         #     await bot.send_voice(chat_id=message.from_user.id, voice=voice_id)
