@@ -14,7 +14,7 @@ from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU
 from models import User
 from services.services import get_folders
-from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, ManagementSG
+from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, ManagementSG, SubscribeSG
 from . import start_getter
 
 load_dotenv()
@@ -30,14 +30,14 @@ async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_man
     # await dialog_manager.done()
     await dialog_manager.start(state=TextToSpeechSG.start)
 
-
-async def category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    keyboard = create_inline_kb(1, **get_folders('original_files'))
-    await callback.message.answer(
-        text=f"{LEXICON_RU['select_category']}",
-        reply_markup=keyboard
-    )
-    await dialog_manager.done()
+#
+# async def category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+#     keyboard = create_inline_kb(1, **get_folders('original_files'))
+#     await callback.message.answer(
+#         text=f"{LEXICON_RU['select_category']}",
+#         reply_markup=keyboard
+#     )
+#     await dialog_manager.done()
 
 
 async def training_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -45,7 +45,15 @@ async def training_button_clicked(callback: CallbackQuery, button: Button, dialo
 
 
 async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    # user = await User.get_or_none(id=callback.from_user.id)
+    # if user.subscription == 'Free':
+    #     await callback.answer('Только по подписке', show_alert=True)
+    # else:
     await dialog_manager.start(state=ManagementSG.start)
+
+
+async def subscribe_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SubscribeSG.start)
 
 
 start_dialog = Dialog(
@@ -75,9 +83,21 @@ start_dialog = Dialog(
                     id='tts',
                     on_click=tts_button_clicked),
                 Button(
-                    text=Const('📝 Управление моими фразами'),
+                    text=Const('📝 Управление моими фразами 💎ᴠɪᴘ'),
                     id='phrase_management',
                     on_click=phrase_management_button_clicked,
+                ),
+                Button(
+                    text=Const('🔔 Подписаться 💎ᴠɪᴘ'),
+                    id='subscribe_management',
+                    on_click=subscribe_management_button_clicked,
+                    when='is_not_subscribe'
+                ),
+                Button(
+                    text=Const('🔔 Управление подпиской 💎ᴠɪᴘ'),
+                    id='subscribe_management',
+                    on_click=subscribe_management_button_clicked,
+                    when='is_subscribe'
                 ),
             ),
         ),
@@ -95,7 +115,7 @@ user_start_dialog = Dialog(
             Format("<b>{username}</b>, let's go to the next level!\nДавай выберем следующую тренировку!",
                    when='is_en'
                    ),
-            Format('Подписка: <b>{subscription}</b>'),
+            # Format('Подписка: <b>{subscription}</b>'),
         ),
         Column(
             Row(
@@ -108,9 +128,21 @@ user_start_dialog = Dialog(
                     id='tts',
                     on_click=tts_button_clicked),
                 Button(
-                    text=Const('📝 Управление моими фразами'),
+                    text=Const('📝 Управление моими фразами 💎ᴠɪᴘ'),
                     id='phrase_management',
                     on_click=phrase_management_button_clicked,
+                ),
+                Button(
+                    text=Const('🔔 Подписаться 💎ᴠɪᴘ'),
+                    id='subscribe_management',
+                    on_click=subscribe_management_button_clicked,
+                    when='is_not_subscribe'
+                ),
+                Button(
+                    text=Const('🔔 Управление подпиской 💎ᴠɪᴘ'),
+                    id='subscribe_management',
+                    on_click=subscribe_management_button_clicked,
+                    when='is_subscribe'
                 ),
             ),
         ),
