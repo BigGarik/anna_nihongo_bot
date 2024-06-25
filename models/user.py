@@ -7,11 +7,11 @@ class UserGroup(models.Model):
 
 
 class User(models.Model):
-    id = fields.IntField(pk=True)
+    id = fields.BigIntField(pk=True)
     username = fields.CharField(max_length=100, unique=True)
     first_name = fields.CharField(max_length=100, null=True)
     last_name = fields.CharField(max_length=100, null=True)
-    subscription = fields.CharField(max_length=100, null=True, default='Free trial')
+    payment_method = fields.TextField(null=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
 
