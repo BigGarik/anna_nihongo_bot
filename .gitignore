@@ -3,6 +3,7 @@
 .idea
 venv/
 .venv/
+migrations/
 /redis/data/dump.rdb
 /redis/data/redis_dump.rdb
 /locales/en/LC_MESSAGES/anna_nihongo_bot.mo
@@ -10,3 +11,4 @@ venv/
 /user.log
 /temp/
 /anna-nihongo-bot-96c6f518f0cd.json
+/pyproject.toml

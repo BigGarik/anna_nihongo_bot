@@ -14,9 +14,9 @@ async def select_user_button_clicked(callback: CallbackQuery, widget: Select, di
     user = await User.get_or_none(id=user_id)
     subscription = await Subscription.get_or_none(user_id=user_id)
     if subscription:
-        sub_date_start = subscription.date_start
-        sub_date_end = subscription.date_end
-        type_subscription = subscription.type_subscription
+        sub_date_start = subscription.date_start.strftime('%Y-%m-%d')
+        sub_date_end = subscription.date_end.strftime('%Y-%m-%d') if subscription.date_end else None
+        type_subscription = await subscription.type_subscription.first()
     else:
         sub_date_start = ''
         sub_date_end = ''
@@ -29,7 +29,7 @@ async def select_user_button_clicked(callback: CallbackQuery, widget: Select, di
         'last_name': user.last_name,
         'sub_date_start': sub_date_start,
         'sub_date_end': sub_date_end,
-        'type_subscription': type_subscription,
+        'type_subscription': type_subscription.name,
     }
     await dialog_manager.update(user_management_user)
     await dialog_manager.next()
