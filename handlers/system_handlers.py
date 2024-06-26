@@ -6,9 +6,9 @@ from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.kbd import Button, Select
 from tortoise.expressions import Q
 
-from models import User, Category, Phrase
+from models import User, Category, Phrase, Subscription
 from services.services import replace_random_words
-from states import UserStartDialogSG
+from states import StartDialogSG
 
 location = os.getenv('LOCATION')
 
@@ -19,20 +19,28 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, **k
     # Преобразование строки в список целых чисел
     admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
     response = {'username': event_from_user.first_name or event_from_user.username}
+    if dialog_manager.start_data:
+        response['not_new_user'] = dialog_manager.start_data.get("not_new_user", False)
+        response['new_user'] = dialog_manager.start_data.get("new_user", False)
+    else:
+        response['not_new_user'] = True
+        response['new_user'] = False
 
-    user = await User.get_or_none(id=event_from_user.id)
+    subscription = await Subscription.get_or_none(user_id=event_from_user.id).prefetch_related('type_subscription')
+    if subscription:
+        if subscription.type_subscription.name not in ('Free', 'Free trial'):
+            response['subscription'] = '💎 VIP'
+            response['is_vip'] = True
+            response['is_not_vip'] = False
+        else:
+            response['subscription'] = subscription.type_subscription.name
+            response['is_vip'] = False
+            response['is_not_vip'] = True
 
-    # if user:
-    #     response['subscription'] = user.subscription
-    #     if user.subscription == 'Vip':
-    #         response['is_subscribe'] = True
-    #     else:
-    #         response['is_subscribe'] = False
-    #
-    #     if user.subscription != 'Vip':
-    #         response['is_not_subscribe'] = True
-    #     else:
-    #         response['is_not_subscribe'] = False
+        if subscription.type_subscription.name != 'Vip':
+            response['is_not_subscribe'] = True
+        else:
+            response['is_not_subscribe'] = False
 
     if event_from_user.id in admin_ids:
         response['is_admin'] = True
@@ -48,7 +56,6 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, **k
         response['is_en'] = True
     else:
         response['is_en'] = False
-
     return response
 
 
@@ -129,4 +136,4 @@ def second_answer_getter(data, widget, dialog_manager: DialogManager):
 
 async def main_page_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.done()
-    await dialog_manager.start(state=UserStartDialogSG.start)
+    await dialog_manager.start(state=StartDialogSG.start)

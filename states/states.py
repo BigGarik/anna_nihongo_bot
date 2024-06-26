@@ -18,10 +18,6 @@ class StartDialogSG(StatesGroup):
     start = State()
 
 
-class UserStartDialogSG(StatesGroup):
-    start = State()
-
-
 class AdminDialogSG(StatesGroup):
     start = State()
 
@@ -77,4 +73,8 @@ class ManagementSG(StatesGroup):
 
 
 class SubscribeSG(StatesGroup):
+    start = State()
+
+
+class SubscribeManagementSG(StatesGroup):
     start = State()

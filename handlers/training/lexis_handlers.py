@@ -3,7 +3,7 @@ from pathlib import Path
 
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
@@ -51,6 +51,7 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
         phrase=phrase,
         answer_text=spoken_answer,
         audio_id=voice_id,
+        exercise='lexis'
     )
     if dialog_manager.dialog_data['question'] == spoken_answer:
         dialog_manager.dialog_data['counter'] = 0

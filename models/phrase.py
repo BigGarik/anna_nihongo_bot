@@ -18,7 +18,7 @@ class UserAnswer(models.Model):
     id = fields.IntField(pk=True)
     user = fields.ForeignKeyField('models.User', related_name='user_answers')
     phrase = fields.ForeignKeyField('models.Phrase', related_name='user_answers')
-
+    exercise = fields.CharField(max_length=255, default='lexis')
     answer_text = fields.CharField(max_length=255, null=True)
     audio_id = fields.CharField(max_length=255, null=True)
     result = fields.BooleanField(default=False)

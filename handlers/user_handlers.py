@@ -1,5 +1,6 @@
 import logging
 import os
+from datetime import datetime, timedelta
 
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
@@ -10,11 +11,9 @@ from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
 from dotenv import load_dotenv
 
-from keyboards.inline_kb import create_inline_kb
 from lexicon.lexicon_ru import LEXICON_RU
-from models import User
-from services.services import get_folders
-from states import StartDialogSG, UserStartDialogSG, AdminDialogSG, UserTrainingSG, TextToSpeechSG, ManagementSG, SubscribeSG
+from models import User, Subscription, TypeSubscription
+from states import StartDialogSG, AdminDialogSG, UserTrainingSG, ManagementSG, SubscribeSG, SubscribeManagementSG
 from . import start_getter
 
 load_dotenv()
@@ -26,35 +25,78 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-async def tts_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    # await dialog_manager.done()
-    await dialog_manager.start(state=TextToSpeechSG.start)
-
-#
-# async def category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-#     keyboard = create_inline_kb(1, **get_folders('original_files'))
-#     await callback.message.answer(
-#         text=f"{LEXICON_RU['select_category']}",
-#         reply_markup=keyboard
-#     )
-#     await dialog_manager.done()
-
-
 async def training_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
 async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    # user = await User.get_or_none(id=callback.from_user.id)
-    # if user.subscription == 'Free':
-    #     await callback.answer('Только по подписке', show_alert=True)
-    # else:
-    await dialog_manager.start(state=ManagementSG.start)
+    subscription = await Subscription.get_or_none(user_id=callback.from_user.id).prefetch_related('type_subscription')
+    if subscription:
+        if subscription.type_subscription.name == 'Free':
+            await callback.answer('Только по подписке', show_alert=True)
+        else:
+            await dialog_manager.start(state=ManagementSG.start)
+
+
+async def subscribe_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SubscribeSG.start)
 
 
 async def subscribe_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=SubscribeSG.start)
+    await dialog_manager.start(state=SubscribeManagementSG.start)
 
+
+# start_dialog = Dialog(
+#     Window(
+#         Multi(
+#             Const('初めまして', when='is_jp'),
+#             Format('<b>Привет, {username}!</b>'),
+#             Const('Я бот-помощник <b>Анны様</b> 😃\n'
+#                   'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
+#                   'Хотите говорить по-японски как японцы?\n',
+#                   when='is_jp'
+#                   ),
+#
+#             Const("Меня зовут мистер Хацу, я твой бот-помощник.\nЯ помогу тебе легко запоминать новые слова, "
+#                   "тренировать красивое произношение и научиться бегло говорить по-английски.\n\nLet's start!\n",
+#                   when='is_en'
+#                   ),
+#             Format('Подписка: <b>{subscription}</b>'),
+#             when='new_user'
+#         ),
+#         Column(
+#             Row(
+#                 Button(
+#                     text=Const('💪 Тренировки'),
+#                     id='training',
+#                     on_click=training_button_clicked),
+#                 Button(
+#                     text=Const('🔊 Прослушивание (Озвучить текст)'),
+#                     id='tts',
+#                     on_click=tts_button_clicked),
+#                 Button(
+#                     text=Const('📝 Управление моими фразами 💎'),
+#                     id='phrase_management',
+#                     on_click=phrase_management_button_clicked,
+#                 ),
+#                 Button(
+#                     text=Const('🔔 Подписаться 💎'),
+#                     id='subscribe_management',
+#                     on_click=subscribe_management_button_clicked,
+#                     when='is_not_vip'
+#                 ),
+#                 Button(
+#                     text=Const('🔔 Управление подпиской 💎'),
+#                     id='subscribe_management',
+#                     on_click=subscribe_management_button_clicked,
+#                     when='is_vip'
+#                 ),
+#             ),
+#         ),
+#         getter=start_getter,
+#         state=StartDialogSG.start
+#     ),
+# )
 
 start_dialog = Dialog(
     Window(
@@ -66,48 +108,12 @@ start_dialog = Dialog(
                   'Хотите говорить по-японски как японцы?\n',
                   when='is_jp'
                   ),
-
             Const("Меня зовут мистер Хацу, я твой бот-помощник.\nЯ помогу тебе легко запоминать новые слова, "
                   "тренировать красивое произношение и научиться бегло говорить по-английски.\n\nLet's start!\n",
                   when='is_en'
                   ),
+            when='new_user'
         ),
-        Column(
-            Row(
-                Button(
-                    text=Const('💪 Тренировки'),
-                    id='training',
-                    on_click=training_button_clicked),
-                Button(
-                    text=Const('🔊 Прослушивание (Озвучить текст)'),
-                    id='tts',
-                    on_click=tts_button_clicked),
-                Button(
-                    text=Const('📝 Управление моими фразами 💎ᴠɪᴘ'),
-                    id='phrase_management',
-                    on_click=phrase_management_button_clicked,
-                ),
-                Button(
-                    text=Const('🔔 Подписаться 💎ᴠɪᴘ'),
-                    id='subscribe_management',
-                    on_click=subscribe_management_button_clicked,
-                    when='is_not_subscribe'
-                ),
-                Button(
-                    text=Const('🔔 Управление подпиской 💎ᴠɪᴘ'),
-                    id='subscribe_management',
-                    on_click=subscribe_management_button_clicked,
-                    when='is_subscribe'
-                ),
-            ),
-        ),
-        getter=start_getter,
-        state=StartDialogSG.start
-    ),
-)
-
-user_start_dialog = Dialog(
-    Window(
         Multi(
             Format('<b>{username}さん</b>、日本語を勉強しましょう！\nДавай выберем следующую тренировку!',
                    when='is_jp'
@@ -115,7 +121,8 @@ user_start_dialog = Dialog(
             Format("<b>{username}</b>, let's go to the next level!\nДавай выберем следующую тренировку!",
                    when='is_en'
                    ),
-            # Format('Подписка: <b>{subscription}</b>'),
+            Format('Подписка: <b>{subscription}</b>'),
+            when='not_new_user'
         ),
         Column(
             Row(
@@ -124,25 +131,23 @@ user_start_dialog = Dialog(
                     id='training',
                     on_click=training_button_clicked),
                 Button(
-                    text=Const('🔊 Прослушивание (Озвучить текст)'),
-                    id='tts',
-                    on_click=tts_button_clicked),
-                Button(
-                    text=Const('📝 Управление моими фразами 💎ᴠɪᴘ'),
+                    text=Const('📝 Управление моими фразами 💎'),
                     id='phrase_management',
                     on_click=phrase_management_button_clicked,
                 ),
                 Button(
-                    text=Const('🔔 Подписаться 💎ᴠɪᴘ'),
+                    text=Const('🔔 Подписаться 💎'),
                     id='subscribe_management',
-                    on_click=subscribe_management_button_clicked,
-                    when='is_not_subscribe'
+                    on_click=subscribe_button_clicked,
+                    # when='is_not_vip'
+                    when='_is_not_vip'
                 ),
                 Button(
-                    text=Const('🔔 Управление подпиской 💎ᴠɪᴘ'),
+                    text=Const('🔔 Управление подпиской 💎'),
                     id='subscribe_management',
                     on_click=subscribe_management_button_clicked,
-                    when='is_subscribe'
+                    # when='is_vip'
+                    when='_is_vip'
                 ),
             ),
         ),
@@ -154,45 +159,61 @@ user_start_dialog = Dialog(
             when='is_admin',
         ),
         getter=start_getter,
-        # Состояние этого окна для переключения на него
-        state=UserStartDialogSG.start
+        state=StartDialogSG.start
     ),
 )
 
 
-# Этот хэндлер будет срабатывать на /start
 @router.message(CommandStart())
 async def process_start_command(message: Message, dialog_manager: DialogManager):
     user_id = message.from_user.id
-    user = await User.filter(id=user_id).first()
+    user = await User.get_or_none(id=user_id)
+    not_new_user = False
+    new_user = False
     if user:
-        await dialog_manager.start(state=UserStartDialogSG.start, mode=StartMode.RESET_STACK)
+        not_new_user = True
+        user.username = message.from_user.username or ""
+        user.first_name = message.from_user.first_name or ""
+        user.last_name = message.from_user.last_name or ""
+        await user.save()
     else:
+        new_user = True
         username = message.from_user.username or ""
         first_name = message.from_user.first_name or ""
         last_name = message.from_user.last_name or ""
-        await User.create(id=user_id, username=username,
-                          first_name=first_name, last_name=last_name)
-        await dialog_manager.start(state=StartDialogSG.start, mode=StartMode.RESET_STACK)
+        user = await User.create(id=user_id,
+                                 username=username,
+                                 first_name=first_name,
+                                 last_name=last_name
+                                 )
+        type_subscription = await TypeSubscription.get(name='Free trial')
+        await Subscription.create(user=user,
+                                  type_subscription=type_subscription,
+                                  date_start=datetime.now(),
+                                  date_end=datetime.now() + timedelta(days=30),
+                                  )
+
+    await dialog_manager.start(state=StartDialogSG.start,
+                               mode=StartMode.RESET_STACK,
+                               data={"new_user": new_user, 'not_new_user': not_new_user})
 
 
 @router.message(Command(commands='cancel'))
-async def process_help_command(message: Message, state: FSMContext, dialog_manager: DialogManager):
+async def process_cancel_command(message: Message, state: FSMContext, dialog_manager: DialogManager):
     await message.answer(text=LEXICON_RU['/cancel'])
-    await dialog_manager.done()
-    dialog_manager.dialog_data.clear()
+    await dialog_manager.reset_stack()
     await state.clear()
 
 
-@router.message(Command(commands='contact'))
-async def process_help_command(message: Message):
-    await message.answer(text=LEXICON_RU['/contact'])
-
-
-# Этот хэндлер срабатывает на команду /help
-@router.message(Command(commands='help'))
-async def process_help_command(message: Message):
-    await message.answer(text=LEXICON_RU['/help'])
+# @router.message(Command(commands='contact'))
+# async def process_contact_command(message: Message):
+#     await message.answer(text=LEXICON_RU['/contact'])
+#
+#
+# # Этот хэндлер срабатывает на команду /help
+# @router.message(Command(commands='help'))
+# async def process_help_command(message: Message):
+#     await message.answer(text=LEXICON_RU['/help'])
 
 # Хендлер обрабатывающий нажатие инлайн кнопки выбора фразы
 # установит состояние в original_phrase

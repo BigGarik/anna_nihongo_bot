@@ -1,5 +1,5 @@
 from aiogram.types import Message
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Group, Cancel
 from aiogram_dialog.widgets.text import Const

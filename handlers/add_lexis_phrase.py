@@ -1,5 +1,5 @@
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
-from aiogram_dialog import DialogManager, Dialog, Window
+from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Back
 from aiogram_dialog.widgets.text import Const, Format, Multi

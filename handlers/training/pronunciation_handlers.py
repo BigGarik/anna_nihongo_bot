@@ -13,7 +13,7 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 from bot_init import bot
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
-from models import Phrase
+from models import Phrase, UserAnswer
 from states import PronunciationTrainingSG
 from .. import main_page_button_clicked
 from ..system_handlers import category_selected, get_user_categories, get_phrases
@@ -57,15 +57,6 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    '''
-    скачать голосовое
-    построить график
-    распознать голосовое
-    если нет оригинального аудио,
-        скачать оригинал, построить график и сохранить в базу
-    склеить графики
-    отправить пользователю результат
-    '''
     phrase_id = dialog_manager.dialog_data['phrase_id']
     phrase = await Phrase.get_or_none(id=phrase_id)
     phrase_text = phrase.text_phrase
@@ -94,7 +85,13 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
     photo = FSInputFile(f'temp/{answer_voice_id}.png')
     await message.answer_photo(photo, caption=f'Оригинал\n<b>{phrase_text}</b>\n{phrase_translation}\n\n'
                                               f'Ваш вариант <b>{answer_text}</b>')
-
+    await UserAnswer.create(
+        user_id=message.from_user.id,
+        phrase_id=phrase_id,
+        answer_text=answer_text,
+        audio_id=answer_voice_id,
+        exercise='pronunciation'
+    )
     os.remove(answer_voice_on_disk)
     os.remove(f'temp/{answer_voice_id}.png')
 

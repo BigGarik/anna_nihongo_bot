@@ -1,5 +1,5 @@
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager, Data
+from aiogram_dialog import Dialog, Window, DialogManager, Data, ShowMode
 from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 

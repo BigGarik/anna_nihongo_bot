@@ -138,7 +138,7 @@ async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manag
     }
     dialog_manager.dialog_data['audio_data'] = audio_data
 
-    await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
+    await dialog_manager.next()
 
 
 #

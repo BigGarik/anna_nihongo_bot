@@ -1,6 +1,6 @@
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import MessageInput, TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Select
 from aiogram_dialog.widgets.text import Const, Format, Multi
@@ -30,13 +30,14 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         user=user,
         phrase=phrase,
         answer_text=answer_text,
+        exercise='translation'
     )
     normalized_question = normalize_text(text_phrase)
     normalized_answer = normalize_text(answer_text)
     if normalized_question == normalized_answer:
         dialog_manager.dialog_data['counter'] = 0
         user_answer.result = True
-        await message.answer('Ура!!! Ты лучший! 🥳')
+        await message.answer('🏆 Ура!!! Ты лучший! 🥳')
         # voice_id = dialog_manager.dialog_data['audio_id']
         # if voice_id:
         #     await bot.send_voice(chat_id=message.from_user.id, voice=voice_id)

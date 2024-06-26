@@ -13,13 +13,14 @@ from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
 from handlers.phrase_management_handlers import management_dialog
-from handlers.training.add_category import add_category_dialog
+from handlers.add_category import add_category_dialog
+from handlers.subscribe_management_handlers import subscribe_dialog, subscribe_management_dialog
 from handlers.training.lexis_handlers import lexis_training_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
 from handlers.training.pronunciation_handlers import pronunciation_training_dialog
 from handlers.training.training_handlers import user_training_dialog
 from handlers.training.translation_handlers import translation_training_dialog
-from handlers.user_handlers import router as user_router, start_dialog, user_start_dialog
+from handlers.user_handlers import router as user_router, start_dialog
 from keyboards.set_menu import set_main_menu
 from middlewares.i18n import TranslatorRunnerMiddleware
 from services.i18n import create_translator_hub
@@ -54,25 +55,47 @@ async def main() -> None:
     # Создаем объект типа TranslatorHub
     # translator_hub: TranslatorHub = create_translator_hub()
 
-    # Регистрируем роутеры в диспетчере
-    dp.include_router(admin_router)
-    dp.include_router(user_router)
-    dp.include_router(start_dialog)
-    dp.include_router(user_start_dialog)
+    # # Регистрируем роутеры в диспетчере
+    # dp.include_router(admin_router)
+    # dp.include_router(user_router)
+    # dp.include_router(start_dialog)
+    # dp.include_router(subscribe_dialog)
+    # dp.include_router(add_original_phrase_dialog)
+    # dp.include_router(admin_dialog)
+    # dp.include_router(add_lexis_phrase_dialog)
+    # dp.include_router(text_to_speech_dialog)
+    # dp.include_router(add_category_dialog)
+    # dp.include_router(lexis_training_dialog)
+    # dp.include_router(pronunciation_training_dialog)
+    # dp.include_router(translation_training_dialog)
+    #
+    # dp.include_router(management_dialog)
+    #
+    # dp.include_router(user_training_dialog)
+    # dp.include_router(other_router)
+    # Список всех роутеров
+    routers = [
+        admin_router,
+        user_router,
+        start_dialog,
+        subscribe_dialog,
+        subscribe_management_dialog,
+        add_original_phrase_dialog,
+        admin_dialog,
+        add_lexis_phrase_dialog,
+        text_to_speech_dialog,
+        add_category_dialog,
+        lexis_training_dialog,
+        pronunciation_training_dialog,
+        translation_training_dialog,
+        management_dialog,
+        user_training_dialog,
+        other_router
+    ]
 
-    dp.include_router(add_original_phrase_dialog)
-    dp.include_router(admin_dialog)
-    dp.include_router(add_lexis_phrase_dialog)
-    dp.include_router(text_to_speech_dialog)
-    dp.include_router(add_category_dialog)
-    dp.include_router(lexis_training_dialog)
-    dp.include_router(pronunciation_training_dialog)
-    dp.include_router(translation_training_dialog)
-
-    dp.include_router(management_dialog)
-
-    dp.include_router(user_training_dialog)
-    dp.include_router(other_router)
+    # Включение всех роутеров в диспетчер
+    for router in routers:
+        dp.include_router(router)
 
     # dp.include_router(other_handlers.router)
     setup_dialogs(dp)
