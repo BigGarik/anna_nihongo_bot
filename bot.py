@@ -21,6 +21,7 @@ from handlers.training.pronunciation_handlers import pronunciation_training_dial
 from handlers.training.training_handlers import user_training_dialog
 from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
+from handlers.user_management import user_management_dialog
 from keyboards.set_menu import set_main_menu
 from middlewares.i18n import TranslatorRunnerMiddleware
 from services.i18n import create_translator_hub
@@ -82,6 +83,7 @@ async def main() -> None:
         subscribe_management_dialog,
         add_original_phrase_dialog,
         admin_dialog,
+        user_management_dialog,
         add_lexis_phrase_dialog,
         text_to_speech_dialog,
         add_category_dialog,

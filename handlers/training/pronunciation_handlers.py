@@ -19,14 +19,6 @@ from .. import main_page_button_clicked
 from ..system_handlers import category_selected, get_user_categories, get_phrases
 
 
-async def exercises_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=PronunciationTrainingSG.select_category)
-
-
-async def voice_message_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:
-    await message.send_copy(message.chat.id)
-
-
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
     phrase = await Phrase.get_or_none(id=item_id)
     dialog_manager.dialog_data['phrase_id'] = phrase.id

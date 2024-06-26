@@ -1,6 +1,7 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, Data, ShowMode
-from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect
+from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect, Next, \
+    Start
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
 from handlers import main_page_button_clicked
@@ -32,10 +33,6 @@ async def get_phrases_for_delite(dialog_manager: DialogManager, **kwargs):
     phrases = await Phrase.filter(id__in=phrases_ids).all()
     items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
     return {'phrases_to_be_deleted': items}
-
-
-async def add_category_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=AddCategorySG.start)
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -79,15 +76,6 @@ async def delite_categories_button_clicked(callback: CallbackQuery, button: Butt
     if dialog_manager.find('multi_categories'):
         multiselect_widget = dialog_manager.find('multi_categories')
         await multiselect_widget.reset_checked()
-    await dialog_manager.next()
-
-
-async def delite_selected_categories_button_clicked(callback: CallbackQuery, button: Button,
-                                                    dialog_manager: DialogManager):
-    await dialog_manager.next()
-
-
-async def delite_phrases_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.next()
 
 
@@ -139,11 +127,10 @@ management_dialog = Dialog(
             ),
             width=2
         ),
-        Button(
-            text=Const('➕ Добавить категорию'),
-            id='add_category',
-            on_click=add_category_button_clicked,
-        ),
+        Start(Const('➕ Добавить категорию'),
+              id='add_category',
+              state=AddCategorySG.start
+              ),
         Button(
             text=Const('❌ Удаление категорий'),
             id='deletion_category',
@@ -175,11 +162,7 @@ management_dialog = Dialog(
                 on_state_changed=category_filled
             ),
         ),
-        Button(
-            text=Const('❌ Удалить выбранные'),
-            id='delite_categories',
-            on_click=delite_selected_categories_button_clicked,
-        ),
+        Next(text=Const('❌ Удалить выбранные')),
         Group(
             Button(
                 text=Const('↩️ Отмена'),
@@ -240,11 +223,7 @@ management_dialog = Dialog(
             id='add_phrase',
             on_click=add_phrase_button_clicked,
         ),
-        Button(
-            text=Const('❌ Удалить выбранные'),
-            id='delite_phrases',
-            on_click=delite_phrases_button_clicked,
-        ),
+        Next(text=Const('❌ Удалить выбранные')),
         Group(
             Button(
                 text=Const('↩️ Отмена'),

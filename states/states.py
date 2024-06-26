@@ -20,6 +20,7 @@ class StartDialogSG(StatesGroup):
 
 class AdminDialogSG(StatesGroup):
     start = State()
+    add_category = State()
 
 
 class AddCategorySG(StatesGroup):
@@ -78,3 +79,9 @@ class SubscribeSG(StatesGroup):
 
 class SubscribeManagementSG(StatesGroup):
     start = State()
+
+
+class UserManagementSG(StatesGroup):
+    start = State()
+    user_delite = State()
+    user_manage = State()

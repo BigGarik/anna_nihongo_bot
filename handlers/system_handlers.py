@@ -75,6 +75,20 @@ async def get_phrases(dialog_manager: DialogManager, **kwargs):
     return {'phrases': items}
 
 
+async def get_user_data(dialog_manager: DialogManager, **kwargs):
+    return dialog_manager.dialog_data
+
+
+
+async def get_non_admin_users(dialog_manager: DialogManager, **kwargs):
+    admin_ids = os.getenv('ADMIN_IDS')
+    # Преобразование строки в список целых чисел
+    admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
+    users = await User.exclude(id__in=admin_ids).all()
+    items = [(user.username, user.first_name, str(user.id)) for user in users]
+    return {'users': items}
+
+
 async def category_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
     category = await Category.get(id=item_id)
     dialog_manager.dialog_data['category_id'] = category.id

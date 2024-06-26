@@ -10,7 +10,6 @@ from states import AddCategorySG
 
 async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
                          category: str) -> None:
-    # Добавить категорию в dialog_data
     user_id = dialog_manager.event.from_user.id
     await Category.create(name=category, user_id=user_id)
     await dialog_manager.done()

@@ -75,3 +75,9 @@ docker compose up
 ```bash
 docker compose down
 ```
+
+#### Полезные команды
+```
+redis-cli
+flushall
+```

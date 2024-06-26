@@ -25,10 +25,6 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-async def training_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=UserTrainingSG.start)
-
-
 async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     subscription = await Subscription.get_or_none(user_id=callback.from_user.id).prefetch_related('type_subscription')
     if subscription:
@@ -37,66 +33,6 @@ async def phrase_management_button_clicked(callback: CallbackQuery, button: Butt
         else:
             await dialog_manager.start(state=ManagementSG.start)
 
-
-async def subscribe_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=SubscribeSG.start)
-
-
-async def subscribe_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(state=SubscribeManagementSG.start)
-
-
-# start_dialog = Dialog(
-#     Window(
-#         Multi(
-#             Const('初めまして', when='is_jp'),
-#             Format('<b>Привет, {username}!</b>'),
-#             Const('Я бот-помощник <b>Анны様</b> 😃\n'
-#                   'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
-#                   'Хотите говорить по-японски как японцы?\n',
-#                   when='is_jp'
-#                   ),
-#
-#             Const("Меня зовут мистер Хацу, я твой бот-помощник.\nЯ помогу тебе легко запоминать новые слова, "
-#                   "тренировать красивое произношение и научиться бегло говорить по-английски.\n\nLet's start!\n",
-#                   when='is_en'
-#                   ),
-#             Format('Подписка: <b>{subscription}</b>'),
-#             when='new_user'
-#         ),
-#         Column(
-#             Row(
-#                 Button(
-#                     text=Const('💪 Тренировки'),
-#                     id='training',
-#                     on_click=training_button_clicked),
-#                 Button(
-#                     text=Const('🔊 Прослушивание (Озвучить текст)'),
-#                     id='tts',
-#                     on_click=tts_button_clicked),
-#                 Button(
-#                     text=Const('📝 Управление моими фразами 💎'),
-#                     id='phrase_management',
-#                     on_click=phrase_management_button_clicked,
-#                 ),
-#                 Button(
-#                     text=Const('🔔 Подписаться 💎'),
-#                     id='subscribe_management',
-#                     on_click=subscribe_management_button_clicked,
-#                     when='is_not_vip'
-#                 ),
-#                 Button(
-#                     text=Const('🔔 Управление подпиской 💎'),
-#                     id='subscribe_management',
-#                     on_click=subscribe_management_button_clicked,
-#                     when='is_vip'
-#                 ),
-#             ),
-#         ),
-#         getter=start_getter,
-#         state=StartDialogSG.start
-#     ),
-# )
 
 start_dialog = Dialog(
     Window(
@@ -126,29 +62,27 @@ start_dialog = Dialog(
         ),
         Column(
             Row(
-                Button(
-                    text=Const('💪 Тренировки'),
-                    id='training',
-                    on_click=training_button_clicked),
+                Start(Const('💪 Тренировки'),
+                      id='training',
+                      state=UserTrainingSG.start
+                      ),
                 Button(
                     text=Const('📝 Управление моими фразами 💎'),
                     id='phrase_management',
                     on_click=phrase_management_button_clicked,
                 ),
-                Button(
-                    text=Const('🔔 Подписаться 💎'),
-                    id='subscribe_management',
-                    on_click=subscribe_button_clicked,
-                    # when='is_not_vip'
-                    when='_is_not_vip'
-                ),
-                Button(
-                    text=Const('🔔 Управление подпиской 💎'),
-                    id='subscribe_management',
-                    on_click=subscribe_management_button_clicked,
-                    # when='is_vip'
-                    when='_is_vip'
-                ),
+                Start(Const('🔔 Подписаться 💎'),
+                      id='subscribe_management',
+                      state=SubscribeSG.start,
+                      when='is_not_vip'
+                      # when='_is_not_vip'
+                      ),
+                Start(Const('🔔 Управление подпиской 💎'),
+                      id='subscribe_management',
+                      state=SubscribeManagementSG.start,
+                      when='is_vip'
+                      # when='_is_vip'
+                      ),
             ),
         ),
         Row(
@@ -203,7 +137,6 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
     await message.answer(text=LEXICON_RU['/cancel'])
     await dialog_manager.reset_stack()
     await state.clear()
-
 
 # @router.message(Command(commands='contact'))
 # async def process_contact_command(message: Message):

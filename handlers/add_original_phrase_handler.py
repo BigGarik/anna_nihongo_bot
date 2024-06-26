@@ -141,14 +141,6 @@ async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manag
     await dialog_manager.next()
 
 
-#
-# async def save_audio(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-#     if 'audio' in dialog_manager.dialog_data:
-#         await dialog_manager.next()
-#     else:
-#         await callback.answer("Пока нет аудио для сохранения")
-
-
 async def image_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     image_id = message.photo[-1].file_id
     dialog_manager.dialog_data['image_id'] = image_id
