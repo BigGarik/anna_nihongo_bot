@@ -74,14 +74,14 @@ start_dialog = Dialog(
                 Start(Const('🔔 Подписаться 💎'),
                       id='subscribe_management',
                       state=SubscribeSG.start,
-                      when='is_not_vip'
-                      # when='_is_not_vip'
+                      # when='is_not_vip'
+                      when='_is_not_vip'
                       ),
                 Start(Const('🔔 Управление подпиской 💎'),
                       id='subscribe_management',
                       state=SubscribeManagementSG.start,
-                      when='is_vip'
-                      # when='_is_vip'
+                      # when='is_vip'
+                      when='_is_vip'
                       ),
             ),
         ),
