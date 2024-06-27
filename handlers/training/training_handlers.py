@@ -12,19 +12,19 @@ user_training_dialog = Dialog(
         Const(text='Ты в разделе тренировок. Выбирай тренировку и погнали...'),
         Group(
             Start(Const('🗣 Произношение'),
-                  id='pronunciation_training_dialog',
+                  id='start_pronunciation_training_dialog',
                   state=PronunciationTrainingSG.select_category
                   ),
             Start(Const('🎯 Лексика'),
-                  id='lexis_training_dialog',
+                  id='start_lexis_training_dialog',
                   state=LexisTrainingSG.start
                   ),
             Start(Const('🔊 Прослушивание'),
-                  id='text_to_speech_dialog',
+                  id='start_text_to_speech_dialog',
                   state=TextToSpeechSG.start
                   ),
             Start(Const('🌍 Перевод'),
-                  id='translation_training_dialog',
+                  id='start_translation_training_dialog',
                   state=TranslationTrainingSG.start
                   ),
             width=2

@@ -63,7 +63,7 @@ start_dialog = Dialog(
         Column(
             Row(
                 Start(Const('💪 Тренировки'),
-                      id='training',
+                      id='start_training_dialog',
                       state=UserTrainingSG.start
                       ),
                 Button(
@@ -72,13 +72,13 @@ start_dialog = Dialog(
                     on_click=phrase_management_button_clicked,
                 ),
                 Start(Const('🔔 Подписаться 💎'),
-                      id='subscribe_management',
+                      id='start_subscribe_dialog',
                       state=SubscribeSG.start,
                       # when='is_not_vip'
                       when='_is_not_vip'
                       ),
                 Start(Const('🔔 Управление подпиской 💎'),
-                      id='subscribe_management',
+                      id='start_subscribe_management_dialog',
                       state=SubscribeManagementSG.start,
                       # when='is_vip'
                       when='_is_vip'
@@ -87,7 +87,7 @@ start_dialog = Dialog(
         ),
         Row(
             Start(Const('⚙️ Настройки(для админов)'),
-                  id='settings',
+                  id='start_admin_settings_dialog',
                   state=AdminDialogSG.start
                   ),
             when='is_admin',

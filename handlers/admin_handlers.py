@@ -28,7 +28,7 @@ admin_dialog = Dialog(
     Window(
         Const('Админка'),
         Start(Const('🧑‍🤝‍🧑 Управление пользователями'),
-              id='user_management_dialog',
+              id='start_user_management_dialog',
               state=UserManagementSG.start
               ),
         Next(text=Const('🆕 Добавить общую категорию')),

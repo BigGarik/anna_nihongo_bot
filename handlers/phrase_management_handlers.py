@@ -128,7 +128,7 @@ management_dialog = Dialog(
             width=2
         ),
         Start(Const('➕ Добавить категорию'),
-              id='add_category',
+              id='start_add_category_dialog',
               state=AddCategorySG.start
               ),
         Button(
