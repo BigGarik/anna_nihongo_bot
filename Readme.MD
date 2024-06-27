@@ -80,4 +80,11 @@ docker compose down
 ```
 redis-cli
 flushall
+pip install -r requirements.txt force
+
+Для запуска бота: sudo systemctl start english_mrhatsu_bot.service
+Для остановки бота: sudo systemctl stop english_mrhatsu_bot.service
+Для перезапуска бота: sudo systemctl restart english_mrhatsu_bot.service
+Для просмотра логов: sudo journalctl -u english_mrhatsu_bot.service
+
 ```

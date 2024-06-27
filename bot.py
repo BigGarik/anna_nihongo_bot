@@ -4,6 +4,8 @@ import logging.config
 import yaml
 from aiogram_dialog import setup_dialogs
 from fluentogram import TranslatorHub
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from tortoise import Tortoise
 
 from bot_init import bot, dp
 from config_data.config import Config, load_config
@@ -25,6 +27,7 @@ from handlers.user_management import user_management_dialog
 from keyboards.set_menu import set_main_menu
 from middlewares.i18n import TranslatorRunnerMiddleware
 from services.i18n import create_translator_hub
+from services.services import check_subscriptions
 
 # from aiohttp import web
 # from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
@@ -105,6 +108,15 @@ async def main() -> None:
     # Регистрируем миддлварь для i18n
     # dp.update.middleware(TranslatorRunnerMiddleware())
 
+    # Инициализация планировщика
+    scheduler = AsyncIOScheduler()
+    # Добавление задачи на выполнение каждый день в полночь
+    scheduler.add_job(check_subscriptions, 'cron', hour=11, minute=0)
+    # Добавление задачи для выполнения каждую минуту
+    # scheduler.add_job(check_subscriptions, 'cron', minute='*')
+    # Запуск планировщика
+    scheduler.start()
+
     # Пропускаем накопившиеся апдейты и запускаем polling
     await bot.delete_webhook(drop_pending_updates=True)
     await dp.start_polling(bot, allowed_updates=[])
@@ -150,3 +162,6 @@ if __name__ == "__main__":
         asyncio.run(main())
     except KeyboardInterrupt:
         pass
+    # finally:
+    #     # Закрытие соединения с базой данных при завершении работы бота
+    #     asyncio.run(Tortoise.close_connections())

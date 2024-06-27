@@ -44,6 +44,7 @@ async def voice_message_handler(message: Message, widget: MessageInput, dialog_m
 
 text_to_speech_dialog = Dialog(
     Window(
+        Const('Раздел для тренировки слушания.'),
         Const('Отправь мне фразу и я ее озвучу'),
         TextInput(
             id='tts_input',

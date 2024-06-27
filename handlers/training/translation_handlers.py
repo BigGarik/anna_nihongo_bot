@@ -57,7 +57,8 @@ async def error_handler(message: Message, widget: MessageInput, dialog_manager: 
 
 translation_training_dialog = Dialog(
     Window(
-        Const(text='Выберите категорию:'),
+        Const('Раздел для тренировки перевода.'),
+        Const(text='Выбирай категорию:'),
         Group(
             Select(
                 Format('{item[0]}'),

@@ -1,15 +1,14 @@
 import os
 import random
 import string
+from datetime import date
 
-from aiogram.types import CallbackQuery
-from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.kbd import Select
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
-from mutagen import File
-from tortoise.expressions import RawSQL
+from tortoise.expressions import Q
 
-from models import Category, Phrase
+from bot_init import bot
+from models import Subscription, TypeSubscription
 
 load_dotenv()
 location = os.getenv('LOCATION')
@@ -20,62 +19,6 @@ def normalize_text(text):
     text = text.translate(str.maketrans('', '', string.punctuation))
     text = text.strip()
     return text
-
-
-def get_folders(dir_to_folders: str) -> dict[str, str]:
-    # Получаем список элементов в директории
-    items = os.listdir(dir_to_folders)
-    kb_folders = {}
-    # Фильтруем элементы, оставляя только папки
-    folders = [item for item in items if os.path.isdir(os.path.join(dir_to_folders, item))]
-    for folder in folders:
-        kb_folders[folder] = f'{dir_to_folders}/{folder}'
-    return kb_folders
-
-
-def get_ogg_files(dir_to_files: str) -> list:
-    # Получаем список элементов в директории
-    files = os.listdir(dir_to_files)
-    # Фильтруем файлы, оставляя только файлы с расширением .ogg
-    ogg_files = [file for file in files if file.endswith('.ogg')]
-    return ogg_files
-
-
-def get_all_ogg_files(start_dir: str) -> list:
-    all_ogg_files = []
-    for root, dirs, files in os.walk(start_dir):
-        for file in files:
-            if file.endswith(".ogg"):
-                all_ogg_files.append(file)
-    return all_ogg_files
-
-
-def get_all_tags(path_to_file: str):
-    audio = File(path_to_file)
-    tags = audio.tags
-    return tags
-
-
-def get_tag(path_to_file: str, tag: str):
-    tag = str(get_all_tags(path_to_file)[tag])
-    tag = tag.replace('\'', '')
-    tag = tag.replace('[', '')
-    tag = tag.replace(']', '')
-    return tag
-
-
-def create_kb_file(dir_to_files: str) -> dict[str, str]:
-    files = get_ogg_files(dir_to_files)
-    kb_name = {}
-    for file in files:
-        tags = get_all_tags(f'{dir_to_files}/{file}')
-        title = str(tags['title'])
-        title = title.replace('\'', '')
-        title = title.replace('[', '')
-        title = title.replace(']', '')
-        kb_name[title] = file
-
-    return kb_name
 
 
 def replace_random_words(phrase):
@@ -99,20 +42,26 @@ def replace_random_words(phrase):
         return ' '.join(words)
 
 
-BUTTONS: dict[str, str] = {
-    #     'kawaisouni.ogg': 'かわいそうに - бедняга',
-    #     'tasukaru.ogg': 'たすかる - спасибо за помощь',
-    #     'utide_party.ogg': 'うちでパーティ - вечеринка у меня дома',
-    #     'sashiire.ogg': 'さしいれ - угощение'
-}
-#
-# BUTTONS_LIST = list(BUTTONS.keys())
+async def check_subscriptions():
+    free_subscription_type = await TypeSubscription.get_or_none(name="Free")
+    current_date = date.today()
 
+    # Получение всех подписок, у которых истек срок действия
+    expired_subscriptions = await Subscription.filter(
+        Q(date_end__lt=current_date) | Q(date_end__isnull=True),
+        ~Q(type_subscription=free_subscription_type)
+    )
 
-if __name__ == "__main__":
-    # print(get_all_ogg_files('../original_files'))
-    # print(list(get_folders('../original_files')))
-    # print(get_folders('../original_files'))
-    # print(create_kb_file('../original_files/Spy Family'))
-    print(get_all_tags('../original_files/Spy Family/kawaisouni.ogg'))
-    # print(get_tag('../original_files/Spy Family/kawaisouni.ogg', 'translation'))
+    for subscription in expired_subscriptions:
+        # Установка типа подписки на "Free"
+        subscription.type_subscription = free_subscription_type
+        await subscription.save()
+
+        # Создание кнопки "Подписаться"
+        subscribe_button = InlineKeyboardButton(text="Подписаться", callback_data="open_subscribe_dialog")
+        free_subscribe_button = InlineKeyboardButton(text="Продолжить бесплатно", callback_data="use_free_subscribe")
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[[subscribe_button], [free_subscribe_button]])
+
+        # Отправка сообщения с кнопкой
+        # await bot.send_message(subscription.user_id, "Ваша подписка истекла.", reply_markup=keyboard)
+

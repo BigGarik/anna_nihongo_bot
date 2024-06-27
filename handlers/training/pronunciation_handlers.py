@@ -95,7 +95,8 @@ async def error_handler(message: Message, widget: MessageInput, dialog_manager: 
 pronunciation_training_dialog = Dialog(
     Window(
         # Получить список категорий и вывести их кнопки
-        Const('Выбирай категорию для тренировки'),
+        Const('Раздел для тренировки произношения.'),
+        Const('Выбирай категорию:'),
         Group(
             Select(
                 Format('{item[0]}'),

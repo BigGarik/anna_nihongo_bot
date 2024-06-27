@@ -115,7 +115,8 @@ async def error_handler(message: Message, widget: MessageInput, dialog_manager: 
 
 lexis_training_dialog = Dialog(
     Window(
-        Const(text='Выберите категорию:'),
+        Const('Раздел для тренировки лексики.'),
+        Const(text='Выбирай категорию:'),
         Group(
             Select(
                 Format('{item[0]}'),

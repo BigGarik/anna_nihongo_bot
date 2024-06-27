@@ -1,7 +1,6 @@
 from aiogram.types import CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager
-from aiogram_dialog.widgets.kbd import Button, Column, Multiselect, ManagedMultiselect, Cancel, Group, Select, \
-    ScrollingGroup
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, ScrollingGroup
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from handlers import main_page_button_clicked
@@ -52,15 +51,6 @@ user_management_dialog = Dialog(
             width=1,
             height=6,
         ),
-        # Column(
-        #     Select(
-        #         Format('{item[0]} {item[1]}'),
-        #         id='user',
-        #         item_id_getter=lambda x: x[2],
-        #         items="users",
-        #         on_click=select_user_button_clicked
-        #     ),
-        # ),
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
             Button(
