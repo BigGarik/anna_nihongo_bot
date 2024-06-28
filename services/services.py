@@ -1,5 +1,6 @@
 import os
 import random
+import re
 import string
 from datetime import date
 
@@ -12,6 +13,12 @@ from models import Subscription, TypeSubscription
 
 load_dotenv()
 location = os.getenv('LOCATION')
+
+
+def remove_html_tags(text):
+    # Используем регулярное выражение для поиска и удаления всех HTML-тегов
+    clean_text = re.sub(r'<.*?>', '', text)
+    return clean_text
 
 
 def is_admin(user_id) -> bool:

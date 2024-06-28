@@ -13,6 +13,7 @@ from bot_init import bot
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
 from models import AudioFile, Category, Phrase, User
+from services.services import remove_html_tags
 from states import AddOriginalPhraseSG
 
 
@@ -59,7 +60,7 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
 
 async def translation_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
                             translation: str) -> None:
-    dialog_manager.dialog_data['translation'] = translation
+    dialog_manager.dialog_data['translation'] = remove_html_tags(translation)
     await dialog_manager.next()
 
 
@@ -157,7 +158,7 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
 
 async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
                         comment: str) -> None:
-    dialog_manager.dialog_data['comment'] = comment
+    dialog_manager.dialog_data['comment'] = remove_html_tags(comment)
     await dialog_manager.next()
 
 
@@ -196,7 +197,7 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
 add_original_phrase_dialog = Dialog(
     Window(
         Multi(
-            Format('Категория: <b>{category_name}</b>'),
+            Format('<b>Категория:</b> {category_name}\n'),
             Const(text='💬 Введи текст новой фразы:'),
         ),
 
@@ -214,8 +215,8 @@ add_original_phrase_dialog = Dialog(
     # translation = State()
     Window(
         Multi(
-            Format('Категория: <b>{category_name}</b>'),
-            Format('Текст: <b>{text_phrase}</b>'),
+            Format('<b>Категория:</b> {category_name}'),
+            Format('<b>Текст:</b> {text_phrase}\n'),
             Const(text='🌐 Введи перевод новой фразы или жми "Пропустить" и я переведу автоматически:'),
         ),
 
@@ -236,9 +237,9 @@ add_original_phrase_dialog = Dialog(
     # audio = State()
     Window(
         Multi(
-            Format('Категория: <b>{category_name}</b>'),
-            Format('Текст: <b>{text_phrase}</b>'),
-            Format('Перевод: <b>{translation}</b>\n'),
+            Format('<b>Категория:</b> {category_name}'),
+            Format('<b>Текст:</b> {text_phrase}'),
+            Format('<b>Перевод:</b> {translation}\n'),
         ),
         Multi(
             Const('<b>Добавление аудио</b>'),
@@ -268,11 +269,11 @@ add_original_phrase_dialog = Dialog(
     # image = State()
     Window(
         Multi(
-            Format('Категория: <b>{category_name}</b>'),
-            Format('Текст: <b>{text_phrase}</b>'),
-            Format('Перевод: <b>{translation}</b>\n'),
+            Format('<b>Категория:</b> {category_name}'),
+            Format('<b>Текст:</b> {text_phrase}'),
+            Format('<b>Перевод:</b> {translation}\n'),
         ),
-        Const(text='🎨 Отправь иллюстрацию для фразы, или просто пропусти этот шаг:'),
+        Const(text='<b>🎨 Отправь иллюстрацию для фразы, или просто пропусти этот шаг:</b>'),
         MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
         # Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
         Group(
@@ -288,11 +289,11 @@ add_original_phrase_dialog = Dialog(
     # comment = State()
     Window(
         Multi(
-            Format('Категория: <b>{category_name}</b>'),
-            Format('Текст: <b>{text_phrase}</b>'),
-            Format('Перевод: <b>{translation}</b>\n'),
+            Format('<b>Категория:</b> {category_name}'),
+            Format('<b>Текст:</b> {text_phrase}'),
+            Format('<b>Перевод:</b> {translation}\n'),
         ),
-        Const(text='Здесь можно добавить комментарий к фразе:'),
+        Const(text='<b>Здесь можно добавить комментарий к фразе:</b>'),
         TextInput(id='comment_input', on_success=comment_input),
         Group(
             Back(Const('◀️ Назад'), id='back'),
@@ -306,12 +307,12 @@ add_original_phrase_dialog = Dialog(
     # save = State()
     Window(
         Multi(
-            Format('Суммарная информация'),
-            Format('Категория: <b>{category_name}</b>'),
-            Format('Текст: <b>{text_phrase}</b>'),
-            Format('Перевод: <b>{translation}</b>'),
-            Format('Комментарий: <b>{comment}</b>\n'),
-            Const(text='Сохранить фразу?'),
+            Format('Суммарная информация\n'),
+            Format('<b>Категория:</b> {category_name}'),
+            Format('<b>Текст:</b> {text_phrase}'),
+            Format('<b>Перевод:</b> {translation}'),
+            Format('<b>Комментарий:</b> {comment}\n'),
+            Const(text='<b>Сохранить фразу?</b>'),
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
