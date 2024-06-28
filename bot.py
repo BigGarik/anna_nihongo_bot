@@ -57,7 +57,7 @@ config: Config = load_config()
 
 async def on_startup(app):
     await init_db()
-    await set_main_menu(bot)
+    # await set_main_menu(bot)
     await bot.set_webhook(webhook_url, secret_token=webhook_secret)
 
 
