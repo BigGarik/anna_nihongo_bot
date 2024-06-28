@@ -30,7 +30,7 @@ user_reply_kb = ReplyKeyboardMarkup(
     keyboard=[[start_training_button, phrase_management_button],
               [start_subscribe_management_button]],
     resize_keyboard=True,
-    one_time_keyboard=True,  # Клавиатура прячется
+    one_time_keyboard=False,  # Клавиатура прячется
 )
 
 admin_reply_kb = ReplyKeyboardMarkup(
@@ -38,5 +38,5 @@ admin_reply_kb = ReplyKeyboardMarkup(
               [start_subscribe_management_button],
               [start_admin_settings_button]],
     resize_keyboard=True,
-    one_time_keyboard=True,  # Клавиатура прячется
+    one_time_keyboard=False,  # Клавиатура прячется
 )
