@@ -40,8 +40,11 @@ load_dotenv()
 web_server_host = os.getenv('WEB_SERVER_HOST')
 web_server_port = int(os.getenv('WEB_SERVER_PORT'))
 webhook_host = os.getenv('WEBHOOK_HOST')
+print(webhook_host)
 webhook_path = os.getenv('WEBHOOK_PATH')
+print(webhook_path)
 webhook_url = f"{webhook_host}{webhook_path}"
+print(webhook_url)
 webhook_secret = os.getenv('WEBHOOK_SECRET')
 
 
