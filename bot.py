@@ -1,15 +1,20 @@
 import asyncio
 import logging.config
+import os
 
 import yaml
+from aiogram.types import Update
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiogram_dialog import setup_dialogs
+from aiohttp import web
+from dotenv import load_dotenv
 from fluentogram import TranslatorHub
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from tortoise import Tortoise
 
 from bot_init import bot, dp
 from config_data.config import Config, load_config
-from db import init as init_db
+from db import init_db
 from handlers.add_lexis_phrase import add_lexis_phrase_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
@@ -29,8 +34,15 @@ from middlewares.i18n import TranslatorRunnerMiddleware
 from services.i18n import create_translator_hub
 from services.services import check_subscriptions
 
-# from aiohttp import web
-# from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
+
+load_dotenv()
+
+web_server_host = os.getenv('WEB_SERVER_HOST')
+web_server_port = int(os.getenv('WEB_SERVER_PORT'))
+webhook_host = os.getenv('WEBHOOK_HOST')
+webhook_path = os.getenv('WEBHOOK_PATH')
+webhook_url = f"{webhook_host}{webhook_path}"
+webhook_secret = os.getenv('WEBHOOK_SECRET')
 
 
 with open('config_data/logging_config.yaml', 'rt') as f:
@@ -43,40 +55,26 @@ logger = logging.getLogger(__name__)
 config: Config = load_config()
 
 
-# async def on_startup(bot: Bot) -> None:
-#     # If you have a self-signed SSL certificate, then you will need to send a public
-#     # certificate to Telegram
-#     await bot.set_webhook(f"{config.webhook.base_webhook_url}{config.webhook.webhook_path}",
-#                           secret_token=config.webhook.webhook_secret)
-
-
-async def main() -> None:
+async def on_startup(app):
     await init_db()
-
-    # Настраиваем кнопку Menu
     await set_main_menu(bot)
+    await bot.set_webhook(webhook_url, secret_token=webhook_secret)
 
+
+async def on_shutdown(app):
+    await bot.delete_webhook()
+
+
+async def handle(request):
+    update = Update(**await request.json())
+    await dp.feed_update(bot, update)
+    return web.Response()
+
+
+def main() -> None:
     # Создаем объект типа TranslatorHub
     # translator_hub: TranslatorHub = create_translator_hub()
 
-    # # Регистрируем роутеры в диспетчере
-    # dp.include_router(admin_router)
-    # dp.include_router(user_router)
-    # dp.include_router(start_dialog)
-    # dp.include_router(subscribe_dialog)
-    # dp.include_router(add_original_phrase_dialog)
-    # dp.include_router(admin_dialog)
-    # dp.include_router(add_lexis_phrase_dialog)
-    # dp.include_router(text_to_speech_dialog)
-    # dp.include_router(add_category_dialog)
-    # dp.include_router(lexis_training_dialog)
-    # dp.include_router(pronunciation_training_dialog)
-    # dp.include_router(translation_training_dialog)
-    #
-    # dp.include_router(management_dialog)
-    #
-    # dp.include_router(user_training_dialog)
-    # dp.include_router(other_router)
     # Список всех роутеров
     routers = [
         admin_router,
@@ -116,52 +114,29 @@ async def main() -> None:
     # scheduler.add_job(check_subscriptions, 'cron', minute='*')
     # Запуск планировщика
     scheduler.start()
+    # Register startup hook to initialize webhook
+    dp.startup.register(on_startup)
+    # Create aiohttp.web.Application instance
+    app = web.Application()
 
-    # Пропускаем накопившиеся апдейты и запускаем polling
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot, allowed_updates=[])
-    # await dp.start_polling(bot, allowed_updates=[], _translator_hub=translator_hub)
+    # Create an instance of request handler,
+    # aiogram has few implementations for different cases of usage
+    # In this example we use SimpleRequestHandler which is designed to handle simple cases
+    webhook_requests_handler = SimpleRequestHandler(
+        dispatcher=dp,
+        bot=bot,
+        secret_token=webhook_secret,
+    )
+    # Register webhook handler on application
+    webhook_requests_handler.register(app, path=webhook_path)
 
-    # # Регистрируем хук на старт для инициализации webhook
-    # dp.startup.register(on_startup)
-    #
-    # # Создаем экземпляр aiohttp.web.Application
-    # app = web.Application()
-    #
-    # # Создаем экземпляр обработчика запросов,
-    # # aiogram предоставляет несколько реализаций для разных случаев использования
-    # # В этом примере мы используем SimpleRequestHandler, который предназначен для обработки простых случаев
-    # webhook_requests_handler = SimpleRequestHandler(
-    #     dispatcher=dp,
-    #     bot=bot,
-    #     secret_token=config.webhook.webhook_secret,
-    # )
-    # # Регистрируем обработчик webhook в приложении
-    # webhook_requests_handler.register(app, path=config.webhook.webhook_path)
-    #
-    # # Подключаем хуки запуска и завершения работы диспетчера к приложению aiohttp
-    # setup_application(app, dp, bot=bot)
-    #
-    # runner = web.AppRunner(app)
-    # await runner.setup()
-    # site = web.TCPSite(runner, host=config.webhook.web_server_host, port=config.webhook.web_server_port)
-    # await site.start()
-    #
-    # try:
-    #     await asyncio.Event().wait()
-    # finally:
-    #     await runner.cleanup()
+    # Mount dispatcher startup and shutdown hooks to aiohttp application
+    setup_application(app, dp, bot=bot)
 
-    # И, наконец, запускаем веб-сервер
-    # web.run_app(app, host=config.webhook.web_server_host, port=int(config.webhook.web_server_port))
+    # And finally start webserver
+    web.run_app(app, host=web_server_host, port=web_server_port)
 
 
 if __name__ == "__main__":
-    try:
-        logger.info('Бот запущен и работает...')
-        asyncio.run(main())
-    except KeyboardInterrupt:
-        pass
-    # finally:
-    #     # Закрытие соединения с базой данных при завершении работы бота
-    #     asyncio.run(Tortoise.close_connections())
+    logger.info('Бот запущен и работает...')
+    main()

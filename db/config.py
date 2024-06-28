@@ -25,7 +25,7 @@ TORTOISE_ORM = {
 }
 
 
-async def init():
+async def init_db():
     # Инициализируем Tortoise ORM с использованием URL базы данных и указанием модулей моделей
     await Tortoise.init(config=TORTOISE_ORM)
 

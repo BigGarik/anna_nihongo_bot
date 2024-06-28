@@ -87,6 +87,7 @@ deactivate
 python -m pip install --upgrade pip
 pip install -r requirements.txt --force
 
+sudo systemctl enable english_mrhatsu_bot.service
 sudo systemctl start english_mrhatsu_bot.service
 sudo systemctl status english_mrhatsu_bot.service
 sudo systemctl stop english_mrhatsu_bot.service
@@ -94,11 +95,17 @@ sudo systemctl restart english_mrhatsu_bot.service
 Для просмотра логов: sudo journalctl -u english_mrhatsu_bot.service
 sudo journalctl --rotate --vacuum-time=1s -u english_mrhatsu_bot.service
 
+
+sudo systemctl enable anna_nihongo_bot.service
+sudo systemctl disable anna_nihongo_bot.service
 sudo systemctl start anna_nihongo_bot.service
 sudo systemctl status anna_nihongo_bot.service
 sudo systemctl stop anna_nihongo_bot.service
 sudo systemctl restart anna_nihongo_bot.service
 Для просмотра логов: sudo journalctl -u anna_nihongo_bot.service
 sudo journalctl --rotate --vacuum-time=1s -u anna_nihongo_bot.service
+
+
+sudo systemctl restart english_mrhatsu_bot.service anna_nihongo_bot.service
 
 ```

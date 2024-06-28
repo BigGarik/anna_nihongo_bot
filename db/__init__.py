@@ -1,1 +1,1 @@
-from .config import init
+from .config import init_db

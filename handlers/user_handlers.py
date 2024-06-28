@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -11,8 +11,10 @@ from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
 from dotenv import load_dotenv
 
+from keyboards.reply_kb import admin_reply_kb, user_reply_kb
 from lexicon.lexicon_ru import LEXICON_RU
 from models import User, Subscription, TypeSubscription
+from services.services import is_admin
 from states import StartDialogSG, AdminDialogSG, UserTrainingSG, ManagementSG, SubscribeSG, SubscribeManagementSG
 from . import start_getter
 
@@ -130,6 +132,10 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
     await dialog_manager.start(state=StartDialogSG.start,
                                mode=StartMode.RESET_STACK,
                                data={"new_user": new_user, 'not_new_user': not_new_user})
+    if is_admin(user_id):
+        await message.answer("Добро пожаловать, админ!", reply_markup=admin_reply_kb)
+    else:
+        await message.answer("Добро пожаловать!", reply_markup=user_reply_kb)
 
 
 @router.message(Command(commands='cancel'))
@@ -137,6 +143,27 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
     await message.answer(text=LEXICON_RU['/cancel'])
     await dialog_manager.reset_stack()
     await state.clear()
+
+
+@router.message(F.text == '💪 Тренировки')
+async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(state=UserTrainingSG.start)
+
+
+@router.message(F.text == '📝 Управление моими фразами 💎')
+async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+    subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
+    if subscription:
+        if subscription.type_subscription.name == 'Free':
+            await message.answer('Только по подписке', show_alert=True)
+        else:
+            await dialog_manager.start(state=ManagementSG.start)
+
+
+@router.message(F.text == '🔔 Управление подпиской 💎')
+async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SubscribeManagementSG.start)
+
 
 # @router.message(Command(commands='contact'))
 # async def process_contact_command(message: Message):

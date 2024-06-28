@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
@@ -58,3 +58,8 @@ admin_dialog = Dialog(
         state=AdminDialogSG.add_category,
     ),
 )
+
+
+@router.message(F.text == '⚙️ Настройки(для админов)')
+async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(state=AdminDialogSG.start)

@@ -14,6 +14,12 @@ load_dotenv()
 location = os.getenv('LOCATION')
 
 
+def is_admin(user_id) -> bool:
+    admin_ids = os.getenv('ADMIN_IDS', '')
+    admin_ids_list = [int(admin_id) for admin_id in admin_ids.split(',') if admin_id.isdigit()]
+    return user_id in admin_ids_list
+
+
 def normalize_text(text):
     text = text.lower()
     text = text.translate(str.maketrans('', '', string.punctuation))
@@ -64,4 +70,3 @@ async def check_subscriptions():
 
         # Отправка сообщения с кнопкой
         # await bot.send_message(subscription.user_id, "Ваша подписка истекла.", reply_markup=keyboard)
-
