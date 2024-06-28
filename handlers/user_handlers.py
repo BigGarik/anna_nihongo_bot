@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
 from aiogram_dialog.widgets.text import Format, Const, Multi
@@ -147,6 +147,7 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
 
 @router.message(F.text == '💪 Тренировки')
 async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+    # await message.answer('💪 Тренировки', reply_markup=ReplyKeyboardRemove())
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
