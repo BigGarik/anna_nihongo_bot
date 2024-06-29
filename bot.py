@@ -41,11 +41,10 @@ webhook_path = os.getenv('WEBHOOK_PATH')
 webhook_url = f"{base_webhook_url}{webhook_path}"
 webhook_secret = os.getenv('WEBHOOK_SECRET')
 
-location = os.getenv('LOCATION')
-language_code = location.split('-')[0]
+# location = os.getenv('LOCATION')
+# language_code = location.split('-')[0]
 DEFAULT_LOCALE = "en"
-LOCALES = [language_code, 'ru']
-# LOCALES = ["en"]
+LOCALES = ["en", 'ru']
 
 
 with open('config_data/logging_config.yaml', 'rt') as f:

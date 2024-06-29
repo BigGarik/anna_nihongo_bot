@@ -29,7 +29,6 @@ class I18nMiddleware(BaseMiddleware):
         # some language/locale retrieving logic
         if event.from_user:
             lang = event.from_user.language_code
-            print(lang)
         else:
             lang = self.default_lang
         if lang not in self.l10ns:
