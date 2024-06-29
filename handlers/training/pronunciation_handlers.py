@@ -15,7 +15,6 @@ from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from models import Phrase, UserAnswer
 from states import PronunciationTrainingSG
-from .. import main_page_button_clicked
 from ..system_handlers import category_selected, get_user_categories, get_phrases
 
 
@@ -49,6 +48,7 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
+    await message.answer('Минуту, обрабатываю ваше сообщение...')
     phrase_id = dialog_manager.dialog_data['phrase_id']
     phrase = await Phrase.get_or_none(id=phrase_id)
     phrase_text = phrase.text_phrase
@@ -75,8 +75,9 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
     await visual.preprocess_audio()
     await visual.plot_waveform()  # Визуализация графика звуковой волны
     photo = FSInputFile(f'temp/{answer_voice_id}.png')
-    await message.answer_photo(photo, caption=f'Оригинал\n<b>{phrase_text}</b>\n{phrase_translation}\n\n'
-                                              f'Ваш вариант <b>{answer_text}</b>')
+    await message.answer_photo(photo, caption=f'<b>Оригинал:</b>\n{phrase_text}\n{phrase_translation}\n\n'
+                                              f'<b>Ваш вариант:</b> {answer_text}\n\n'
+                                              f'<b>Комментарий:</b> {phrase.comment}')
     await UserAnswer.create(
         user_id=message.from_user.id,
         phrase_id=phrase_id,
@@ -120,11 +121,6 @@ pronunciation_training_dialog = Dialog(
 
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         getter=get_user_categories,
@@ -156,11 +152,6 @@ pronunciation_training_dialog = Dialog(
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         getter=get_phrases,
@@ -179,11 +170,6 @@ pronunciation_training_dialog = Dialog(
         Group(
             Back(Const('◀️ Назад'), id='back'),
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         state=PronunciationTrainingSG.waiting_answer

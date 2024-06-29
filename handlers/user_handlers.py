@@ -5,18 +5,19 @@ from datetime import datetime, timedelta
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery, ReplyKeyboardRemove
+from aiogram.types import Message, CallbackQuery
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
-from aiogram_dialog.widgets.kbd import Button, Row, Column, Start
-from aiogram_dialog.widgets.text import Format, Const, Multi
+from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
+from handlers.system_handlers import start_getter
 from keyboards.reply_kb import admin_reply_kb, user_reply_kb
 from lexicon.lexicon_ru import LEXICON_RU
 from models import User, Subscription, TypeSubscription
+from services.i18n_format import I18NFormat
 from services.services import is_admin
-from states import StartDialogSG, AdminDialogSG, UserTrainingSG, ManagementSG, SubscribeSG, SubscribeManagementSG
-from . import start_getter
+from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG
 
 load_dotenv()
 admin_id = os.getenv('ADMIN_ID')
@@ -38,61 +39,16 @@ async def phrase_management_button_clicked(callback: CallbackQuery, button: Butt
 
 start_dialog = Dialog(
     Window(
+
         Multi(
-            Const('初めまして', when='is_jp'),
-            Format('<b>Привет, {username}!</b>'),
-            Const('Я бот-помощник <b>Анны様</b> 😃\n'
-                  'Я помогаю тренироваться в японском произношении и грамматике.\n\n'
-                  'Хотите говорить по-японски как японцы?\n',
-                  when='is_jp'
-                  ),
-            Const("Меня зовут мистер Хацу, я твой бот-помощник.\nЯ помогу тебе легко запоминать новые слова, "
-                  "тренировать красивое произношение и научиться бегло говорить по-английски.\n\nLet's start!\n",
-                  when='is_en'
-                  ),
+            I18NFormat("First-hello-user-jp", when='is_jp'),
+            I18NFormat("First-hello-user-en", when='is_en'),
             when='new_user'
         ),
         Multi(
-            Format('<b>{username}さん</b>、日本語を勉強しましょう！\nДавай выберем следующую тренировку!',
-                   when='is_jp'
-                   ),
-            Format("<b>{username}</b>, let's go to the next level!\nДавай выберем следующую тренировку!",
-                   when='is_en'
-                   ),
-            Format('Подписка: <b>{subscription}</b>'),
+            I18NFormat("hello-user-jp", when='is_jp'),
+            I18NFormat("hello-user-en", when='is_en'),
             when='not_new_user'
-        ),
-        Column(
-            Row(
-                Start(Const('💪 Тренировки'),
-                      id='start_training_dialog',
-                      state=UserTrainingSG.start
-                      ),
-                Button(
-                    text=Const('📝 Управление моими фразами 💎'),
-                    id='phrase_management',
-                    on_click=phrase_management_button_clicked,
-                ),
-                Start(Const('🔔 Подписаться 💎'),
-                      id='start_subscribe_dialog',
-                      state=SubscribeSG.start,
-                      # when='is_not_vip'
-                      when='_is_not_vip'
-                      ),
-                Start(Const('🔔 Управление подпиской 💎'),
-                      id='start_subscribe_management_dialog',
-                      state=SubscribeManagementSG.start,
-                      # when='is_vip'
-                      when='_is_vip'
-                      ),
-            ),
-        ),
-        Row(
-            Start(Const('⚙️ Настройки(для админов)'),
-                  id='start_admin_settings_dialog',
-                  state=AdminDialogSG.start
-                  ),
-            when='is_admin',
         ),
         getter=start_getter,
         state=StartDialogSG.start
@@ -128,14 +84,14 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
                                   date_start=datetime.now(),
                                   date_end=datetime.now() + timedelta(days=30),
                                   )
+    if is_admin(user_id):
+        await message.answer(text="🚀", reply_markup=admin_reply_kb)
+    else:
+        await message.answer("🚀", reply_markup=user_reply_kb)
 
     await dialog_manager.start(state=StartDialogSG.start,
                                mode=StartMode.RESET_STACK,
                                data={"new_user": new_user, 'not_new_user': not_new_user})
-    if is_admin(user_id):
-        await message.answer("Добро пожаловать, админ!", reply_markup=admin_reply_kb)
-    else:
-        await message.answer("Добро пожаловать!", reply_markup=user_reply_kb)
 
 
 @router.message(Command(commands='cancel'))
@@ -164,7 +120,6 @@ async def process_dog_answer(message: Message, dialog_manager: DialogManager):
 @router.message(F.text == '🔔 Управление подпиской 💎')
 async def process_dog_answer(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=SubscribeManagementSG.start)
-
 
 # @router.message(Command(commands='contact'))
 # async def process_contact_command(message: Message):

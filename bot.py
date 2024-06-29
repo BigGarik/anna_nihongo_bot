@@ -1,4 +1,3 @@
-import asyncio
 import logging.config
 import os
 
@@ -8,9 +7,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 from aiogram_dialog import setup_dialogs
 from aiohttp import web
 from dotenv import load_dotenv
-from fluentogram import TranslatorHub
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from tortoise import Tortoise
 
 from bot_init import bot, dp
 from config_data.config import Config, load_config
@@ -29,9 +26,9 @@ from handlers.training.training_handlers import user_training_dialog
 from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
 from handlers.user_management import user_management_dialog
-from keyboards.set_menu import set_main_menu
-from middlewares.i18n import TranslatorRunnerMiddleware
-from services.i18n import create_translator_hub
+from middlewares.i18n_middleware import I18nMiddleware
+from fluent.runtime import FluentLocalization, FluentResourceLoader
+# from keyboards.set_menu import set_main_menu
 from services.services import check_subscriptions
 
 
@@ -44,6 +41,12 @@ webhook_path = os.getenv('WEBHOOK_PATH')
 webhook_url = f"{base_webhook_url}{webhook_path}"
 webhook_secret = os.getenv('WEBHOOK_SECRET')
 
+location = os.getenv('LOCATION')
+language_code = location.split('-')[0]
+DEFAULT_LOCALE = "en"
+LOCALES = [language_code, 'ru']
+# LOCALES = ["en"]
+
 
 with open('config_data/logging_config.yaml', 'rt') as f:
     logging_config = yaml.safe_load(f.read())
@@ -53,6 +56,21 @@ logger = logging.getLogger(__name__)
 
 # Загружаем конфиг в переменную config
 config: Config = load_config()
+
+
+def make_i18n_middleware():
+    loader = FluentResourceLoader(os.path.join(
+        os.path.dirname(__file__),
+        "translations",
+        "{locale}",
+    ))
+    l10ns = {
+        locale: FluentLocalization(
+            [locale, DEFAULT_LOCALE], ["main.ftl"], loader,
+        )
+        for locale in LOCALES
+    }
+    return I18nMiddleware(l10ns, DEFAULT_LOCALE)
 
 
 async def on_startup(app):
@@ -72,7 +90,7 @@ async def handle(request):
 
 
 def main() -> None:
-    # Создаем объект типа TranslatorHub
+    # # Создаем объект типа TranslatorHub
     # translator_hub: TranslatorHub = create_translator_hub()
 
     # Список всех роутеров
@@ -103,9 +121,6 @@ def main() -> None:
     # dp.include_router(other_handlers.router)
     setup_dialogs(dp)
 
-    # Регистрируем миддлварь для i18n
-    # dp.update.middleware(TranslatorRunnerMiddleware())
-
     # Инициализация планировщика
     scheduler = AsyncIOScheduler()
     # Добавление задачи на выполнение каждый день в полночь
@@ -116,6 +131,13 @@ def main() -> None:
     scheduler.start()
     # Register startup hook to initialize webhook
     dp.startup.register(on_startup)
+
+    # Регистрируем миддлварь для i18n
+    # dp.update.middleware(TranslatorRunnerMiddleware())
+    i18n_middleware = make_i18n_middleware()
+    dp.message.middleware(i18n_middleware)
+    dp.callback_query.middleware(i18n_middleware)
+
     # Create aiohttp.web.Application instance
     app = web.Application()
 

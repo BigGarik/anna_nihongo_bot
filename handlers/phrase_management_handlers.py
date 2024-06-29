@@ -4,7 +4,6 @@ from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Mu
     Start
 from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
-from handlers import main_page_button_clicked
 from handlers.system_handlers import get_user_categories, get_phrases
 from models import Category, Phrase
 from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG
@@ -138,11 +137,6 @@ management_dialog = Dialog(
         ),
         Group(
             # Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         getter=get_user_categories,
@@ -168,11 +162,6 @@ management_dialog = Dialog(
                 text=Const('↩️ Отмена'),
                 id='button_cancel',
                 on_click=cancel_button_clicked,
-            ),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
             ),
             width=3
         ),
@@ -229,11 +218,6 @@ management_dialog = Dialog(
                 text=Const('↩️ Отмена'),
                 id='button_cancel',
                 on_click=cancel_button_clicked,
-            ),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
             ),
             width=3
         ),

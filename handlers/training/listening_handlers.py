@@ -10,7 +10,6 @@ from aiogram_dialog.widgets.text import Const
 from external_services.google_cloud_services import google_text_to_speech
 from models import TextToSpeech
 from states import TextToSpeechSG
-from .. import main_page_button_clicked
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -56,11 +55,6 @@ text_to_speech_dialog = Dialog(
         ),
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         state=TextToSpeechSG.start

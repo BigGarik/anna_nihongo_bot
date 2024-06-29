@@ -79,7 +79,6 @@ async def get_user_data(dialog_manager: DialogManager, **kwargs):
     return dialog_manager.dialog_data
 
 
-
 async def get_non_admin_users(dialog_manager: DialogManager, **kwargs):
     admin_ids = os.getenv('ADMIN_IDS')
     # Преобразование строки в список целых чисел
@@ -146,8 +145,3 @@ def first_answer_getter(data, widget, dialog_manager: DialogManager):
 
 def second_answer_getter(data, widget, dialog_manager: DialogManager):
     return not first_answer_getter(data, widget, dialog_manager)
-
-
-async def main_page_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.done()
-    await dialog_manager.start(state=StartDialogSG.start)

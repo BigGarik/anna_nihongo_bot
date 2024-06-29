@@ -13,7 +13,6 @@ from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, UserAnswer
 from services.services import normalize_text
 from states import LexisTrainingSG
-from .. import main_page_button_clicked
 from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
     get_context
 
@@ -139,11 +138,6 @@ lexis_training_dialog = Dialog(
         ),
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         getter=get_user_categories,
@@ -180,11 +174,6 @@ lexis_training_dialog = Dialog(
         ),
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         getter=get_context,

@@ -3,7 +3,6 @@ from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, ScrollingGroup
 from aiogram_dialog.widgets.text import Const, Format, Multi
 
-from handlers import main_page_button_clicked
 from handlers.system_handlers import get_non_admin_users, get_user_data
 from models import User, Subscription
 from states import UserManagementSG
@@ -53,11 +52,6 @@ user_management_dialog = Dialog(
         ),
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         state=UserManagementSG.start,
@@ -72,11 +66,6 @@ user_management_dialog = Dialog(
         ),
         Group(
             Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         getter=get_user_data,

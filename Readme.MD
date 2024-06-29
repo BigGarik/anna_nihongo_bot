@@ -108,4 +108,12 @@ sudo journalctl --rotate --vacuum-time=1s -u anna_nihongo_bot.service
 
 sudo systemctl restart english_mrhatsu_bot.service anna_nihongo_bot.service
 
+
+
+pybabel extract -o locales/messages.pot . --ignore-dirs=venv --ignore-dirs=.* --copyright-holder="language_assistant_bot" --project="i18n_language_assistant_bot" --version=0.1 --msgid-bugs-address=inetsmol@gmail.com
+
+pybabel init -i locales/messages.pot -d locales -D i18n_language_assistant_bot -l en
+pybabel init -i locales/messages.pot -d locales -D i18n_language_assistant_bot -l ru
+
+pybabel compile -d locales -D i18n_language_assistant_bot
 ```

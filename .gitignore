@@ -1,5 +1,6 @@
 .env
-
+*.mo
+*.pot
 .idea
 venv/
 .venv/

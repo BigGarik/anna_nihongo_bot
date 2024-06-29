@@ -7,7 +7,6 @@ from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Start, Button, Group, Back, Next
 from aiogram_dialog.widgets.text import Const
 
-from handlers import main_page_button_clicked
 from models import Category
 from states import AdminDialogSG, UserManagementSG
 
@@ -33,11 +32,6 @@ admin_dialog = Dialog(
               ),
         Next(text=Const('🆕 Добавить общую категорию')),
         # Cancel(Const('↩️ Отмена'), id='button_cancel'),
-        Button(
-            text=Const('🏠 На главную'),
-            id='main_page',
-            on_click=main_page_button_clicked,
-        ),
         state=AdminDialogSG.start,
     ),
     Window(
@@ -48,11 +42,6 @@ admin_dialog = Dialog(
         ),
         Group(
             Back(Const('◀️ Назад'), id='back'),
-            Button(
-                text=Const('🏠 На главную'),
-                id='main_page',
-                on_click=main_page_button_clicked,
-            ),
             width=3
         ),
         state=AdminDialogSG.add_category,
