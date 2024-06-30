@@ -21,6 +21,7 @@ class StartDialogSG(StatesGroup):
 class AdminDialogSG(StatesGroup):
     start = State()
     add_category = State()
+    add_main_image = State()
 
 
 class AddCategorySG(StatesGroup):

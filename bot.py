@@ -31,7 +31,6 @@ from fluent.runtime import FluentLocalization, FluentResourceLoader
 # from keyboards.set_menu import set_main_menu
 from services.services import check_subscriptions
 
-
 load_dotenv()
 
 web_server_host = os.getenv('WEB_SERVER_HOST')
@@ -132,7 +131,6 @@ def main() -> None:
     dp.startup.register(on_startup)
 
     # Регистрируем миддлварь для i18n
-    # dp.update.middleware(TranslatorRunnerMiddleware())
     i18n_middleware = make_i18n_middleware()
     dp.message.middleware(i18n_middleware)
     dp.callback_query.middleware(i18n_middleware)

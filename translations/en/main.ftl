@@ -22,3 +22,11 @@ hello-user-jp =
 hello-user-en =
  <b>{ $username }</b>, let's go to the next level!
  Давай выберем следующую тренировку!
+
+start-training-button = 💪 Exercise
+
+phrase-management-button = 📝 Manage my phrases 💎
+
+subscribe-management-button = 🔔 Manage my subscription 💎
+
+admin-settings-button = ⚙️ Settings (for admins)

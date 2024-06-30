@@ -33,7 +33,6 @@ class I18nMiddleware(BaseMiddleware):
             lang = self.default_lang
         if lang not in self.l10ns:
             lang = self.default_lang
-
         l10n = self.l10ns[lang]
         # we use fluent.runtime here, but you can create custom functions
         data[I18N_FORMAT_KEY] = l10n.format_value

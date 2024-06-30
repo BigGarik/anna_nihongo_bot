@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from aiogram import Router, F
+from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, CallbackQuery
@@ -12,10 +12,11 @@ from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
 from handlers.system_handlers import start_getter
-from keyboards.reply_kb import admin_reply_kb, user_reply_kb
+from keyboards.reply_kb import get_keyboard
 from lexicon.lexicon_ru import LEXICON_RU
 from models import User, Subscription, TypeSubscription
-from services.i18n_format import I18NFormat
+from models.main import MainPhoto
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.services import is_admin
 from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG
 
@@ -60,6 +61,8 @@ start_dialog = Dialog(
 async def process_start_command(message: Message, dialog_manager: DialogManager):
     user_id = message.from_user.id
     user = await User.get_or_none(id=user_id)
+    main_photo = await MainPhoto.get_or_none(id=1)
+    main_photo_tg_id = main_photo.tg_id
     not_new_user = False
     new_user = False
     if user:
@@ -84,11 +87,10 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
                                   date_start=datetime.now(),
                                   date_end=datetime.now() + timedelta(days=30),
                                   )
-    if is_admin(user_id):
-        await message.answer(text="🚀", reply_markup=admin_reply_kb)
-    else:
-        await message.answer("🚀", reply_markup=user_reply_kb)
-
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    is_user_admin = is_admin(message.from_user.id)
+    keyboard = get_keyboard(i18n_format, is_user_admin)
+    await message.answer_photo(main_photo_tg_id, reply_markup=keyboard)
     await dialog_manager.start(state=StartDialogSG.start,
                                mode=StartMode.RESET_STACK,
                                data={"new_user": new_user, 'not_new_user': not_new_user})
@@ -101,14 +103,14 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
     await state.clear()
 
 
-@router.message(F.text == '💪 Тренировки')
-async def process_dog_answer(message: Message, dialog_manager: DialogManager):
-    # await message.answer('💪 Тренировки', reply_markup=ReplyKeyboardRemove())
+# @router.message(F.text == '💪 Тренировки')
+@router.message(lambda message: message.text in ["💪 Тренировки", "💪 Exercise"])
+async def process_start_training(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
-@router.message(F.text == '📝 Управление моими фразами 💎')
-async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+@router.message(lambda message: message.text in ["📝 Управление моими фразами 💎", "📝 Manage my phrases 💎"])
+async def process_phrase_management(message: Message, dialog_manager: DialogManager):
     subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
     if subscription:
         if subscription.type_subscription.name == 'Free':
@@ -117,8 +119,8 @@ async def process_dog_answer(message: Message, dialog_manager: DialogManager):
             await dialog_manager.start(state=ManagementSG.start)
 
 
-@router.message(F.text == '🔔 Управление подпиской 💎')
-async def process_dog_answer(message: Message, dialog_manager: DialogManager):
+@router.message(lambda message: message.text in ["🔔 Управление подпиской 💎", "🔔 Manage my subscription 💎"])
+async def process_subscribe_management(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=SubscribeManagementSG.start)
 
 # @router.message(Command(commands='contact'))
