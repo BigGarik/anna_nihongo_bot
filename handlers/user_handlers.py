@@ -5,15 +5,13 @@ from datetime import datetime, timedelta
 from aiogram import Router
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
-from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
 from handlers.system_handlers import start_getter
 from keyboards.reply_kb import get_keyboard
-from lexicon.lexicon_ru import LEXICON_RU
 from models import User, Subscription, TypeSubscription
 from models.main import MainPhoto
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
@@ -29,13 +27,14 @@ router = Router()
 logger = logging.getLogger(__name__)
 
 
-async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    subscription = await Subscription.get_or_none(user_id=callback.from_user.id).prefetch_related('type_subscription')
-    if subscription:
-        if subscription.type_subscription.name == 'Free':
-            await callback.answer('Только по подписке', show_alert=True)
-        else:
-            await dialog_manager.start(state=ManagementSG.start)
+# async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+#     subscription = await Subscription.get_or_none(user_id=callback.from_user.id).prefetch_related('type_subscription')
+#     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+#     if subscription:
+#         if subscription.type_subscription.name == 'Free':
+#             await callback.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
+#         else:
+#             await dialog_manager.start(state=ManagementSG.start)
 
 
 start_dialog = Dialog(
@@ -98,7 +97,8 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
 
 @router.message(Command(commands='cancel'))
 async def process_cancel_command(message: Message, state: FSMContext, dialog_manager: DialogManager):
-    await message.answer(text=LEXICON_RU['/cancel'])
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    await message.answer(text=i18n_format("command-cancel"))
     await dialog_manager.reset_stack()
     await state.clear()
 
@@ -109,12 +109,13 @@ async def process_start_training(message: Message, dialog_manager: DialogManager
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
-@router.message(lambda message: message.text in ["📝 Управление моими фразами 💎", "📝 Manage my phrases 💎"])
+@router.message(lambda message: message.text in ["📝 Управление фразами для тренировок 💎", "📝 Managing phrases for training 💎"])
 async def process_phrase_management(message: Message, dialog_manager: DialogManager):
     subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     if subscription:
         if subscription.type_subscription.name == 'Free':
-            await message.answer('Только по подписке', show_alert=True)
+            await message.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
         else:
             await dialog_manager.start(state=ManagementSG.start)
 

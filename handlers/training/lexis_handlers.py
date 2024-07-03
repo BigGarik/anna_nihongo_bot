@@ -3,14 +3,15 @@ from pathlib import Path
 
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
+from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select
-from aiogram_dialog.widgets.text import Const, Format, Multi
+from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, Back
+from aiogram_dialog.widgets.text import Format, Multi
 
 from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, UserAnswer
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.services import normalize_text
 from states import LexisTrainingSG
 from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
@@ -26,6 +27,7 @@ def get_counter(data, widget, dialog_manager: DialogManager):
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     user_id = message.from_user.id
     # Скачиваем файл
     voice_id = message.voice.file_id
@@ -55,17 +57,18 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
     if dialog_manager.dialog_data['question'] == spoken_answer:
         dialog_manager.dialog_data['counter'] = 0
         user_answer.result = True
-        await message.answer(f'Ты произнес:\n{spoken_answer}\n\nУра!!! Ты лучший! 🥳')
+        await message.answer(i18n_format('congratulations-spoken-answer', dialog_manager.dialog_data))
         dialog_manager.dialog_data.pop('answer', None)
         await dialog_manager.back()
     else:
-        await message.answer(f'Кажется ты произнес:\n{spoken_answer}')
+        await message.answer(i18n_format('spoken-answer', dialog_manager.dialog_data))
         user_answer.result = False
     await user_answer.save()
 
 
 async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
                             answer_text: str):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     dialog_manager.dialog_data['answer'] = answer_text
     text_phrase = dialog_manager.dialog_data['question']
     phrase = await Phrase.get_or_none(text_phrase=text_phrase)
@@ -83,7 +86,7 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
     if normalized_question == normalized_answer:
         dialog_manager.dialog_data['counter'] = 0
         user_answer.result = True
-        await message.answer('🏆 Ура!!! Ты лучший! 🥳')
+        await message.answer(i18n_format('congratulations'))
         # voice_id = dialog_manager.dialog_data['audio_id']
         # if voice_id:
         #     await bot.send_voice(chat_id=message.from_user.id, voice=voice_id)
@@ -103,19 +106,24 @@ async def category_selection(callback: CallbackQuery, widget: Select, dialog_man
     await dialog_manager.next()
 
 
+async def next_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    category_id = dialog_manager.dialog_data['category_id']
+    await get_random_phrase(dialog_manager, category_id)
+
+
 async def listen_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     voice_id = dialog_manager.dialog_data['audio_id']
     await bot.send_voice(chat_id=callback.from_user.id, voice=voice_id)
 
 
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    await message.answer('Моя твоя не понимать 🤔')
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    await message.answer(i18n_format('error-handler'))
 
 
 lexis_training_dialog = Dialog(
     Window(
-        Const('Раздел для тренировки лексики.'),
-        Const(text='Выбирай категорию:'),
+        I18NFormat('lexis-training-dialog'),
         Group(
             Select(
                 Format('{item[0]}'),
@@ -137,7 +145,7 @@ lexis_training_dialog = Dialog(
             width=2
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         getter=get_user_categories,
@@ -145,12 +153,13 @@ lexis_training_dialog = Dialog(
     ),
     Window(
         Multi(
-            Format('Выбранная категория: <b>{category}</b>'),
-            Format('Фраза:\n <strong>{with_gap_phrase}</strong>'),
-            Format('Перевод:\n <tg-spoiler>{translation}</tg-spoiler>'),
-            Const('Попробуй еще раз ))',
+            I18NFormat('training-category'),
+            I18NFormat('lexis-training-phrase'),
+            I18NFormat('training-translation'),
+            I18NFormat('lexis-training'),
+            I18NFormat('training-try-again',
                   when=first_answer_getter),
-            Const('Введи текст ответа:',
+            I18NFormat('enter-answer-text',
                   when=second_answer_getter),
             sep='\n\n'
         ),
@@ -167,13 +176,19 @@ lexis_training_dialog = Dialog(
             content_types=ContentType.ANY,
         ),
         Button(
-            text=Const('Послушать'),
+            text=I18NFormat('listen'),
             id='listen',
             on_click=listen_button_clicked,
             when=get_counter
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
+            Button(
+                text=I18NFormat('next'),
+                id='next_phrase',
+                on_click=next_phrase_button_clicked,
+            ),
             width=3
         ),
         getter=get_context,

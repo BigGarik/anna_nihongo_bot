@@ -1,15 +1,18 @@
+import base64
 import logging
+import os
 
 from aiogram import Router
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, BufferedInputFile
 from aiogram_dialog import Dialog, Window, DialogManager
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Start, Button, Group, Back, Next
-from aiogram_dialog.widgets.text import Const
 
+from external_services.kandinsky import generate_image
 from models import Category
 from models.main import MainPhoto
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from states import AdminDialogSG, UserManagementSG
 
 # Инициализируем роутер уровня модуля
@@ -23,6 +26,30 @@ async def category_input(message: Message, widget: ManagedTextInput, dialog_mana
     user_id = dialog_manager.event.from_user.id
     await Category.create(name=category, user_id=user_id, public=True)
     await dialog_manager.back()
+
+
+async def go_start_window(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(state=AdminDialogSG.start)
+
+
+async def go_generate_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.switch_to(state=AdminDialogSG.generate_image)
+
+
+async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, prompt: str):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    await message.answer(text=i18n_format("starting-generate-image"))
+    # Генерируем изображение
+    images = generate_image(prompt, style='ANIME')
+
+    if images and len(images) > 0:
+        # Декодируем изображение из Base64
+        image_data = base64.b64decode(images[0])
+        image = BufferedInputFile(image_data, filename="image.png")
+        # Отправляем изображение
+        await message.answer_photo(photo=image, caption=i18n_format("generated-image"))
+    else:
+        await message.answer(i18n_format("failed-generate-image"))
 
 
 async def add_main_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -42,40 +69,72 @@ async def main_image_input(message: Message, widget: MessageInput, dialog_manage
 
 admin_dialog = Dialog(
     Window(
-        Const('Админка'),
-        Start(Const('🧑‍🤝‍🧑 Управление пользователями'),
+        I18NFormat('admin-panel'),
+        Start(I18NFormat('user-management'),
               id='start_user_management_dialog',
               state=UserManagementSG.start
               ),
-        Next(text=Const('🆕 Добавить общую категорию')),
+        Next(text=I18NFormat('add-general-category')),
         Button(
-            text=Const(text='Добавить главное изображение'),
+            text=I18NFormat('generate-image-button'),
+            id='generate_image_button',
+            on_click=go_generate_image
+        ),
+        Button(
+            text=I18NFormat('add-main-image'),
             id='button_add_main_image',
             on_click=add_main_image
         ),
-        # Cancel(Const('↩️ Отмена'), id='button_cancel'),
+        # Cancel(I18NFormat('cancel'), id='button_cancel'),
         state=AdminDialogSG.start,
     ),
     Window(
-        Const(text='Введи название общей категории:'),
+        I18NFormat(text='Введи название общей категории:'),
         TextInput(
             id='category_input',
             on_success=category_input,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
+            Button(
+                I18NFormat('back'),
+                id='go_start_window',
+                on_click=go_start_window
+            ),
+            # Back(I18NFormat('back'), id='back'),
             width=3
         ),
         state=AdminDialogSG.add_category,
     ),
     Window(
-        Const(text='Добавить главное изображение'),
+        I18NFormat('generate-image-dialog'),
+        TextInput(
+            id='prompt_for_image',
+            on_success=ai_generate_image,
+        ),
+        Group(
+            Button(
+                I18NFormat('back'),
+                id='go_start_window',
+                on_click=go_start_window
+            ),
+            # Back(I18NFormat('back'), id='back'),
+            width=3
+        ),
+        state=AdminDialogSG.generate_image,
+    ),
+    Window(
+        I18NFormat('add-main-image'),
         MessageInput(
             func=main_image_input,
             content_types=ContentType.PHOTO,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
+            Button(
+                I18NFormat('back'),
+                id='go_start_window',
+                on_click=go_start_window
+            ),
+            # Back(I18NFormat('back'), id='back'),
             width=3
         ),
         state=AdminDialogSG.add_main_image,

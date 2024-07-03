@@ -5,6 +5,7 @@ from aiogram_dialog.widgets.kbd import Group, Cancel
 from aiogram_dialog.widgets.text import Const
 
 from models import Category
+from services.i18n_format import I18NFormat
 from states import AddCategorySG
 
 
@@ -17,13 +18,13 @@ async def category_input(message: Message, widget: ManagedTextInput, dialog_mana
 
 add_category_dialog = Dialog(
     Window(
-        Const(text='Введи название новой категории:'),
+        I18NFormat(text='Введи название новой категории:'),
         TextInput(
             id='category_input',
             on_success=category_input,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         state=AddCategorySG.start,

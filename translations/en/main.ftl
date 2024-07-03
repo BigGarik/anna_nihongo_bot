@@ -27,6 +27,24 @@ start-training-button = 💪 Exercise
 
 phrase-management-button = 📝 Manage my phrases 💎
 
-subscribe-management-button = 🔔 Manage my subscription 💎
+subscribe-management-button = 🔔 Managing phrases for training 💎
 
 admin-settings-button = ⚙️ Settings (for admins)
+
+admin-panel = Admin panel
+
+user-management = 🧑‍🤝‍🧑 User management
+
+add-general-category = 🆕 Add general category
+
+add-main-image = Add a main image
+
+managing-your-own-phrases-only-available-subscription = Managing your own phrases is only available by subscription.
+
+command-cancel =
+    You have completed your training.
+ Press menu /start to continue
+
+back = ◀️ Back
+
+training-dialog = Ты в разделе тренировок. Выбирай тренировку, и погнали!

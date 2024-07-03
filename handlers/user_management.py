@@ -5,6 +5,7 @@ from aiogram_dialog.widgets.text import Const, Format, Multi
 
 from handlers.system_handlers import get_non_admin_users, get_user_data
 from models import User, Subscription
+from services.i18n_format import I18NFormat
 from states import UserManagementSG
 
 
@@ -36,8 +37,8 @@ async def select_user_button_clicked(callback: CallbackQuery, widget: Select, di
 
 user_management_dialog = Dialog(
     Window(
-        Const('Админка'),
-        Const('Управление пользователями'),
+        I18NFormat('Админка'),
+        I18NFormat('Управление пользователями'),
         ScrollingGroup(
             Select(
                 Format('{item[0]} {item[1]}'),
@@ -51,7 +52,7 @@ user_management_dialog = Dialog(
             height=6,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         state=UserManagementSG.start,
@@ -59,13 +60,13 @@ user_management_dialog = Dialog(
     ),
     Window(
         Multi(
-            Const('Информация о пользователе:'),
-            Format('Пользователь: <b>{username} {first_name} {last_name}</b>'),
-            Format('Текущая подписка:  <b>{type_subscription}</b>'),
-            Format('С <b>{sub_date_start}</b> до <b>{sub_date_end}</b>'),
+            I18NFormat('Информация о пользователе:'),
+            I18NFormat('Пользователь: <b>{username} {first_name} {last_name}</b>'),
+            I18NFormat('Текущая подписка:  <b>{type_subscription}</b>'),
+            I18NFormat('С <b>{sub_date_start}</b> до <b>{sub_date_end}</b>'),
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         getter=get_user_data,

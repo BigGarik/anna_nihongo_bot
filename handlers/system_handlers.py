@@ -129,12 +129,15 @@ async def get_context(dialog_manager: DialogManager, **kwargs):
     counter = dialog_manager.dialog_data['counter']
     category = dialog_manager.dialog_data['category']
     category_id = dialog_manager.dialog_data['category_id']
-
+    first_time = dialog_manager.current_context().dialog_data.get("first_open", True)
+    if first_time:
+        dialog_manager.current_context().dialog_data["first_open"] = False
     return {'with_gap_phrase': with_gap_phrase,
             'question': question,
             'translation': translation,
             'counter': counter,
             'category': category,
+            "show_widget": first_time,
             'category_id': category_id}
 
 

@@ -8,29 +8,31 @@ from aiogram.types import Message, CallbackQuery, FSInputFile
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import MessageInput
 from aiogram_dialog.widgets.kbd import Button, Cancel, Group, Select, Back
-from aiogram_dialog.widgets.text import Const, Format, Multi
+from aiogram_dialog.widgets.text import Format, Multi
 
 from bot_init import bot
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from models import Phrase, UserAnswer
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from states import PronunciationTrainingSG
 from ..system_handlers import category_selected, get_user_categories, get_phrases
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     phrase = await Phrase.get_or_none(id=item_id)
     dialog_manager.dialog_data['phrase_id'] = phrase.id
     # отправить изображение и голосовое с подписью
-    # await callback.message.delete()
     if phrase.image_id:
         await callback.message.answer_photo(phrase.image_id)
     await callback.message.answer_voice(phrase.audio_id,
-                                        caption='Послушайте оригинал и попробуйте повторить')
+                                        caption=i18n_format('listen-original'))
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
     if dialog_manager.dialog_data.get('phrase_id'):
         phrase_id = dialog_manager.dialog_data['phrase_id']
@@ -44,15 +46,17 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
         random_phrase = random.choice(filtered_phrases)
         await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))
     else:
-        await callback.message.answer("No phrases available.")
+        await callback.message.answer(i18n_format('no-phrases-available'))
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    await message.answer('Минуту, обрабатываю ваше сообщение...')
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    await message.answer(i18n_format('processing-message'))
     phrase_id = dialog_manager.dialog_data['phrase_id']
     phrase = await Phrase.get_or_none(id=phrase_id)
-    phrase_text = phrase.text_phrase
-    phrase_translation = phrase.translation
+    dialog_manager.dialog_data['text_phrase'] = phrase.text_phrase
+    dialog_manager.dialog_data['translation'] = phrase.translation
+    dialog_manager.dialog_data['comment'] = phrase.comment if phrase.comment else ' '
     answer_voice_id = message.voice.file_id
     original_voice_id = phrase.audio_id
     # download files
@@ -68,16 +72,14 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
     # recognize file
     spoken_recognizer = SpeechRecognizer(answer_voice_on_disk, answer_voice_id)
     answer_text = spoken_recognizer.recognize_speech()
-
+    dialog_manager.dialog_data['answer_text'] = answer_text
     original_voice, sample_rate = librosa.load(original_voice_on_disk)
     spoken_audio, _ = librosa.load(answer_voice_on_disk, sr=sample_rate)
     visual = PronunciationVisualizer(original_voice, spoken_audio, sample_rate, answer_voice_id)
     await visual.preprocess_audio()
     await visual.plot_waveform()  # Визуализация графика звуковой волны
     photo = FSInputFile(f'temp/{answer_voice_id}.png')
-    await message.answer_photo(photo, caption=f'<b>Оригинал:</b>\n{phrase_text}\n{phrase_translation}\n\n'
-                                              f'<b>Ваш вариант:</b> {answer_text}\n\n'
-                                              f'<b>Комментарий:</b> {phrase.comment}')
+    await message.answer_photo(photo, caption=i18n_format('image-caption', dialog_manager.dialog_data))
     await UserAnswer.create(
         user_id=message.from_user.id,
         phrase_id=phrase_id,
@@ -90,14 +92,13 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
 
 
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    await message.answer('Моя твоя не понимать 🤔')
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    await message.answer(i18n_format('error-handler'))
 
 
 pronunciation_training_dialog = Dialog(
     Window(
-        # Получить список категорий и вывести их кнопки
-        Const('Раздел для тренировки произношения.'),
-        Const('Выбирай категорию:'),
+        I18NFormat('pronunciation_training_dialog'),
         Group(
             Select(
                 Format('{item[0]}'),
@@ -120,7 +121,7 @@ pronunciation_training_dialog = Dialog(
         ),
 
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         getter=get_user_categories,
@@ -130,9 +131,7 @@ pronunciation_training_dialog = Dialog(
         # Пользователь выбирает фразу или
         # отправляем рандомную фразу из выбранной категории
         Multi(
-            Const('Выбирай фразу или тренируй случайную'),
-            Format(''),
-
+            I18NFormat('choose-phrase'),
         ),
         Group(
             Select(
@@ -145,20 +144,20 @@ pronunciation_training_dialog = Dialog(
             width=2
         ),
         Button(
-            text=Const('🎲 Случайная фраза'),
+            text=I18NFormat('random-phrase'),
             id='random_phrase',
             on_click=random_phrase_button_clicked,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         getter=get_phrases,
         state=PronunciationTrainingSG.select_phrase
     ),
     Window(
-        Const('Продолжай тренировку пока произношение не станет идеальным 🤯'),
+        I18NFormat('try-again'),
         MessageInput(
             func=answer_audio_handler,
             content_types=ContentType.VOICE,
@@ -168,8 +167,8 @@ pronunciation_training_dialog = Dialog(
             content_types=ContentType.ANY,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         state=PronunciationTrainingSG.waiting_answer

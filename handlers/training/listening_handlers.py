@@ -4,12 +4,21 @@ from aiogram.enums import ContentType
 from aiogram.types import BufferedInputFile, Message
 from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import ManagedTextInput, TextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Button, Cancel, Group
-from aiogram_dialog.widgets.text import Const
+from aiogram_dialog.widgets.kbd import Cancel, Group
 
 from external_services.google_cloud_services import google_text_to_speech
 from models import TextToSpeech
+from services.i18n_format import I18NFormat
 from states import TextToSpeechSG
+
+
+async def get_data(dialog_manager: DialogManager, **kwargs):
+    first_time = dialog_manager.current_context().dialog_data.get("first_open", True)
+    if first_time:
+        dialog_manager.current_context().dialog_data["first_open"] = False
+    return {
+        "show_widget": first_time
+    }
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
@@ -20,12 +29,12 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
     voice = await TextToSpeech.filter(text=filename).first()
 
     if voice:
-        await message.answer_voice(voice=voice.voice_id, caption=f'{text}\nСлушайте и повторяйте')
+        await message.answer_voice(voice=voice.voice_id, caption=f'{text}')
 
     else:
         response = await google_text_to_speech(text)
         voice = BufferedInputFile(response.audio_content, filename="voice_tts.txt")
-        msg = await message.answer_voice(voice=voice, caption=f'{text}\nСлушайте и повторяйте')
+        msg = await message.answer_voice(voice=voice, caption=f'{text}')
         voice_id = msg.voice.file_id
         await TextToSpeech.create(
             voice_id=voice_id,
@@ -37,14 +46,14 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
 
 async def voice_message_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:
     # Обработать аудио от пользователя
-
-    await message.answer(message.from_user.first_name)
+    pass
+    # await message.answer(message.from_user.first_name)
 
 
 text_to_speech_dialog = Dialog(
     Window(
-        Const('Раздел для тренировки слушания.'),
-        Const('Отправь мне фразу и я ее озвучу'),
+        I18NFormat('listening-training-dialog', when="show_widget"),
+        I18NFormat('listen-repeat'),
         TextInput(
             id='tts_input',
             on_success=phrase_to_speech,
@@ -54,9 +63,10 @@ text_to_speech_dialog = Dialog(
             content_types=ContentType.VOICE,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
-        state=TextToSpeechSG.start
+        state=TextToSpeechSG.start,
+        getter=get_data,
     ),
 )

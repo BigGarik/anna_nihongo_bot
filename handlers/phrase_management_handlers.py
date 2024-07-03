@@ -6,6 +6,7 @@ from aiogram_dialog.widgets.text import Const, Format, List, Multi
 
 from handlers.system_handlers import get_user_categories, get_phrases
 from models import Category, Phrase
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG
 
 
@@ -35,9 +36,9 @@ async def get_phrases_for_delite(dialog_manager: DialogManager, **kwargs):
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     if dialog_manager.dialog_data.get('phrases_count') > 15:
-        await callback.answer('Лимит на количество фраз в категории 15.\nЧто бы добавить новую фразу, сначала удали '
-                              'старую.', show_alert=True)
+        await callback.answer(i18n_format('phrase-limit'), show_alert=True)
     else:
         category_id = dialog_manager.dialog_data['category_id']
         await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id})
@@ -113,8 +114,7 @@ async def confirm_deletion_phrase_button_clicked(callback: CallbackQuery, button
 management_dialog = Dialog(
     Window(
         Multi(
-            Const(text='Управление фразами.'),
-            # Const(text='Управление фразами.'),
+            I18NFormat('phrase-management-dialog'),
         ),
         Group(
             Select(
@@ -126,25 +126,24 @@ management_dialog = Dialog(
             ),
             width=2
         ),
-        Start(Const('➕ Добавить категорию'),
+        Start(I18NFormat('add-category-button'),
               id='start_add_category_dialog',
               state=AddCategorySG.start
               ),
         Button(
-            text=Const('❌ Удаление категорий'),
+            text=I18NFormat('delite-category-button'),
             id='deletion_category',
             on_click=delite_categories_button_clicked,
         ),
         Group(
-            # Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            # Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         getter=get_user_categories,
         state=ManagementSG.start
     ),
     Window(
-        Const(text='Выбери категории для удаления:'),
-        Const('❗❗❗ Все фразы в выбранных категориях будут удалены'),
+        I18NFormat('delite-category'),
         Column(
             Multiselect(
                 checked_text=Format('[✔️] {item[0]}'),
@@ -156,10 +155,10 @@ management_dialog = Dialog(
                 on_state_changed=category_filled
             ),
         ),
-        Next(text=Const('❌ Удалить выбранные')),
+        Next(text=I18NFormat('delete-selected-button')),
         Group(
             Button(
-                text=Const('↩️ Отмена'),
+                text=I18NFormat('cancel'),
                 id='button_cancel',
                 on_click=cancel_button_clicked,
             ),
@@ -172,20 +171,20 @@ management_dialog = Dialog(
         List(
             field=Format('<b>{item[0]}</b>'),
             items='categories_to_be_deleted'),
-        Const('\nУдалить выбранные категории со всеми фразами❓'),
+        I18NFormat('delete-selected-category'),
         Group(
             Button(
-                text=Const('◀️ Назад'),
+                text=I18NFormat('back'),
                 id='back',
                 on_click=back_categories_to_be_deleted,
             ),
             Button(
-                text=Const('↩️ Отмена'),
+                text=I18NFormat('cancel'),
                 id='button_cancel',
                 on_click=cancel_button_clicked,
             ),
             Button(
-                text=Const('✅ Удалить'),
+                text=I18NFormat('delite'),
                 id='confirm_deletion_category',
                 on_click=confirm_deletion_category_button_clicked,
             ),
@@ -195,7 +194,7 @@ management_dialog = Dialog(
         state=ManagementSG.confirm_deletion_category
     ),
     Window(
-        Const(text='Выбери фразы для удаления:'),
+        I18NFormat('editing-category'),
         Column(
             Multiselect(
                 checked_text=Format('[✔️] {item[0]}'),
@@ -208,14 +207,14 @@ management_dialog = Dialog(
             ),
         ),
         Button(
-            text=Const('➕ Добавить фразу'),
+            text=I18NFormat('add-phrase-button'),
             id='add_phrase',
             on_click=add_phrase_button_clicked,
         ),
-        Next(text=Const('❌ Удалить выбранные')),
+        Next(text=I18NFormat('delete-selected-button')),
         Group(
             Button(
-                text=Const('↩️ Отмена'),
+                text=I18NFormat('cancel'),
                 id='button_cancel',
                 on_click=cancel_button_clicked,
             ),
@@ -228,20 +227,20 @@ management_dialog = Dialog(
         List(
             field=Format('<b>{item[0]}</b>'),
             items='phrases_to_be_deleted'),
-        Const('\nУдалить выбранные?'),
+        I18NFormat('delete-selected-ones'),
         Group(
             Button(
-                text=Const('◀️ Назад'),
+                text=I18NFormat('back'),
                 id='back',
                 on_click=back_phrases_to_be_deleted,
             ),
             Button(
-                text=Const('↩️ Отмена'),
+                text=I18NFormat('cancel'),
                 id='button_cancel',
                 on_click=cancel_button_clicked,
             ),
             Button(
-                text=Const('✅ Удалить'),
+                text=I18NFormat('delite'),
                 id='confirm_deletion_phrase',
                 on_click=confirm_deletion_phrase_button_clicked,
             ),

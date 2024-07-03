@@ -8,6 +8,7 @@ from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers.system_handlers import get_user_categories
 from models import Category, Phrase, User
+from services.i18n_format import I18NFormat
 from states import AddPhraseSG
 
 
@@ -65,7 +66,7 @@ async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manage
 # Описание диалога
 add_lexis_phrase_dialog = Dialog(
     Window(
-        Const(text='Выберите категорию или добавьте новую:'),
+        I18NFormat(text='Выберите категорию или добавьте новую:'),
         Group(
             Select(
                 Format('{item[0]}'),
@@ -81,7 +82,7 @@ add_lexis_phrase_dialog = Dialog(
             on_success=category_input,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         state=AddPhraseSG.category,
@@ -89,16 +90,16 @@ add_lexis_phrase_dialog = Dialog(
     ),
     Window(
         Multi(
-            Format('Выбранная категория: <b>{category}</b>'),
-            Const(text='Введите текст новой фразы:'),
+            I18NFormat('Выбранная категория: <b>{category}</b>'),
+            I18NFormat(text='Введите текст новой фразы:'),
         ),
         TextInput(
             id='phrase_input',
             on_success=phrase_input,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         state=AddPhraseSG.phrase,

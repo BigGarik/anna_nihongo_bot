@@ -2,17 +2,19 @@ import base64
 import os
 
 from aiogram.enums import ContentType
-from aiogram.types import CallbackQuery, Message, BufferedInputFile, ReplyKeyboardRemove
+from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Next, Back
-from aiogram_dialog.widgets.text import Const, Format, Multi
+from aiogram_dialog.widgets.text import Format, Multi
 from pydub import AudioSegment
 
 from bot_init import bot
 from external_services.google_cloud_services import google_text_to_speech
+from external_services.kandinsky import generate_image
 from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
 from models import AudioFile, Category, Phrase, User
+from services.i18n_format import I18NFormat
 from services.services import remove_html_tags
 from states import AddOriginalPhraseSG
 
@@ -149,11 +151,26 @@ async def image_handler(message: Message, widget: MessageInput, dialog_manager: 
 
 
 async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await callback.message.answer('Начинаю генерацию изображения. Это может занять некоторое время...')
     # Функция для генерации изображения автоматически
-    # Пример: image_data = await generate_image(dialog_manager.dialog_data['text'])
-    image_data = 'base64_encoded_image_data'
-    image = {'tg_id': '', 'image': image_data}
-    dialog_manager.dialog_data['image'] = image
+    # Получаем API ключи
+    api_key = os.getenv('KANDINSKY_API_KEY')
+    secret_key = os.getenv('KANDINSKY_SECRET_KEY')
+    # Генерируем изображение
+    images = await generate_image(api_key, secret_key, dialog_manager.dialog_data['text_phrase'])
+
+    if images and len(images) > 0:
+        # Декодируем изображение из Base64
+        image_data = base64.b64decode(images[0])
+        image = BufferedInputFile(image_data, filename="image.png")
+        # Отправляем изображение
+        msg = await callback.message.answer_photo(photo=image, caption="Вот сгенерированное изображение!")
+        image_id = msg.photo[-1].file_id
+        dialog_manager.dialog_data['image_id'] = image_id
+        await dialog_manager.next(show_mode=ShowMode.SEND)
+    else:
+        await callback.message.answer("Извините, не удалось сгенерировать изображение.")
+
 
 
 async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
@@ -197,8 +214,8 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
 add_original_phrase_dialog = Dialog(
     Window(
         Multi(
-            Format('<b>Категория:</b> {category_name}\n'),
-            Const(text='💬 Введи текст новой фразы:'),
+            I18NFormat('<b>Категория:</b> {category_name}\n'),
+            I18NFormat(text='💬 Введи текст новой фразы:'),
         ),
 
         TextInput(
@@ -206,7 +223,7 @@ add_original_phrase_dialog = Dialog(
             on_success=text_phrase_input,
         ),
         Group(
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
         getter=get_data,
@@ -215,9 +232,9 @@ add_original_phrase_dialog = Dialog(
     # translation = State()
     Window(
         Multi(
-            Format('<b>Категория:</b> {category_name}'),
-            Format('<b>Текст:</b> {text_phrase}\n'),
-            Const(text='🌐 Введи перевод новой фразы или жми "Пропустить" и я переведу автоматически:'),
+            I18NFormat('<b>Категория:</b> {category_name}'),
+            I18NFormat('<b>Текст:</b> {text_phrase}\n'),
+            I18NFormat(text='🌐 Введи перевод новой фразы или жми "Пропустить" и я переведу автоматически:'),
         ),
 
         TextInput(
@@ -225,9 +242,9 @@ add_original_phrase_dialog = Dialog(
             on_success=translation_input,
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next', on_click=translate_phrase),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
+            Next(I18NFormat('next'), id='next', on_click=translate_phrase),
             width=3
         ),
         getter=get_data,
@@ -242,11 +259,11 @@ add_original_phrase_dialog = Dialog(
             Format('<b>Перевод:</b> {translation}\n'),
         ),
         Multi(
-            Const('<b>Добавление аудио</b>'),
-            Const('🔊 Отправь мне аудио новой фразы, '
+            I18NFormat('<b>Добавление аудио</b>'),
+            I18NFormat('🔊 Отправь мне аудио новой фразы, '
                   'голосовое сообщение или нажми <b>Озвучить с помощью ИИ</b>.',
                   when=first_state_audio_getter),
-            Const('Если все ОК, жми <b>Сохранить</b> или отправь еще раз',
+            I18NFormat('Если все ОК, жми <b>Сохранить</b> или отправь еще раз',
                   when=second_state_audio_getter),
             sep='\n\n'
         ),
@@ -254,12 +271,12 @@ add_original_phrase_dialog = Dialog(
             func=audio_handler,
             content_types=[ContentType.AUDIO, ContentType.VOICE],
         ),
-        Button(Const('🤖 Озвучить с помощью ИИ'), id='voice_message', on_click=ai_voice_message),
+        Button(I18NFormat('🤖 Озвучить с помощью ИИ'), id='voice_message', on_click=ai_voice_message),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            # Button(Const('✅ Сохранить'), id='save', on_click=save_audio),
-            # Next(Const('▶️ Пропустить'), id='next'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
+            # Button(I18NFormat('✅ Сохранить'), id='save', on_click=save_audio),
+            # Next(I18NFormat('next'), id='next'),
             width=3
         ),
         getter=get_data,
@@ -273,13 +290,13 @@ add_original_phrase_dialog = Dialog(
             Format('<b>Текст:</b> {text_phrase}'),
             Format('<b>Перевод:</b> {translation}\n'),
         ),
-        Const(text='<b>🎨 Отправь иллюстрацию для фразы, или просто пропусти этот шаг:</b>'),
+        I18NFormat(text='<b>🎨 Отправь иллюстрацию для фразы, или просто пропусти этот шаг:</b>'),
         MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
-        # Button(Const('🖼 Сгенерировать (в разработке)'), id='ai_image', on_click=ai_image),
+        Button(I18NFormat('generate-image-button'), id='ai_image', on_click=ai_image),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
+            Next(I18NFormat('next'), id='next'),
             width=3
         ),
         getter=get_data,
@@ -293,12 +310,12 @@ add_original_phrase_dialog = Dialog(
             Format('<b>Текст:</b> {text_phrase}'),
             Format('<b>Перевод:</b> {translation}\n'),
         ),
-        Const(text='<b>Здесь можно добавить комментарий к фразе:</b>'),
+        I18NFormat(text='<b>Здесь можно добавить комментарий к фразе:</b>'),
         TextInput(id='comment_input', on_success=comment_input),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
-            Next(Const('▶️ Пропустить'), id='next', on_click=comment_next_button_clicked),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
+            Next(I18NFormat('next'), id='next', on_click=comment_next_button_clicked),
             width=3
         ),
         getter=get_data,
@@ -307,18 +324,18 @@ add_original_phrase_dialog = Dialog(
     # save = State()
     Window(
         Multi(
-            Format('Суммарная информация\n'),
-            Format('<b>Категория:</b> {category_name}'),
-            Format('<b>Текст:</b> {text_phrase}'),
-            Format('<b>Перевод:</b> {translation}'),
-            Format('<b>Комментарий:</b> {comment}\n'),
-            Const(text='<b>Сохранить фразу?</b>'),
+            I18NFormat('Суммарная информация\n'),
+            I18NFormat('<b>Категория:</b> {category_name}'),
+            I18NFormat('<b>Текст:</b> {text_phrase}'),
+            I18NFormat('<b>Перевод:</b> {translation}'),
+            I18NFormat('<b>Комментарий:</b> {comment}\n'),
+            I18NFormat(text='<b>Сохранить фразу?</b>'),
         ),
         Group(
-            Back(Const('◀️ Назад'), id='back'),
-            Cancel(Const('↩️ Отмена'), id='button_cancel'),
+            Back(I18NFormat('back'), id='back'),
+            Cancel(I18NFormat('cancel'), id='button_cancel'),
             Button(
-                text=Const('✅ Сохранить'),
+                text=I18NFormat('✅ Сохранить'),
                 id='save_phrase',
                 on_click=save_phrase_button_clicked,
             ),
