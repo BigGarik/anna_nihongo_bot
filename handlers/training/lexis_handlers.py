@@ -153,7 +153,7 @@ lexis_training_dialog = Dialog(
     ),
     Window(
         Multi(
-            I18NFormat('training-category'),
+            I18NFormat('selected-category'),
             I18NFormat('lexis-training-phrase'),
             I18NFormat('training-translation'),
             I18NFormat('lexis-training'),

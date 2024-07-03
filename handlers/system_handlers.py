@@ -1,16 +1,44 @@
+import base64
 import os
 import random
 
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, BufferedInputFile
 from aiogram_dialog import DialogManager
-from aiogram_dialog.widgets.kbd import Button, Select
+from aiogram_dialog.widgets.kbd import Select, Button
 from tortoise.expressions import Q
 
+from external_services.kandinsky import generate_image
 from models import User, Category, Phrase, Subscription
+from services.i18n_format import I18N_FORMAT_KEY, default_format_text
 from services.services import replace_random_words
-from states import StartDialogSG
 
 location = os.getenv('LOCATION')
+
+
+async def getter_prompt(dialog_manager: DialogManager, **kwargs):
+    prompt = dialog_manager.dialog_data.get('prompt')
+    if prompt:
+        is_prompt = True
+    else:
+        is_prompt = False
+
+    return {
+        'is_prompt': is_prompt,
+    }
+
+
+async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    prompt = dialog_manager.dialog_data['prompt']
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    await callback.message.answer(text=i18n_format("starting-generate-image"))
+    images = generate_image(prompt, style='ANIME', width=512, height=512)
+    if images and len(images) > 0:
+        image_data = base64.b64decode(images[0])
+        image = BufferedInputFile(image_data, filename="image.png")
+        await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
+    else:
+        await callback.message.answer(i18n_format("failed-generate-image"))
+    await dialog_manager.show()
 
 
 async def start_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
@@ -71,8 +99,10 @@ async def get_user_categories(dialog_manager: DialogManager, **kwargs):
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
-    items = dialog_manager.dialog_data['phrases']
-    return {'phrases': items}
+    category_id = dialog_manager.dialog_data['category_id']
+    category = await Category.get_or_none(id=category_id)
+    phrases = dialog_manager.dialog_data['phrases']
+    return {'phrases': phrases, 'category': category.name}
 
 
 async def get_user_data(dialog_manager: DialogManager, **kwargs):

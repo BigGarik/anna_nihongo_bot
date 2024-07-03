@@ -90,7 +90,7 @@ translation_training_dialog = Dialog(
     ),
     Window(
         Multi(
-            I18NFormat('training-category'),
+            I18NFormat('selected-category'),
             I18NFormat('translate-training-phrase'),
             I18NFormat('translate-training'),
             I18NFormat('training-try-again',

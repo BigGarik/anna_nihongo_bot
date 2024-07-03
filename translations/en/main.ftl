@@ -25,9 +25,9 @@ hello-user-en =
 
 start-training-button = 💪 Exercise
 
-phrase-management-button = 📝 Manage my phrases 💎
+phrase-management-button = 📝 Managing phrases for training 💎
 
-subscribe-management-button = 🔔 Managing phrases for training 💎
+subscribe-management-button = 🔔 Manage my subscription 💎
 
 admin-settings-button = ⚙️ Settings (for admins)
 
@@ -57,15 +57,17 @@ command-cancel =
     You have completed your training.
  Press menu /start to continue
 
-back = ◀️ Назад
+back = ◀️ Back
 
-cancel = ↩️ Отмена
+cancel = ↩️ Cancel
 
-next = ▶️ Пропустить
+next = ▶️ Continue
 
-save = ✅ Сохранить
+save = ✅ Save
 
-delite = ✅ Удалить
+delite = ✅ Delite
+
+repeat = 🔄 Repeat
 
 training-dialog = Ты в разделе тренировок. Выбирай тренировку, и погнали!
 
@@ -125,7 +127,7 @@ lexis-training =
  Чтобы перейти к следующему заданию, нажми «ПРОПУСТИТЬ»
  Чтобы выбрать другую категорию, нажми «НАЗАД».
 
-training-category = Выбранная категория: <b>{ $category }</b>
+selected-category = <b>Выбранная категория:</b> { $category }
 
 lexis-training-phrase = Фраза:
  <strong>{ $with_gap_phrase }</strong>
@@ -209,3 +211,20 @@ unsubscribe = Отменить подписку
 
 subscribe-info-dialog = Твоя подписка: <b>{ $type_subscription }</b>
  Дата окончания: <b>{ $date_end }</b>
+
+text-phrase = <b>Текст:</b> { $text_phrase }
+
+input-text-phrase = 💬 Введи текст новой фразы:
+
+input-translate = 🌐 Введи перевод новой фразы или жми "Пропустить" и я переведу автоматически:
+
+translation-phrase = <b>Перевод:</b> { $translation }
+
+add-comment = <b>Здесь можно добавить комментарий к фразе:</b>
+
+summary-information = Суммарная информация
+ <b>Выбранная категория:</b> { $category }
+ <b>Текст:</b> { $text_phrase }
+ <b>Перевод:</b> { $translation }
+ <b>Комментарий:</b> { $comment }
+ <b>Сохранить фразу?</b>

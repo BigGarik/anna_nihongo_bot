@@ -10,6 +10,7 @@ from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInp
 from aiogram_dialog.widgets.kbd import Start, Button, Group, Back, Next
 
 from external_services.kandinsky import generate_image
+from handlers.system_handlers import getter_prompt, repeat_ai_generate_image
 from models import Category
 from models.main import MainPhoto
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
@@ -37,10 +38,11 @@ async def go_generate_image(callback: CallbackQuery, button: Button, dialog_mana
 
 
 async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, prompt: str):
+    dialog_manager.dialog_data['prompt'] = prompt
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     await message.answer(text=i18n_format("starting-generate-image"))
     # Генерируем изображение
-    images = generate_image(prompt, style='ANIME')
+    images = generate_image(prompt, style='ANIME', width=512, height=512)
 
     if images and len(images) > 0:
         # Декодируем изображение из Base64
@@ -117,10 +119,16 @@ admin_dialog = Dialog(
                 id='go_start_window',
                 on_click=go_start_window
             ),
-            # Back(I18NFormat('back'), id='back'),
+            Button(
+                I18NFormat('repeat'),
+                id='repeat_generate_image_button',
+                on_click=repeat_ai_generate_image,
+                when='is_prompt',
+            ),
             width=3
         ),
         state=AdminDialogSG.generate_image,
+        getter=getter_prompt
     ),
     Window(
         I18NFormat('add-main-image'),
