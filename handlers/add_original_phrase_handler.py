@@ -1,4 +1,5 @@
 import base64
+import logging
 import os
 
 from aiogram.enums import ContentType
@@ -18,6 +19,9 @@ from models import AudioFile, Category, Phrase, User
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.services import remove_html_tags
 from states import AddOriginalPhraseSG
+
+
+logger = logging.getLogger(__name__)
 
 
 def second_state_audio_getter(data, widget, dialog_manager: DialogManager):
@@ -176,19 +180,23 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     await callback.message.answer(i18n_format("starting-generate-image"))
     # Функция для генерации изображения автоматически
-    images = generate_image(prompt=dialog_manager.dialog_data["prompt"], style='ANIME', width=512, height=512)
-
-    if images and len(images) > 0:
-        # Декодируем изображение из Base64
-        image_data = base64.b64decode(images[0])
-        image = BufferedInputFile(image_data, filename="image.png")
-        # Отправляем изображение
-        msg = await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
-        image_id = msg.photo[-1].file_id
-        dialog_manager.dialog_data["image_id"] = image_id
-        await dialog_manager.next(show_mode=ShowMode.SEND)
-    else:
-        await callback.message.answer(i18n_format("failed-generate-image"))
+    try:
+        images = generate_image(prompt=dialog_manager.dialog_data["prompt"], style='ANIME', width=512, height=512)
+        if images and len(images) > 0:
+            # Декодируем изображение из Base64
+            image_data = base64.b64decode(images[0])
+            image = BufferedInputFile(image_data, filename="image.png")
+            # Отправляем изображение
+            msg = await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
+            image_id = msg.photo[-1].file_id
+            dialog_manager.dialog_data["image_id"] = image_id
+            await dialog_manager.next(show_mode=ShowMode.SEND)
+        else:
+            await callback.message.answer(i18n_format("failed-generate-image"))
+            await dialog_manager.show()
+    except Exception as e:
+        await callback.message.answer(text=i18n_format("failed-generate-image"))
+        logger.error('Ошибка при генерации изображения: %s', e)
 
 
 async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,

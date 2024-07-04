@@ -58,7 +58,8 @@ kandinsky_secret_key = os.getenv("KANDINSKY_SECRET_KEY")
 #             time.sleep(delay)
 
 
-def generate_image(prompt, api_key=kandinsky_api_key, secret_key=kandinsky_secret_key, width=1024, height=1024, num_images=1, style="DEFAULT"):
+def generate_image(prompt, api_key=kandinsky_api_key, secret_key=kandinsky_secret_key,
+                   width=1024, height=1024, num_images=1, style="DEFAULT"):
     base_url = "https://api-key.fusionbrain.ai/"
     auth_headers = {
         "X-Key": f"Key {api_key}",
@@ -67,6 +68,7 @@ def generate_image(prompt, api_key=kandinsky_api_key, secret_key=kandinsky_secre
 
     # Получение ID модели
     response = requests.get(base_url + "key/api/v1/models", headers=auth_headers)
+    response.raise_for_status()
     model_id = response.json()[0]["id"]
 
     # Параметры для генерации изображения
@@ -88,17 +90,19 @@ def generate_image(prompt, api_key=kandinsky_api_key, secret_key=kandinsky_secre
         "params": (None, json.dumps(params), "application/json")
     }
     response = requests.post(base_url + "key/api/v1/text2image/run", headers=auth_headers, files=data)
+    response.raise_for_status()
     uuid = response.json()["uuid"]
 
     # Проверка статуса и получение результата
     while True:
         response = requests.get(base_url + "key/api/v1/text2image/status/" + uuid, headers=auth_headers)
+        response.raise_for_status()
         data = response.json()
         if data["status"] == "DONE":
             return data["images"]
         elif data["status"] == "FAIL":
             raise Exception("Ошибка при генерации изображения")
-        time.sleep(5)
+        time.sleep(10)
 
 
 

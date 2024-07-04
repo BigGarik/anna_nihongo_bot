@@ -1,4 +1,5 @@
 import base64
+import logging
 import os
 import random
 
@@ -13,6 +14,8 @@ from services.i18n_format import I18N_FORMAT_KEY, default_format_text
 from services.services import replace_random_words
 
 location = os.getenv('LOCATION')
+
+logger = logging.getLogger(__name__)
 
 
 async def getter_prompt(dialog_manager: DialogManager, **kwargs):
@@ -31,14 +34,18 @@ async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dial
     prompt = dialog_manager.dialog_data['prompt']
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     await callback.message.answer(text=i18n_format("starting-generate-image"))
-    images = generate_image(prompt, style='ANIME', width=512, height=512)
-    if images and len(images) > 0:
-        image_data = base64.b64decode(images[0])
-        image = BufferedInputFile(image_data, filename="image.png")
-        await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
-    else:
-        await callback.message.answer(i18n_format("failed-generate-image"))
-    await dialog_manager.show()
+    try:
+        images = generate_image(prompt, style='ANIME', width=512, height=512)
+        if images and len(images) > 0:
+            image_data = base64.b64decode(images[0])
+            image = BufferedInputFile(image_data, filename="image.png")
+            await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
+        else:
+            await callback.message.answer(i18n_format("failed-generate-image"))
+        await dialog_manager.show()
+    except Exception as e:
+        await callback.message.answer(text=i18n_format("failed-generate-image"))
+        logger.error('Ошибка при генерации изображения: %s', e)
 
 
 async def start_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):

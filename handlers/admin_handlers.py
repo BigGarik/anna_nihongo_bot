@@ -42,16 +42,17 @@ async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_m
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     await message.answer(text=i18n_format("starting-generate-image"))
     # Генерируем изображение
-    images = generate_image(prompt, style='ANIME', width=512, height=512)
-
-    if images and len(images) > 0:
-        # Декодируем изображение из Base64
-        image_data = base64.b64decode(images[0])
-        image = BufferedInputFile(image_data, filename="image.png")
-        # Отправляем изображение
-        await message.answer_photo(photo=image, caption=i18n_format("generated-image"))
-    else:
-        await message.answer(i18n_format("failed-generate-image"))
+    try:
+        images = generate_image(prompt, style='ANIME', width=512, height=512)
+        if images and len(images) > 0:
+            image_data = base64.b64decode(images[0])
+            image = BufferedInputFile(image_data, filename="image.png")
+            await message.answer_photo(photo=image, caption=i18n_format("generated-image"))
+        else:
+            await message.answer(i18n_format("failed-generate-image"))
+    except Exception as e:
+        await message.answer(text=i18n_format("failed-generate-image"))
+        logger.error('Ошибка при генерации изображения: %s', e)
 
 
 async def add_main_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
