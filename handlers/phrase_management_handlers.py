@@ -1,8 +1,8 @@
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager, Data, ShowMode
-from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Select, Column, Multiselect, ManagedMultiselect, Next, \
+from aiogram_dialog import Dialog, Window, DialogManager, Data
+from aiogram_dialog.widgets.kbd import Group, Button, Select, Column, Multiselect, ManagedMultiselect, Next, \
     Start
-from aiogram_dialog.widgets.text import Const, Format, List, Multi
+from aiogram_dialog.widgets.text import Format, List, Multi
 
 from handlers.system_handlers import get_user_categories, get_phrases
 from models import Category, Phrase

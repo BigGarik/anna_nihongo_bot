@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Button, Group, Cancel, Next, Back
-from aiogram_dialog.widgets.text import Format, Multi
+from aiogram_dialog.widgets.text import Multi
 from pydub import AudioSegment
 
 from bot_init import bot
@@ -36,6 +36,12 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
     # Получаем текст фразы
     text_phrase = dialog_manager.dialog_data.get("text_phrase", "")
+    if text_phrase:
+        is_text_phrase = True
+    else:
+        is_text_phrase = False
+    response["is_text_phrase"] = is_text_phrase
+
     response["text_phrase"] = text_phrase
 
     # Получаем перевод фразы
@@ -271,11 +277,10 @@ add_original_phrase_dialog = Dialog(
             I18NFormat("translation-phrase"),
         ),
         Multi(
-            I18NFormat("<b>Добавление аудио</b>"),
-            I18NFormat("🔊 Отправь мне аудио новой фразы, "
-                  "голосовое сообщение или нажми <b>Озвучить с помощью ИИ</b>.",
+            I18NFormat("add-audio"),
+            I18NFormat("add-audio-info-first",
                   when=first_state_audio_getter),
-            I18NFormat("Если все ОК, жми <b>Продолжить</b> или отправь еще раз",
+            I18NFormat("add-audio-info-second",
                   when=second_state_audio_getter),
             sep="\n\n"
         ),
@@ -283,11 +288,10 @@ add_original_phrase_dialog = Dialog(
             func=audio_handler,
             content_types=[ContentType.AUDIO, ContentType.VOICE],
         ),
-        Button(I18NFormat("🤖 Озвучить с помощью ИИ"), id="voice_message", on_click=ai_voice_message),
+        Button(I18NFormat("voice-with-ai-button"), id="voice_message", on_click=ai_voice_message),
         Group(
             Back(I18NFormat("back"), id="back"),
             Cancel(I18NFormat("cancel"), id="button_cancel"),
-            # Button(I18NFormat("✅ Сохранить"), id="save", on_click=save_audio),
             Next(I18NFormat("next"), id="next", when='is_audio'),
             width=3
         ),
@@ -302,7 +306,7 @@ add_original_phrase_dialog = Dialog(
             I18NFormat("text-phrase"),
             I18NFormat("translation-phrase"),
         ),
-        I18NFormat(text="<b>🎨 Отправь иллюстрацию для фразы, сгенерируй при помощи ИИ или просто пропусти этот шаг:</b>"),
+        I18NFormat(text="add-image-info"),
         MessageInput(func=image_handler, content_types=[ContentType.PHOTO]),
         Button(
             I18NFormat("generate-image-button"),
