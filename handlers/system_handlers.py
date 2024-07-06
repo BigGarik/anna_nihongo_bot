@@ -4,7 +4,7 @@ import os
 import random
 
 from aiogram.types import CallbackQuery, BufferedInputFile
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Select, Button
 from tortoise.expressions import Q
 
@@ -35,17 +35,18 @@ async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dial
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     await callback.message.answer(text=i18n_format("starting-generate-image"))
     try:
-        images = generate_image(prompt, style='ANIME', width=512, height=512)
+        images = generate_image(prompt)
         if images and len(images) > 0:
             image_data = base64.b64decode(images[0])
             image = BufferedInputFile(image_data, filename="image.png")
             await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
         else:
             await callback.message.answer(i18n_format("failed-generate-image"))
-        await dialog_manager.show()
     except Exception as e:
-        await callback.message.answer(text=i18n_format("failed-generate-image"))
         logger.error('Ошибка при генерации изображения: %s', e)
+        await callback.message.answer(text=i18n_format("failed-generate-image"))
+
+    await dialog_manager.show(show_mode=ShowMode.SEND)
 
 
 async def start_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):

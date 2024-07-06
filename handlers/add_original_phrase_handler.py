@@ -181,7 +181,7 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     await callback.message.answer(i18n_format("starting-generate-image"))
     # Функция для генерации изображения автоматически
     try:
-        images = generate_image(prompt=dialog_manager.dialog_data["prompt"], style='ANIME', width=512, height=512)
+        images = generate_image(prompt=dialog_manager.dialog_data["prompt"])
         if images and len(images) > 0:
             # Декодируем изображение из Base64
             image_data = base64.b64decode(images[0])
@@ -190,12 +190,12 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
             msg = await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
             image_id = msg.photo[-1].file_id
             dialog_manager.dialog_data["image_id"] = image_id
-            await dialog_manager.next(show_mode=ShowMode.SEND)
         else:
             await callback.message.answer(i18n_format("failed-generate-image"))
-            await dialog_manager.show()
+        await dialog_manager.show(show_mode=ShowMode.SEND)
     except Exception as e:
         await callback.message.answer(text=i18n_format("failed-generate-image"))
+        await dialog_manager.show(show_mode=ShowMode.SEND)
         logger.error('Ошибка при генерации изображения: %s', e)
 
 

@@ -79,6 +79,7 @@ def generate_image(prompt, api_key=kandinsky_api_key, secret_key=kandinsky_secre
         "width": width,
         "height": height,
         "negativePromptUnclip": "яркие цвета, кислотность, высокая контрастность",
+        "censored": False,
         "generateParams": {
             "query": prompt
         }
@@ -103,15 +104,6 @@ def generate_image(prompt, api_key=kandinsky_api_key, secret_key=kandinsky_secre
         elif data["status"] == "FAIL":
             raise Exception("Ошибка при генерации изображения")
         time.sleep(10)
-
-
-
-# Пример использования
-# api_key = "YOUR_API_KEY"
-# secret_key = "YOUR_SECRET_KEY"
-# prompt = "Красивый закат над морем"
-# images = generate_image(api_key, secret_key, prompt)
-# print(images)
 
 
 if __name__ == "__main__":

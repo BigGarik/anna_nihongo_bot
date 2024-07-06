@@ -5,7 +5,7 @@ import os
 from aiogram import Router
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery, BufferedInputFile
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Start, Button, Group, Back, Next
 
@@ -43,16 +43,19 @@ async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_m
     await message.answer(text=i18n_format("starting-generate-image"))
     # Генерируем изображение
     try:
-        images = generate_image(prompt, style='ANIME', width=512, height=512)
+        images = generate_image(prompt)
         if images and len(images) > 0:
             image_data = base64.b64decode(images[0])
             image = BufferedInputFile(image_data, filename="image.png")
             await message.answer_photo(photo=image, caption=i18n_format("generated-image"))
         else:
             await message.answer(i18n_format("failed-generate-image"))
+        # await dialog_manager.show(show_mode=ShowMode.SEND)
     except Exception as e:
-        await message.answer(text=i18n_format("failed-generate-image"))
         logger.error('Ошибка при генерации изображения: %s', e)
+        await message.answer(text=i18n_format("failed-generate-image"))
+        # await dialog_manager.show(show_mode=ShowMode.SEND)
+
 
 
 async def add_main_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
