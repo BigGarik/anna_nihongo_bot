@@ -8,7 +8,7 @@ class UserGroup(models.Model):
 
 class User(models.Model):
     id = fields.BigIntField(pk=True)
-    username = fields.CharField(max_length=100)
+    username = fields.CharField(max_length=100, null=True)
     first_name = fields.CharField(max_length=100, null=True)
     last_name = fields.CharField(max_length=100, null=True)
     payment_method = fields.TextField(null=True)
