@@ -25,4 +25,6 @@ class I18NFormat(Text):
         format_text = manager.middleware_data.get(
             I18N_FORMAT_KEY, default_format_text,
         )
-        return format_text(self.text, data)
+        # return format_text(self.text, data)
+        # Используем форматирование строк для подстановки значений
+        return format_text(self.text.format(**data), data)

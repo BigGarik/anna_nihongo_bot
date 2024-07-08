@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 from tortoise.expressions import Q
 
 from bot_init import bot
-from models import Subscription, TypeSubscription
+from models import Subscription, TypeSubscription, User
 
 load_dotenv()
 location = os.getenv('LOCATION')
@@ -77,3 +77,9 @@ async def check_subscriptions():
 
         # Отправка сообщения с кнопкой
         # await bot.send_message(subscription.user_id, "Ваша подписка истекла.", reply_markup=keyboard)
+
+
+async def get_user_locale(user_id: int) -> str:
+    user = await User.get_or_none(id=user_id)
+
+    return user.locale

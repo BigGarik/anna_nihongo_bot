@@ -87,3 +87,7 @@ class UserManagementSG(StatesGroup):
     start = State()
     user_delite = State()
     user_manage = State()
+
+
+class SelectLanguageSG(StatesGroup):
+    start = State()

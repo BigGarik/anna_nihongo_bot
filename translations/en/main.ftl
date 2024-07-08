@@ -1,3 +1,9 @@
+start = Let's start training
+
+language = Language selection
+
+cancel = Complete training
+
 First-hello-user-jp =
      <b>{ $username }さん、</b>ようこそ！
  Добро пожаловать!
@@ -238,3 +244,11 @@ add-audio-info-second = Если все ОК, жми <b>Продолжить</b>
 voice-with-ai-button = 🤖 Озвучить с помощью ИИ
 
 add-image-info = <b>🎨 Отправь иллюстрацию для фразы, сгенерируй при помощи ИИ или просто пропусти этот шаг:</b>
+
+en = 🇬🇧 English
+
+ru = 🇷🇺 Russian
+
+select-language = Select bot language
+
+language-changed = Language changed to

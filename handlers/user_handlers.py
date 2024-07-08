@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime, timedelta
 
-from aiogram import Router
+from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -10,13 +10,15 @@ from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
+from bot_init import bot
 from handlers.system_handlers import start_getter
 from keyboards.reply_kb import get_keyboard
+from keyboards.set_menu import get_localized_menu
 from models import User, Subscription, TypeSubscription
 from models.main import MainPhoto
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.services import is_admin
-from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG
+from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG, SelectLanguageSG
 
 load_dotenv()
 admin_id = os.getenv('ADMIN_ID')
@@ -66,13 +68,13 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
     new_user = False
     if user:
         not_new_user = True
-        user.username = message.from_user.username or ""
+        user.username = message.from_user.username
         user.first_name = message.from_user.first_name or ""
         user.last_name = message.from_user.last_name or ""
         await user.save()
     else:
         new_user = True
-        username = message.from_user.username or ""
+        username = message.from_user.username
         first_name = message.from_user.first_name or ""
         last_name = message.from_user.last_name or ""
         user = await User.create(id=user_id,
@@ -87,12 +89,20 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
                                   date_end=datetime.now() + timedelta(days=30),
                                   )
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    user_menu = await get_localized_menu(i18n_format)
+    chat_id = message.chat.id
+    await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
     is_user_admin = is_admin(message.from_user.id)
     keyboard = get_keyboard(i18n_format, is_user_admin)
     await message.answer_photo(main_photo_tg_id, reply_markup=keyboard)
     await dialog_manager.start(state=StartDialogSG.start,
                                mode=StartMode.RESET_STACK,
                                data={"new_user": new_user, 'not_new_user': not_new_user})
+
+
+@router.message(Command(commands='language'))
+async def process_language_command(message: Message, dialog_manager: DialogManager):
+    await dialog_manager.start(state=SelectLanguageSG.start)
 
 
 @router.message(Command(commands='cancel'))

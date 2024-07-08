@@ -9,9 +9,10 @@ from aiohttp import web
 from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
-from bot_init import bot, dp
+from bot_init import bot, dp, make_i18n_middleware
 from config_data.config import Config, load_config
 from db import init_db
+from dialogs.select_language import select_language_dialog
 from handlers.add_lexis_phrase import add_lexis_phrase_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
@@ -26,9 +27,7 @@ from handlers.training.training_handlers import user_training_dialog
 from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
 from handlers.user_management import user_management_dialog
-from middlewares.i18n_middleware import I18nMiddleware
-from fluent.runtime import FluentLocalization, FluentResourceLoader
-# from keyboards.set_menu import set_main_menu
+from keyboards.set_menu import set_default_commands
 from services.services import check_subscriptions
 
 load_dotenv()
@@ -42,8 +41,6 @@ webhook_secret = os.getenv('WEBHOOK_SECRET')
 
 # location = os.getenv('LOCATION')
 # language_code = location.split('-')[0]
-DEFAULT_LOCALE = "en"
-LOCALES = ["en", 'ru']
 
 
 with open('config_data/logging_config.yaml', 'rt') as f:
@@ -56,24 +53,9 @@ logger = logging.getLogger(__name__)
 config: Config = load_config()
 
 
-def make_i18n_middleware():
-    loader = FluentResourceLoader(os.path.join(
-        os.path.dirname(__file__),
-        "translations",
-        "{locale}",
-    ))
-    l10ns = {
-        locale: FluentLocalization(
-            [locale, DEFAULT_LOCALE], ["main.ftl"], loader,
-        )
-        for locale in LOCALES
-    }
-    return I18nMiddleware(l10ns, DEFAULT_LOCALE)
-
-
 async def on_startup(app):
     await init_db()
-    # await set_main_menu(bot)
+    await set_default_commands(bot)
     await bot.set_webhook(webhook_url, secret_token=webhook_secret)
 
 
@@ -96,6 +78,7 @@ def main() -> None:
         admin_router,
         user_router,
         start_dialog,
+        select_language_dialog,
         subscribe_dialog,
         subscribe_management_dialog,
         add_original_phrase_dialog,

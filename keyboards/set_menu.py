@@ -1,7 +1,36 @@
-from aiogram import Bot
-from aiogram.types import BotCommand
+import logging
+import os
 
+from aiogram import Bot, types
+from aiogram.types import BotCommand
+from dotenv import load_dotenv
+
+from bot_init import make_i18n_middleware
 from lexicon.lexicon_ru import LEXICON_COMMANDS_RU
+from services.services import get_user_locale
+
+
+load_dotenv()
+logger = logging.getLogger(__name__)
+
+
+default_locale = os.getenv('DEFAULT_LOCALE')
+
+
+# Функция для получения локализованного меню
+async def get_localized_menu(i18n_format):
+    return [
+        types.BotCommand(command="start", description=i18n_format("start")),
+        types.BotCommand(command="language", description=i18n_format("language")),
+        types.BotCommand(command="help", description=i18n_format("help"))
+    ]
+
+
+# Функция для установки меню бота с локалью по умолчанию
+async def set_default_commands(bot: Bot):
+    default_l10n = make_i18n_middleware().l10ns[default_locale]
+    default_menu = await get_localized_menu(default_l10n.format_value)
+    await bot.set_my_commands(default_menu)
 
 
 # Функция для настройки кнопки Menu бота
