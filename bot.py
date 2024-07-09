@@ -12,7 +12,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from bot_init import bot, dp, make_i18n_middleware
 from config_data.config import Config, load_config
 from db import init_db
-from dialogs.select_language import select_language_dialog
+from dialogs.edit_phrase_dialog import edit_phrase_dialog
+from dialogs.select_language_dialog import select_language_dialog
 from handlers.add_lexis_phrase import add_lexis_phrase_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
@@ -82,6 +83,7 @@ def main() -> None:
         subscribe_dialog,
         subscribe_management_dialog,
         add_original_phrase_dialog,
+        edit_phrase_dialog,
         admin_dialog,
         user_management_dialog,
         add_lexis_phrase_dialog,

@@ -20,9 +20,9 @@ default_locale = os.getenv('DEFAULT_LOCALE')
 # Функция для получения локализованного меню
 async def get_localized_menu(i18n_format):
     return [
-        types.BotCommand(command="start", description=i18n_format("start")),
-        types.BotCommand(command="language", description=i18n_format("language")),
-        types.BotCommand(command="help", description=i18n_format("help"))
+        types.BotCommand(command="start", description=i18n_format("command-start")),
+        types.BotCommand(command="language", description=i18n_format("command-language")),
+        types.BotCommand(command="help", description=i18n_format("command-help"))
     ]
 
 

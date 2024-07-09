@@ -1,8 +1,8 @@
-start = Let's start training
+command-start = Let's start training
 
-language = Language selection
+command-language = Language selection
 
-cancel = Complete training
+command-cancel = Complete training
 
 First-hello-user-jp =
      <b>{ $username }さん、</b>ようこそ！
@@ -252,3 +252,33 @@ ru = 🇷🇺 Russian
 select-language = Select bot language
 
 language-changed = Language changed to
+
+
+summary-information-to-edit = Суммарная информация
+ <b>Выбранная категория:</b> { $category }
+ <b>Текст:</b> { $text_phrase }
+ <b>Перевод:</b> { $translation }
+ <b>Комментарий:</b> { $comment }
+ Выбирай, что редактировать.
+
+select-phrase-to-delete = Select to delete
+
+text-phrase-to-edit = Phrase text
+
+translation-to-edit = Перевод
+
+audio-to-edit = Audio
+
+image-to-edit = Photo
+
+comment-to-edit = Comment
+
+send-text-phrase-to-edit = Отправь текст фразы для изменения
+
+send-translation-to-edit = Отправь перевод для изменения
+
+send-audio-to-edit = Отправь аудио или голосовое сообщение для изменения
+
+send-image-to-edit = Отправь фото или сгенерируй новое для изменения
+
+send-comment-to-edit = Отправь комментарий для изменения

@@ -199,8 +199,7 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
         logger.error('Ошибка при генерации изображения: %s', e)
 
 
-async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
-                        comment: str) -> None:
+async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, comment: str):
     dialog_manager.dialog_data["comment"] = remove_html_tags(comment)
     await dialog_manager.next()
 

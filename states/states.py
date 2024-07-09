@@ -1,6 +1,6 @@
 from aiogram.fsm.state import State, StatesGroup
 
-# Создаем "базу данных" пользователей
+# Создаем базу данных пользователей
 user_dict: dict[int, dict[str, str | int | bool]] = {}
 
 
@@ -38,6 +38,16 @@ class AddOriginalPhraseSG(StatesGroup):
     save = State()
 
 
+class EditPhraseSG(StatesGroup):
+    start = State()
+    text_phrase = State()
+    translation = State()
+    audio = State()
+    image = State()
+    comment = State()
+
+
+
 class AddPhraseSG(StatesGroup):
     category = State()
     phrase = State()
@@ -72,6 +82,7 @@ class ManagementSG(StatesGroup):
     select_category = State()
     confirm_deletion_category = State()
     select_phrase = State()
+    select_phrase_for_delete = State()
     confirm_deletion_phrase = State()
 
 

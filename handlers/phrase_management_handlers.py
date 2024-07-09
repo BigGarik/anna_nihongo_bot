@@ -1,13 +1,13 @@
 from aiogram.types import CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager, Data
+from aiogram_dialog import Dialog, Window, DialogManager, Data, ShowMode
 from aiogram_dialog.widgets.kbd import Group, Button, Select, Column, Multiselect, ManagedMultiselect, Next, \
-    Start
+    Start, Back
 from aiogram_dialog.widgets.text import Format, List, Multi
 
 from handlers.system_handlers import get_user_categories, get_phrases
 from models import Category, Phrase
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
-from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG
+from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG, EditPhraseSG
 
 
 async def management_dialog_process_result(statr_data: Data, result: dict, dialog_manager: DialogManager, **kwargs):
@@ -55,9 +55,6 @@ async def phrases_filled(callback: CallbackQuery, checkbox: ManagedMultiselect, 
 
 
 async def category_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    if dialog_manager.find('multi_phrases'):
-        multiselect_widget = dialog_manager.find('multi_phrases')
-        await multiselect_widget.reset_checked()
     dialog_manager.dialog_data['category_id'] = item_id
     user_id = dialog_manager.event.from_user.id
     phrases = await Phrase.filter(category_id=item_id, user_id=user_id).all()
@@ -66,6 +63,23 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
     count = len(items)
     dialog_manager.dialog_data['phrases_count'] = count
     await dialog_manager.switch_to(state=ManagementSG.select_phrase)
+
+
+async def phrase_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
+    phrase = await Phrase.get(id=item_id)
+    if phrase.image_id:
+        await callback.message.answer_photo(photo=phrase.image_id)
+    if phrase.audio_id:
+        await callback.message.answer_audio(audio=phrase.audio_id)
+    await dialog_manager.start(state=EditPhraseSG.start, show_mode=ShowMode.DELETE_AND_SEND, data={"phrase_id": item_id})
+
+
+async def select_phrase_for_delete_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    if dialog_manager.find('multi_phrases'):
+        multiselect_widget = dialog_manager.find('multi_phrases')
+        await multiselect_widget.reset_checked()
+
+    await dialog_manager.switch_to(state=ManagementSG.select_phrase_for_delete)
 
 
 async def cancel_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -90,7 +104,7 @@ async def back_phrases_to_be_deleted(callback: CallbackQuery, button: Button, di
     if dialog_manager.find('multi_phrases'):
         multiselect_widget = dialog_manager.find('multi_phrases')
         await multiselect_widget.reset_checked()
-    await dialog_manager.switch_to(state=ManagementSG.select_phrase)
+    await dialog_manager.switch_to(state=ManagementSG.select_phrase_for_delete)
 
 
 async def confirm_deletion_category_button_clicked(callback: CallbackQuery, button: Button,
@@ -196,6 +210,39 @@ management_dialog = Dialog(
     Window(
         I18NFormat('editing-category'),
         Column(
+            Select(
+                Format('{item[0]}'),
+                id='phrase',
+                item_id_getter=lambda x: x[1],
+                items="phrases",
+                on_click=phrase_selected,
+            ),
+        ),
+        Button(
+            text=I18NFormat('add-phrase-button'),
+            id='add_phrase',
+            on_click=add_phrase_button_clicked,
+        ),
+        Button(
+            text=I18NFormat('select-phrase-for-delete'),
+            id='select_phrase_for_delete',
+            on_click=select_phrase_for_delete_button_clicked,
+        ),
+        # Next(text=I18NFormat('delete-selected-button')),
+        Group(
+            Button(
+                text=I18NFormat('back'),
+                id='button_cancel',
+                on_click=cancel_button_clicked,
+            ),
+            width=3
+        ),
+        getter=get_phrases,
+        state=ManagementSG.select_phrase,
+    ),
+    Window(
+        I18NFormat('editing-category'),
+        Column(
             Multiselect(
                 checked_text=Format('[✔️] {item[0]}'),
                 unchecked_text=Format('[     ] {item[0]}'),
@@ -206,13 +253,9 @@ management_dialog = Dialog(
                 on_state_changed=phrases_filled
             ),
         ),
-        Button(
-            text=I18NFormat('add-phrase-button'),
-            id='add_phrase',
-            on_click=add_phrase_button_clicked,
-        ),
         Next(text=I18NFormat('delete-selected-button')),
         Group(
+            Back(text=I18NFormat('back')),
             Button(
                 text=I18NFormat('cancel'),
                 id='button_cancel',
@@ -221,7 +264,7 @@ management_dialog = Dialog(
             width=3
         ),
         getter=get_phrases,
-        state=ManagementSG.select_phrase,
+        state=ManagementSG.select_phrase_for_delete,
     ),
     Window(
         List(
