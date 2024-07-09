@@ -47,7 +47,6 @@ class EditPhraseSG(StatesGroup):
     comment = State()
 
 
-
 class AddPhraseSG(StatesGroup):
     category = State()
     phrase = State()

@@ -224,7 +224,7 @@ management_dialog = Dialog(
             on_click=add_phrase_button_clicked,
         ),
         Button(
-            text=I18NFormat('select-phrase-for-delete'),
+            text=I18NFormat('select-phrase-to-delete'),
             id='select_phrase_for_delete',
             on_click=select_phrase_for_delete_button_clicked,
         ),

@@ -5,7 +5,7 @@ from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
 from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, MessageInput, ManagedTextInput
-from aiogram_dialog.widgets.kbd import Group, Back, Cancel, Button
+from aiogram_dialog.widgets.kbd import Group, Cancel, Button
 from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
@@ -143,7 +143,6 @@ edit_phrase_dialog = Dialog(
             on_click=change_comment_button_clicked,
         ),
         Group(
-            # Back(I18NFormat("back"), id="back"),
             Cancel(I18NFormat("cancel"), id="button_cancel"),
             Button(
                 text=I18NFormat("save"),
