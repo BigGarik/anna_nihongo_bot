@@ -15,7 +15,7 @@ from services.services import replace_random_words
 
 location = os.getenv('LOCATION')
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def getter_prompt(dialog_manager: DialogManager, **kwargs):

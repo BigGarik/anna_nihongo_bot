@@ -132,7 +132,7 @@ lexis_training_dialog = Dialog(
                 items='categories',
                 on_click=category_selection,
             ),
-            width=2
+            width=1
         ),
         Group(
             Select(
@@ -142,7 +142,7 @@ lexis_training_dialog = Dialog(
                 items='categories_for_all',
                 on_click=category_selection,
             ),
-            width=2
+            width=1
         ),
         Group(
             Cancel(I18NFormat('cancel'), id='button_cancel'),

@@ -9,7 +9,7 @@ from fluent.runtime import FluentLocalization
 from models import User
 from services.i18n_format import I18N_FORMAT_KEY
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 def update_middleware_manager(manager: MiddlewareManager, new_middleware):

@@ -11,7 +11,7 @@ from services.services import get_user_locale
 
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 default_locale = os.getenv('DEFAULT_LOCALE')

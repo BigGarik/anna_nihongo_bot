@@ -16,7 +16,7 @@ from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import EditPhraseSG
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def change_text_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

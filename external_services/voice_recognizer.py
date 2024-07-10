@@ -8,7 +8,7 @@ from speech_recognition import UnknownValueError
 
 from lexicon.lexicon_ru import LEXICON_RU
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 load_dotenv()
 location = os.getenv('LOCATION')

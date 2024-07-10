@@ -79,6 +79,11 @@ loggers:
     handlers: [stderr]
     propagate: False
 
+  default:
+    level: INFO
+    handlers: [stdout]
+    propagate: False
+
 root:
   level: ERROR
   formatter: default

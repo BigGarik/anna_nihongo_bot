@@ -5,7 +5,7 @@ from aiogram.types import Message
 
 from services.i18n_format import I18N_FORMAT_KEY, default_format_text
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 # Собственный фильтр, проверяющий юзера на админа

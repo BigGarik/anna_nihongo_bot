@@ -4,7 +4,7 @@ from tortoise.exceptions import IntegrityError
 
 from models import User
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def add_user(user_id: int, username: str, first_name: str, last_name: str):

@@ -107,7 +107,7 @@ pronunciation_training_dialog = Dialog(
                 items='categories',
                 on_click=category_selected,
             ),
-            width=2
+            width=1
         ),
         Group(
             Select(
@@ -117,7 +117,7 @@ pronunciation_training_dialog = Dialog(
                 items='categories_for_all',
                 on_click=category_selected,
             ),
-            width=2
+            width=1
         ),
 
         Group(

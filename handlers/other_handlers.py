@@ -9,7 +9,7 @@ from lexicon.lexicon_ru import LEXICON_RU
 # Инициализируем роутер уровня модуля
 router = Router()
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 @router.callback_query()

@@ -4,7 +4,7 @@ import librosa
 import matplotlib.pyplot as plt
 import numpy as np
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 # TODO обрабатывать оригинальные файлы только один раз при запуске бота.

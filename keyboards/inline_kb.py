@@ -3,7 +3,7 @@ import logging
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 # Функция для генерации инлайн-клавиатур "на лету"

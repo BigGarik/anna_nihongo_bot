@@ -20,7 +20,7 @@ from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from services.services import remove_html_tags
 from states import AddOriginalPhraseSG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 def second_state_audio_getter(data, widget, dialog_manager: DialogManager):

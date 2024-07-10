@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 router = Router()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 # @router.callback_query()

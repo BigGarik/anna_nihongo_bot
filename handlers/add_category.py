@@ -9,7 +9,7 @@ from models import Category
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import AddCategorySG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,

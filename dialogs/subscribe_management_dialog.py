@@ -11,7 +11,7 @@ from models import Subscription
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import SubscribeSG, SubscribeManagementSG
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):

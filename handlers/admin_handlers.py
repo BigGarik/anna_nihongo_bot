@@ -19,7 +19,7 @@ from states import AdminDialogSG, UserManagementSG
 # Инициализируем роутер уровня модуля
 router = Router()
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def category_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,

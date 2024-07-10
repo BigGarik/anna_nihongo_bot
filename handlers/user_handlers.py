@@ -18,6 +18,7 @@ from models import User, Subscription, TypeSubscription
 from models.main import MainPhoto
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.services import is_admin
+from services.update_user import update_user_info, create_user
 from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG, SelectLanguageSG
 
 load_dotenv()
@@ -26,7 +27,7 @@ admin_id = os.getenv('ADMIN_ID')
 # Инициализируем роутер уровня модуля
 router = Router()
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 start_dialog = Dialog(
@@ -58,26 +59,10 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
     new_user = False
     if user:
         not_new_user = True
-        user.username = message.from_user.username
-        user.first_name = message.from_user.first_name or ""
-        user.last_name = message.from_user.last_name or ""
-        await user.save()
+        await update_user_info(message)
     else:
         new_user = True
-        username = message.from_user.username
-        first_name = message.from_user.first_name or ""
-        last_name = message.from_user.last_name or ""
-        user = await User.create(id=user_id,
-                                 username=username,
-                                 first_name=first_name,
-                                 last_name=last_name
-                                 )
-        type_subscription = await TypeSubscription.get(name='Free trial')
-        await Subscription.create(user=user,
-                                  type_subscription=type_subscription,
-                                  date_start=datetime.now(),
-                                  date_end=datetime.now() + timedelta(days=30),
-                                  )
+        await create_user(message)
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     user_menu = await get_localized_menu(i18n_format)
     chat_id = message.chat.id
@@ -106,12 +91,14 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
 @router.message(lambda message: message.text in ["💪 Тренировки",
                                                  "💪 Exercises"])
 async def process_start_training(message: Message, dialog_manager: DialogManager):
+    await update_user_info(message)
     await dialog_manager.start(state=UserTrainingSG.start)
 
 
 @router.message(lambda message: message.text in ["📝 Управление фразами для тренировок 💎",
                                                  "📝 Manage phrases for my exercises 💎"])
 async def process_phrase_management(message: Message, dialog_manager: DialogManager):
+    await update_user_info(message)
     subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     if subscription:
@@ -124,4 +111,5 @@ async def process_phrase_management(message: Message, dialog_manager: DialogMana
 @router.message(lambda message: message.text in ["🔔 Управление подпиской 💎",
                                                  "🔔 Manage my subscription 💎"])
 async def process_subscribe_management(message: Message, dialog_manager: DialogManager):
+    await update_user_info(message)
     await dialog_manager.start(state=SubscribeManagementSG.start)

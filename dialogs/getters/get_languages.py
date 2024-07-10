@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def get_languages(**kwargs):

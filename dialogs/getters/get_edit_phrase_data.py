@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from models import Phrase, Category
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
