@@ -219,7 +219,7 @@ change-subscribe-button = Manage my subscription
 
 unsubscribe = Unsubscribe
 
-subscribe-info-dialog = You subscription type: <b>{ $type_subscription }</b>
+user-subscribe-info-dialog = You subscription type: <b>{ $type_subscription }</b>
  Subscription period ends on: <b>{ $date_end }</b>
 
 text-phrase = <b>Phrase:</b> { $text_phrase }
