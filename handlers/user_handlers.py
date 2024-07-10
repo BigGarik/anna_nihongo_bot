@@ -104,7 +104,7 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
 
 
 @router.message(lambda message: message.text in ["💪 Тренировки",
-                                                 "💪 Exercise"])
+                                                 "💪 Exercises"])
 async def process_start_training(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=UserTrainingSG.start)
 

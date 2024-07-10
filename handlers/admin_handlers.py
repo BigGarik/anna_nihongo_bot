@@ -39,7 +39,7 @@ async def go_generate_image(callback: CallbackQuery, button: Button, dialog_mana
 
 async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, prompt: str):
     dialog_manager.dialog_data['prompt'] = prompt
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     await message.answer(text=i18n_format("starting-generate-image"))
     # Генерируем изображение
     try:
@@ -55,7 +55,6 @@ async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_m
         logger.error('Ошибка при генерации изображения: %s', e)
         await message.answer(text=i18n_format("failed-generate-image"))
         # await dialog_manager.show(show_mode=ShowMode.SEND)
-
 
 
 async def add_main_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -91,7 +90,6 @@ admin_dialog = Dialog(
             id='button_add_main_image',
             on_click=add_main_image
         ),
-        # Cancel(I18NFormat('cancel'), id='button_cancel'),
         state=AdminDialogSG.start,
     ),
     Window(
