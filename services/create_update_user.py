@@ -1,10 +1,15 @@
+import os
 import logging
 from datetime import datetime, timedelta
 from bot_init import bot
 from models import User, TypeSubscription, Subscription
+from dotenv import load_dotenv
 
 
 logger = logging.getLogger('default')
+
+load_dotenv()
+location = os.getenv('LOCATION')
 
 
 async def create_user(message) -> None:
@@ -15,6 +20,8 @@ async def create_user(message) -> None:
             first_name=message.from_user.first_name,
             last_name=message.from_user.last_name,
         )
+        if location == 'ja-JP':
+            user.language = 'ru'
         await user.save()
         type_subscription = await TypeSubscription.get(name='Free trial')
         await Subscription.create(user=user,

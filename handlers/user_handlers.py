@@ -1,6 +1,5 @@
 import logging
 import os
-from datetime import datetime, timedelta
 
 from aiogram import Router, types
 from aiogram.filters import Command, CommandStart
@@ -14,11 +13,11 @@ from bot_init import bot
 from handlers.system_handlers import start_getter
 from keyboards.reply_kb import get_keyboard
 from keyboards.set_menu import get_localized_menu
-from models import User, Subscription, TypeSubscription
+from models import User, Subscription
 from models.main import MainPhoto
+from services.create_update_user import update_user_info, create_user
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.services import is_admin
-from services.update_user import update_user_info, create_user
 from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG, SelectLanguageSG
 
 load_dotenv()
