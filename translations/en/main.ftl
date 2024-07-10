@@ -16,6 +16,7 @@ First-hello-user-jp =
 
 First-hello-user-en =
  Hi, <b>{ $username }</b>!
+ Welcome!
 
  My name is Hatsu.
  I'll help you perfect your English pronunciation, grammar and vocabulary.
@@ -32,7 +33,10 @@ hello-user-jp =
 
 hello-user-en =
  <b>{ $username }</b>, let's go to the next level!
- Choose your next exercise!
+ It's time to study English!
+
+ Tap EXERCISES to start a new training.
+ Tap MANAGE PHRASES FOR MY EXERCISES to add or delete phrases.
 
 start-training-button = 💪 Exercises
 
