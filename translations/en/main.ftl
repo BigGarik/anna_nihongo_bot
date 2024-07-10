@@ -6,32 +6,37 @@ command-cancel = Complete training
 
 First-hello-user-jp =
      <b>{ $username }さん、</b>ようこそ！
- Добро пожаловать!
+ Welcome!
 
- Я – бот-помощник Анны-сэнсэй.
- Я помогу тебе тренировать японское произношение, слова и грамматику.
- Напиши мне фразы, которые хочешь выучить, а я сделаю из них набор тренировок.
+ My name is Hatsu.
+ I'll help you perfect your Japanese pronunciation, grammar and vocabulary.
+ Give me the phrases you want to practice and I'll make exercises for you.
 
+ じゃ、始めましょう！
 
 First-hello-user-en =
- Hi, <b>{ $username }</b>
- Меня зовут мистер Хацу, я твой бот-помощник.
- Я помогу тебе легко запоминать новые слова, тренировать красивое произношение и научиться бегло говорить по-английски.
+ Hi, <b>{ $username }</b>!
+
+ My name is Hatsu.
+ I'll help you perfect your English pronunciation, grammar and vocabulary.
+ Give me the phrases you want to practice and I'll make exercises for you.
 
  Let's start!
 
 hello-user-jp =
  <b>{ $username }さん</b>、日本語を勉強しましょう！
- Давай выберем следующую тренировку!
+ It's time to study Japanese!
 
+ Tap EXERCISES to start a new training.
+ Tap MANAGE PHRASES FOR MY EXERCISES to add or delete phrases.
 
 hello-user-en =
  <b>{ $username }</b>, let's go to the next level!
- Давай выберем следующую тренировку!
+ Choose your next exercise!
 
-start-training-button = 💪 Exercise
+start-training-button = 💪 Exercises
 
-phrase-management-button = 📝 Managing phrases for training 💎
+phrase-management-button = 📝 Manage phrases for my exercises 💎
 
 subscribe-management-button = 🔔 Manage my subscription 💎
 
@@ -39,211 +44,213 @@ admin-settings-button = ⚙️ Settings (for admins)
 
 admin-panel = Admin panel
 
-user-management = 🧑‍🤝‍🧑 User management
+user-management = ‍🧑‍🤝‍🧑 Manage users
 
 add-general-category = 🆕 Add general category
 
-add-main-image = 🖼 Add a main image
+generate-image-button = 🖼 Generate AI image
 
-generate-image-button = 🖼 Сгенерировать изображение
+generate-image-dialog = Send me a prompt and I'll generate an image for you.
 
-generate-image-dialog = Напиши промпт и я сгенерирую изображение.
+starting-generate-image = Starting image generation. It can take few minutes...
 
-starting-generate-image = Начинаю генерацию изображения. Это может занять некоторое время...
+generated-image = Here is your image!
 
-generated-image = Вот сгенерированное изображение!
+failed-generate-image = I'm sorry, I couldn't generate this image. This function is running in test mode. Please try again later.
 
-failed-generate-image = Извините, не удалось сгенерировать изображение. Функция в тестовом режиме. Повторите генерацию или попробуйте немного позже.
+add-main-image = Add main image
 
-add-main-image = Добавить главное изображение
-
-managing-your-own-phrases-only-available-subscription = Managing your own phrases is only available by subscription.
+managing-your-own-phrases-only-available-subscription = Managing phrases is available in Pro-version.
 
 command-cancel =
-    You have completed your training.
- Press menu /start to continue
+    You've finnished your training.
+ Press /start in the menu to continue.
 
 back = ◀️ Back
 
 cancel = ↩️ Cancel
 
-next = ▶️ Continue
+next = ▶️ Next
 
 save = ✅ Save
 
-delite = ✅ Delite
+delite = ✅ Delete
 
 repeat = 🔄 Repeat
 
-training-dialog = Ты в разделе тренировок. Выбирай тренировку, и погнали!
+training-dialog = Here are the exercises. Choose your next exercise and let's go!
 
-pronunciation = 🗣 Произношение
+pronunciation = 🗣 Pronunciation
 
-vocabulary = 🎯 Лексика
+vocabulary = 🎯 Vocabulary
 
-translation = 🌍 Перевод
+translation = 🌍 Back translation
 
-listening = 🔊 Прослушивание
+listening = 🔊 Listening
 
 pronunciation_training_dialog =
- Я отправлю тебе аудио с одной из твоих фраз. Послушай и повтори за мной как можно точнее.
- Отправь мне голосовое сообщение с этой фразой. Я проанализирую твоё произношение и пришлю график, где ты наглядно увидишь изменение высоты тона и скорость речи.
- Синий – график оригинала.
- Оранжевый – график твоего произношения.
- Под графиком я напишу оригинал фразы, перевод и комментарий к фразе, если есть.
+ I will send you an audio with one of your phrases. Listen and try to repeat it.
+ When you are ready send me a voice message where you are saying this phrase.
+ I'll analyse it and provide you with a graph where you can see comparison of your speed and voice pitch to the original sound.
+ Blue - original sound
+ Orange - your message
+ Under the graph you'll find the original phrase, it's translation, and comment if there is any.
 
- Тренируйся до тех пор, пока твоё произношение не совпадёт на графике с оригиналом.
+ Continue practicing until the two graphs become similar.
 
- Если тебе сложно произнести какое-то слово или часть фразы, перейди в раздел «ПРОСЛУШИВАНИЕ», напиши мне сложную часть фразы, и я озвучу только её. Потренируйся в произношении и возвращайся сюда.
+ Choose a category:
 
- Для начала выбирай категорию:
+choose-phrase = Choose a phrase or practice with a random one.
 
-choose-phrase = Выбирай фразу или тренируй случайную.
- Чтобы выбрать другую категорию, нажми «НАЗАД».
+ Tap BACK to choose different category.
 
-random-phrase = 🎲 Случайная фраза
+random-phrase = 🎲 Random phrase
 
-processing-message = Минуту, обрабатываю ваше сообщение...
+processing-message = Analysing your message...
 
-image-caption = <b>Оригинал:</b>
+image-caption = <b>Original phrase:</b>
  { $text_phrase }
  { $translation }
 
- <b>Ваш вариант:</b> { $answer_text }
+ <b>You said:</b> { $answer_text }
 
- <b>Комментарий:</b> { $comment }
+ <b>Comment:</b> { $comment }
 
-try-again = Попробуй ещё или нажми «НАЗАД», чтобы выбрать другую фразу.
+try-again = Try again or tap BACK to choose another phrase.
 
-listen-original = Послушай оригинал и отправь мне аудиосообщение с этой фразой.
+listen-original = Listen and send me a voice message where you're saying this phrase.
 
 no-phrases-available = No phrases available.
 
-error-handler = Моя твоя не понимать 🤔
+error-handler = Come again? I didn't quite catch it 🤔
 
 lexis-training-dialog =
- Раздел для тренировки лексики.
- Я убрал из твоих фраз одно или два слова и заменил их пробелами.
- Вспомни и отправь мне фразу целиком.
+ Here you can practice vocabulary.
+ I've gapped one or two words in your phrases.
+ Try to remember the original phrase and send it me.
+ Please, write the whole phrase.
 
- Для начала выбирай категорию:
+ First, choose a category:
 
 lexis-training =
-    Вспомни фразу целиком и напиши её в сообщении.
- Чтобы перейти к следующему заданию, нажми «ПРОПУСТИТЬ»
- Чтобы выбрать другую категорию, нажми «НАЗАД».
+    Try to remember the whole phrase and write it to me.
+ Tap SKIP to go to the next task.
+ Tap BACK to choose another category.
 
-selected-category = <b>Выбранная категория:</b> { $category }
+selected-category = <b>Selected category:</b> { $category }
 
-lexis-training-phrase = Фраза:
+lexis-training-phrase = Phrase:
  <strong>{ $with_gap_phrase }</strong>
 
-training-translation = Перевод:
+training-translation = Translation:
  <tg-spoiler>{ $translation }</tg-spoiler>
 
-training-try-again = Попробуй еще раз ))
+training-try-again = Try again!
 
-enter-answer-text = Введи текст ответа:
+enter-answer-text = Enter your answer:
 
-congratulations-spoken-answer = Ты произнес:
+congratulations-spoken-answer = You said:
  { $answer }
 
- Ура!!! Ты лучший! 🥳
+ Great job!!! 🥳
 
 spoken-answer =
- Кажется ты произнес:
+ You said what sounded like:
  { $answer}
 
-congratulations = 🏆 Ура!!! Ты лучший! 🥳
+congratulations = 🏆 Great job!!! 🥳
 
-listen = 🎧 Послушать
+listen = 🎧 Listen
 
-translate-training-dialog = Раздел для тренировки перевода.
- Я дам тебе перевод твоих фраз; вспомни и напиши их по-японски.
- Выбирай категорию:
+translate-training-dialog = Here you can practice back translation.
+ You will see the translation of your phrase. Remember the original phrase and write it to me.
+ Choose a category:
 
-translate-training = Введи перевод фразы.
- Чтобы перейти к следующему заданию, нажмите «ПРОПУСТИТЬ»
- Чтобы выбрать другую категорию, нажми «НАЗАД».
+translate-training = Enter this phrase in English.
+ Tap SKIP to go to the next task.
+ Tap BACK to choose another category.
 
-translate-training-phrase = Фраза:
+translate-training-phrase = Phrase:
  <strong>{ $translation }</strong>
 
 
-listening-training-dialog = Раздел для тренировки слушания.
- Здесь нет заданий.
- Отправь мне слово или фразу, и я озвучу.
+listening-training-dialog = Here you can practice listening.
+ There are no tasks here.
+ Write me a word or a phrase you want to listen, and I'll voice it for you.
 
 listen-repeat =
- Слушай и повторяй до тех пор, пока фраза не станет привычной.
+ Listen and repeat until you get used to the way it sounds.
 
-phrase-limit = В эту категорию нельзя добавить фразы. Максимальное количество фраз: 15
- Удалите существующие фразы или создайте новую категорию.
+phrase-limit = You can not add new phrases to this category. Maximum number of phrases in each category is 15.
+ Delete some of the existing phrases from this category or create a new one.
 
-phrase-management-dialog = Здесь ты можешь добавить фразы для тренировок.
+phrase-management-dialog = Here you can add phrases for your exercises.
 
- Все фразы хранятся в категориях.
+ All of the phrases are stocked in categories.
 
- Нажми на категорию, чтобы добавить или удалить фразы.
- В каждую категорию можно добавить не больше 15 фраз.
+ Tap on the category to add or delete phrases.
+ You can add up to 15 phrases to each category.
 
- Выбери категорию или создай новую.
+ Choose a category or create a new one.
 
-add-category-button = ➕ Добавить категорию
+add-category-button = ➕ Create new category
 
-delite-category-button = ❌ Удаление категорий
+delite-category-button = ❌ Delete category
 
-editing-category = Категория: <b>{ $category }</b>
+editing-category = Category: <b>{ $category }</b>
 
- Чтобы добавить новую фразу, нажми «ДОБАВИТЬ ФРАЗУ»
- Чтобы удалить, выбери фразы и нажми «УДАЛИТЬ ВЫБРАННОЕ»
+ Tap ADD PHRASE to add a new phrase
+ Tap on the phrases you want to delete and then tap DELETE SELECTION
 
-add-phrase-button = ➕ Добавить фразу
+add-phrase-button = ➕ Add new phrase
 
-delete-selected-button = ❌ Удалить выбранные
+delete-selected-button = ❌ Delete selection
 
-delete-selected-ones = <b>Удалить выбранные?</b>
+delete-selected-ones = <b>Delete selected phrases?</b>
 
-delete-selected-category = <b>Удалить выбранные категории со всеми фразами</b>❓
+delete-selected-category = <b>Delete selected categories with all the phrases</b>❓
 
-delite-category = Выбери категории для удаления:
- ❗❗❗ Все фразы в выбранных категориях будут удалены
+delite-category = Choose the category you want to delete:
+ ❗❗❗ All the phrases in the selected categories will also be deleted.
 
-subscribe-button = Оформить подписку
+subscribe-button = Subscribe
 
-change-subscribe-button = Изменить подписку
+change-subscribe-button = Manage my subscription
 
-unsubscribe = Отменить подписку
+unsubscribe = Unsubscribe
 
-subscribe-info-dialog = Твоя подписка: <b>{ $type_subscription }</b>
- Дата окончания: <b>{ $date_end }</b>
+subscribe-info-dialog = You subscription type: <b>{ $type_subscription }</b>
+ Subscription period ends on: <b>{ $date_end }</b>
 
-text-phrase = <b>Текст:</b> { $text_phrase }
+text-phrase = <b>Phrase:</b> { $text_phrase }
 
-input-text-phrase = 💬 Введи текст новой фразы:
+input-text-phrase = 💬 Enter new phrase:
 
-input-translate = 🌐 Введи перевод новой фразы или жми "Пропустить" и я переведу автоматически:
+input-translate = 🌐 Enter translation or tap SKIP and I'll translate it for you:
 
-translation-phrase = <b>Перевод:</b> { $translation }
+translation-phrase = <b>Translation:</b> { $translation }
 
-add-comment = <b>Здесь можно добавить комментарий к фразе:</b>
+add-comment = <b>Here you can add a comment:</b>
 
-summary-information = Суммарная информация
- <b>Выбранная категория:</b> { $category }
- <b>Текст:</b> { $text_phrase }
- <b>Перевод:</b> { $translation }
- <b>Комментарий:</b> { $comment }
- <b>Сохранить фразу?</b>
+summary-information = Summary:
+ <b>Category:</b> { $category }
+ <b>Phrase:</b> { $text_phrase }
+ <b>Translation:</b> { $translation }
+ <b>Comment:</b> { $comment }
+ <b>Save this phrase?</b>
 
-add-audio = <b>Добавление аудио</b>
+add-audio = <b>Add audio</b>
 
-add-audio-info-first = 🔊 Отправь мне аудио новой фразы, голосовое сообщение или нажми <b>Озвучить с помощью ИИ</b>.
+add-audio-info-first = 🔊 Send me a audio file or an voice message with the new phrase or tap on <b>VOICE USING AI</b>.
 
-add-audio-info-second = Если все ОК, жми <b>Продолжить</b> или отправь еще раз
+add-audio-info-second = Chack the sound and tap <b>CONTINUE</b> or send me another audio message.
 
-voice-with-ai-button = 🤖 Озвучить с помощью ИИ
+voice-with-ai-button = 🤖 Voice using AI
 
-add-image-info = <b>🎨 Отправь иллюстрацию для фразы, сгенерируй при помощи ИИ или просто пропусти этот шаг:</b>
+add-image-info = <b>🎨 Send me an image for your phrase, generate the image using AI, or just skip this step:</b>
+
+
+
 
 en = 🇬🇧 English
 
@@ -265,7 +272,7 @@ select-phrase-to-delete = Select to delete
 
 text-phrase-to-edit = Phrase text
 
-translation-to-edit = Перевод
+translation-to-edit = Translation
 
 audio-to-edit = Audio
 
@@ -282,3 +289,31 @@ send-audio-to-edit = Отправь аудио или голосовое соо�
 send-image-to-edit = Отправь фото или сгенерируй новое для изменения
 
 send-comment-to-edit = Отправь комментарий для изменения
+
+one-month-subscription-button = Подписка на 1 месяц
+
+one-month-subscription-description = Подписка на один месяц
+
+three-month-subscription-button = Подписка на 3 месяца
+
+three-month-subscription-description = Подписка на три месяца
+
+six-month-subscription-button = Подписка на 6 месяцев
+
+six-month-subscription-description = Подписка на шесть месяцев
+
+error-adding-category = Error adding category
+
+you-already-have-category = You already have such a category
+
+category-added-successfully = Category added successfully
+
+enter-name-new-category = Enter the name of the new category:
+
+already-added-this-phrase = You have already added this phrase. Try something else 😉
+
+failed-save-phrase = Error when saving phrase
+
+phrase-saved = Фраза добавлена! ✅
+
+voice-acting = Voice acting

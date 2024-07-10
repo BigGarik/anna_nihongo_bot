@@ -97,20 +97,32 @@ async def start_getter(dialog_manager: DialogManager, event_from_user: User, **k
 
 async def get_user_categories(dialog_manager: DialogManager, **kwargs):
     user_id = dialog_manager.event.from_user.id
-    categories = await Category.filter(user_id=user_id).all()
+    # categories = await Category.filter(user_id=user_id).all()
+    categories = await Category.filter(user_id=user_id).prefetch_related('phrases').filter(phrases__isnull=False).distinct()
     items = [(category.name, str(category.id)) for category in categories]
 
-    categories_for_all = await Category.filter(public=True).all()
+    categories_for_all = await Category.filter(public=True).prefetch_related('phrases').filter(phrases__isnull=False).distinct()
     cat_for_all = [(category.name, str(category.id)) for category in categories_for_all]
 
     return {'categories': items, 'categories_for_all': cat_for_all}
+
+
+async def get_user_categories_to_manage(dialog_manager: DialogManager, **kwargs):
+    user_id = dialog_manager.event.from_user.id
+    categories = await Category.filter(user_id=user_id).all()
+    items = [(category.name, str(category.id)) for category in categories]
+    return {'categories': items}
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
     category_id = dialog_manager.dialog_data['category_id']
     category = await Category.get_or_none(id=category_id)
     phrases = dialog_manager.dialog_data['phrases']
-    return {'phrases': phrases, 'category': category.name}
+    if phrases:
+        show_random_button = True
+    else:
+        show_random_button = False
+    return {'phrases': phrases, 'category': category.name, 'show_random_button': show_random_button}
 
 
 async def get_user_data(dialog_manager: DialogManager, **kwargs):

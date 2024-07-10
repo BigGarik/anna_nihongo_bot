@@ -4,7 +4,7 @@ from aiogram_dialog.widgets.kbd import Group, Button, Select, Column, Multiselec
     Start, Back
 from aiogram_dialog.widgets.text import Format, List, Multi
 
-from handlers.system_handlers import get_user_categories, get_phrases
+from handlers.system_handlers import get_user_categories_to_manage, get_phrases
 from models import Category, Phrase
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG, EditPhraseSG
@@ -36,7 +36,7 @@ async def get_phrases_for_delite(dialog_manager: DialogManager, **kwargs):
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     if dialog_manager.dialog_data.get('phrases_count') > 15:
         await callback.answer(i18n_format('phrase-limit'), show_alert=True)
     else:
@@ -153,7 +153,7 @@ management_dialog = Dialog(
             # Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
-        getter=get_user_categories,
+        getter=get_user_categories_to_manage,
         state=ManagementSG.start
     ),
     Window(
@@ -178,7 +178,7 @@ management_dialog = Dialog(
             ),
             width=3
         ),
-        getter=get_user_categories,
+        getter=get_user_categories_to_manage,
         state=ManagementSG.select_category
     ),
     Window(
@@ -227,6 +227,7 @@ management_dialog = Dialog(
             text=I18NFormat('select-phrase-to-delete'),
             id='select_phrase_for_delete',
             on_click=select_phrase_for_delete_button_clicked,
+            when='phrases',
         ),
         # Next(text=I18NFormat('delete-selected-button')),
         Group(

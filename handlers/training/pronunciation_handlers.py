@@ -14,13 +14,13 @@ from bot_init import bot
 from external_services.visualizer import PronunciationVisualizer
 from external_services.voice_recognizer import SpeechRecognizer
 from models import Phrase, UserAnswer
-from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import PronunciationTrainingSG
 from ..system_handlers import category_selected, get_user_categories, get_phrases
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     phrase = await Phrase.get_or_none(id=item_id)
     dialog_manager.dialog_data['phrase_id'] = phrase.id
     # отправить изображение и голосовое с подписью
@@ -32,7 +32,7 @@ async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manage
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
     if dialog_manager.dialog_data.get('phrase_id'):
         phrase_id = dialog_manager.dialog_data['phrase_id']
@@ -50,7 +50,7 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     await message.answer(i18n_format('processing-message'))
     phrase_id = dialog_manager.dialog_data['phrase_id']
     phrase = await Phrase.get_or_none(id=phrase_id)
@@ -92,7 +92,7 @@ async def answer_audio_handler(message: Message, widget: MessageInput, dialog_ma
 
 
 async def error_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     await message.answer(i18n_format('error-handler'))
 
 
@@ -147,6 +147,7 @@ pronunciation_training_dialog = Dialog(
             text=I18NFormat('random-phrase'),
             id='random_phrase',
             on_click=random_phrase_button_clicked,
+            when='show_random_button'
         ),
         Group(
             Back(I18NFormat('back'), id='back'),

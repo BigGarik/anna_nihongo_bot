@@ -1,14 +1,14 @@
 from aiogram.types import CallbackQuery, Message, BufferedInputFile
-from aiogram_dialog import DialogManager, Dialog, Window, ShowMode
+from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
-from aiogram_dialog.widgets.kbd import Button, Select, Group, Cancel, Back
-from aiogram_dialog.widgets.text import Const, Format, Multi
+from aiogram_dialog.widgets.kbd import Select, Group, Cancel, Back
+from aiogram_dialog.widgets.text import Format, Multi
 
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from handlers.system_handlers import get_user_categories
 from models import Category, Phrase, User
-from services.i18n_format import I18NFormat
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import AddPhraseSG
 
 
@@ -34,16 +34,17 @@ async def category_input(message: Message, widget: ManagedTextInput, dialog_mana
 
 # Хэндлер для ввода текста фразы
 async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     if not await Phrase.get_or_none(text_phrase=text_phrase):
         category_name = dialog_manager.dialog_data['category']
         category = await Category.get(name=category_name)
         spaced_phrase = openai_gpt_add_space(text_phrase)
-        # TODO раскомментировать перед git push
         translation = openai_gpt_translate(text_phrase)
 
         text_to_speech = await google_text_to_speech(text_phrase)
         voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
-        msg = await message.answer_voice(voice=voice, caption=f'Озвучка')
+        i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+        msg = await message.answer_voice(voice=voice, caption=i18n_format("voice-acting"))
         voice_id = msg.voice.file_id
 
         user_id = dialog_manager.event.from_user.id
@@ -57,16 +58,16 @@ async def phrase_input(message: Message, widget: ManagedTextInput, dialog_manage
             audio_id=voice_id,
             user=user
         )
-        await message.answer('Фраза добавлена! ✅')
+        await message.answer(i18n_format("phrase-saved"))
         # await dialog_manager.done()
     else:
-        await message.answer('Фраза уже существует.')
+        await message.answer(i18n_format("phrase-saved"))
 
 
 # Описание диалога
 add_lexis_phrase_dialog = Dialog(
     Window(
-        I18NFormat(text='Выберите категорию или добавьте новую:'),
+        I18NFormat('Выберите категорию или добавьте новую:'),
         Group(
             Select(
                 Format('{item[0]}'),

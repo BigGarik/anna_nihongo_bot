@@ -3,9 +3,15 @@ from tortoise import fields, models
 
 class Category(models.Model):
     id = fields.IntField(pk=True)
-    name = fields.CharField(max_length=255, unique=True)
+    name = fields.CharField(max_length=255)
     user = fields.ForeignKeyField('models.User', related_name='categories', null=True)
     public = fields.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('name', 'user')
+
+    def __str__(self):
+        return self.name
 
 
 class AudioFile(models.Model):
@@ -29,8 +35,8 @@ class UserAnswer(models.Model):
 class Phrase(models.Model):
     id = fields.IntField(pk=True)
 
-    text_phrase = fields.CharField(max_length=255, unique=True)
-    spaced_phrase = fields.CharField(max_length=255, unique=True)
+    text_phrase = fields.CharField(max_length=255)
+    spaced_phrase = fields.CharField(max_length=255)
     translation = fields.CharField(max_length=255, null=True)
 
     category = fields.ForeignKeyField('models.Category', related_name='phrases')
@@ -44,6 +50,9 @@ class Phrase(models.Model):
     comment = fields.TextField(null=True)
 
     created_at = fields.DatetimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('text_phrase', 'user')
 
     def __str__(self):
         return f"{self.text_phrase[:200]}..."

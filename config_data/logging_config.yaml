@@ -15,7 +15,7 @@ formatters:
     datefmt: '%Y-%m-%d %H:%M:%S'
 
   formatter_file:
-    format: '[%(asctime)s] - %(message)s'
+    format: '[%(asctime)s] #%(levelname)-8s %(filename)s:%(lineno)d - %(name)s:%(funcName)s - %(message)s'
     datefmt: '%Y-%m-%d %H:%M:%S'
 
 filters:
@@ -52,10 +52,16 @@ handlers:
     formatter: formatter_file
     filters: [info_file_filter]
 
+  file:
+    class: logging.FileHandler
+    filename: 'logs.log'
+    mode: 'a'
+    formatter: formatter_file
+
 loggers:
   __main__:
     level: INFO
-    handlers: [stderr]
+    handlers: [file, stderr]
     propagate: False
 
   handlers.user_handlers:
@@ -76,4 +82,4 @@ loggers:
 root:
   level: ERROR
   formatter: default
-  handlers: [default]
+  handlers: [info_file, stdout]

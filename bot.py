@@ -14,13 +14,14 @@ from config_data.config import Config, load_config
 from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
-from handlers.add_lexis_phrase import add_lexis_phrase_dialog
+from handlers.pay import router as pay_router
+# from handlers.add_lexis_phrase import add_lexis_phrase_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
 from handlers.phrase_management_handlers import management_dialog
 from handlers.add_category import add_category_dialog
-from handlers.subscribe_management_handlers import subscribe_dialog, subscribe_management_dialog
+from dialogs.subscribe_management_dialog import subscribe_dialog, subscribe_management_dialog
 from handlers.training.lexis_handlers import lexis_training_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
 from handlers.training.pronunciation_handlers import pronunciation_training_dialog
@@ -71,13 +72,12 @@ async def handle(request):
 
 
 def main() -> None:
-    # # Создаем объект типа TranslatorHub
-    # translator_hub: TranslatorHub = create_translator_hub()
 
     # Список всех роутеров
     routers = [
         admin_router,
         user_router,
+        pay_router,
         start_dialog,
         select_language_dialog,
         subscribe_dialog,
@@ -86,7 +86,7 @@ def main() -> None:
         edit_phrase_dialog,
         admin_dialog,
         user_management_dialog,
-        add_lexis_phrase_dialog,
+        # add_lexis_phrase_dialog,
         text_to_speech_dialog,
         add_category_dialog,
         lexis_training_dialog,

@@ -16,10 +16,9 @@ from external_services.kandinsky import generate_image
 from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
 from handlers.system_handlers import repeat_ai_generate_image
 from models import AudioFile, Category, Phrase, User
-from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from services.services import remove_html_tags
 from states import AddOriginalPhraseSG
-
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +76,8 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
                             text_phrase: str) -> None:
     phrase = await Phrase.get_or_none(text_phrase=text_phrase, user_id=message.from_user.id)
     if phrase:
-        await bot.send_message(message.chat.id, "Ты уже добавлял эту фразу. Попробуй что-нибудь еще 😉")
+        i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+        await bot.send_message(message.chat.id, i18n_format("already-added-this-phrase"))
     else:
         dialog_manager.dialog_data["text_phrase"] = text_phrase
         spaced_phrase = openai_gpt_add_space(text_phrase)
@@ -152,7 +152,8 @@ async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manag
 
     text_to_speech = await google_text_to_speech(text_phrase)
     voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
-    msg = await callback.message.answer_voice(voice=voice, caption=f"Озвучка")
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    msg = await callback.message.answer_voice(voice=voice, caption=i18n_format("voice-acting"))
     voice_id = msg.voice.file_id
 
     audio = await AudioFile.create(
@@ -177,7 +178,7 @@ async def image_handler(message: Message, widget: MessageInput, dialog_manager: 
 
 async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     dialog_manager.dialog_data["prompt"] = dialog_manager.dialog_data["translation"]
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     await callback.message.answer(i18n_format("starting-generate-image"))
     # Функция для генерации изображения автоматически
     try:
@@ -209,6 +210,7 @@ async def comment_next_button_clicked(callback: CallbackQuery, button: Button, d
 
 
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     category = await Category.get_or_none(id=dialog_manager.start_data["category_id"])
     user_id = dialog_manager.event.from_user.id
     user = await User.get_or_none(id=user_id)
@@ -228,8 +230,13 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
         phrase.comment = dialog_manager.dialog_data.get("comment")
     if dialog_manager.dialog_data.get("spaced_phrase"):
         phrase.spaced_phrase = dialog_manager.dialog_data.get("spaced_phrase")
-
-    await phrase.save()
+    try:
+        await phrase.save()
+    except Exception as e:
+        logger.error('Ошибка при сохранении фразы: %s', e)
+        await callback.message.answer(text=i18n_format("failed-save-phrase"))
+    else:
+        await callback.message.answer(text=i18n_format("phrase-saved"))
 
     new_phrase = [phrase.text_phrase, phrase.id]
 

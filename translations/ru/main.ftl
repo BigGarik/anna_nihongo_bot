@@ -215,7 +215,7 @@ change-subscribe-button = Изменить подписку
 
 unsubscribe = Отменить подписку
 
-subscribe-info-dialog = Твоя подписка: <b>{ $type_subscription }</b>
+user-subscribe-info-dialog = Твоя подписка: <b>{ $type_subscription }</b>
  Дата окончания: <b>{ $date_end }</b>
 
 text-phrase = <b>Текст:</b> { $text_phrase }
@@ -282,3 +282,31 @@ send-audio-to-edit = Отправь аудио или голосовое соо�
 send-image-to-edit = Отправь фото или сгенерируй новое для изменения
 
 send-comment-to-edit = Отправь комментарий для изменения
+
+one-month-subscription-button = Подписка на 1 месяц
+
+one-month-subscription-description = Подписка на один месяц
+
+three-month-subscription-button = Подписка на 3 месяца
+
+three-month-subscription-description = Подписка на три месяца
+
+six-month-subscription-button = Подписка на 6 месяцев
+
+six-month-subscription-description = Подписка на шесть месяцев
+
+error-adding-category = Ошибка добавления категории
+
+you-already-have-category = У тебя уже есть такая категория
+
+category-added-successfully = Категория успешно добавлена
+
+enter-name-new-category = Введи название новой категории:
+
+already-added-this-phrase = Ты уже добавлял эту фразу. Попробуй что-нибудь еще 😉
+
+failed-save-phrase = Ошибка при сохранении фразы
+
+phrase-saved = Фраза добавлена! ✅
+
+voice-acting = Озвучка
