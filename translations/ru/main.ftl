@@ -220,7 +220,7 @@ subscribe-button = Оформить подписку
 
 change-subscribe-button = Изменить подписку
 
-unsubscribe = Отменить подписку
+unsubscribe-button = Отменить подписку
 
 user-subscribe-info-dialog = Твоя подписка: <b>{ $type_subscription }</b>
  Дата окончания: <b>{ $date_end }</b>
@@ -260,7 +260,6 @@ select-language = Выбери язык бота
 
 language-changed = Язык изменен на
 
-
 summary-information-to-edit = Суммарная информация
  <b>Выбранная категория:</b> { $category }
  <b>Текст:</b> { $text_phrase }
@@ -290,15 +289,18 @@ send-image-to-edit = Отправь фото или сгенерируй нов�
 
 send-comment-to-edit = Отправь комментарий для изменения
 
-one-month-subscription-button = Подписка на 1 месяц
+subscription-information = Описание подписки...
+ Подписаться на:
+
+one-month-subscription-button = ⭐ 1 месяц
 
 one-month-subscription-description = Подписка на один месяц
 
-three-month-subscription-button = Подписка на 3 месяца
+three-month-subscription-button = ⭐⭐ 3 месяца
 
 three-month-subscription-description = Подписка на три месяца
 
-six-month-subscription-button = Подписка на 6 месяцев
+six-month-subscription-button = ⭐⭐⭐ 6 месяцев
 
 six-month-subscription-description = Подписка на шесть месяцев
 
@@ -317,3 +319,5 @@ failed-save-phrase = Ошибка при сохранении фразы
 phrase-saved = Фраза добавлена! ✅
 
 voice-acting = Озвучка
+
+subscribe-button = Подписаться

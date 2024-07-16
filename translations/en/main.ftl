@@ -221,7 +221,7 @@ subscribe-button = Subscribe
 
 change-subscribe-button = Manage my subscription
 
-unsubscribe = Unsubscribe
+unsubscribe-button = Unsubscribe
 
 user-subscribe-info-dialog = You subscription type: <b>{ $type_subscription }</b>
  Subscription period ends on: <b>{ $date_end }</b>
@@ -294,15 +294,18 @@ send-image-to-edit = Отправь фото или сгенерируй нов�
 
 send-comment-to-edit = Отправь комментарий для изменения
 
-one-month-subscription-button = Подписка на 1 месяц
+subscription-information = Описание подписки...
+ Подписаться на:
+
+one-month-subscription-button = ⭐ 1 месяц
 
 one-month-subscription-description = Подписка на один месяц
 
-three-month-subscription-button = Подписка на 3 месяца
+three-month-subscription-button = ⭐⭐ 3 месяца
 
 three-month-subscription-description = Подписка на три месяца
 
-six-month-subscription-button = Подписка на 6 месяцев
+six-month-subscription-button = ⭐⭐⭐ 6 месяцев
 
 six-month-subscription-description = Подписка на шесть месяцев
 
@@ -321,3 +324,5 @@ failed-save-phrase = Error when saving phrase
 phrase-saved = Фраза добавлена! ✅
 
 voice-acting = Voice acting
+
+subscribe-button = Subscribe

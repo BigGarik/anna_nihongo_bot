@@ -46,11 +46,11 @@ async def order(callback: CallbackQuery, bot: Bot):
 @router.pre_checkout_query()
 async def process_pre_checkout_query(pre_checkout_query: PreCheckoutQuery, bot: Bot):
     await bot.answer_pre_checkout_query(pre_checkout_query.id, ok=True)
-    print(pre_checkout_query)
+    # print(pre_checkout_query)
 
 
 @router.message(F.successful_payment)
 async def success_payment(message: Message):
     msg = f'Спасибо за оплату {message.successful_payment.total_amount // 100} {message.successful_payment.currency}'
     await message.answer(msg)
-    print(msg)
+    # print(msg)

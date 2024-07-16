@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 from bot_init import make_i18n_middleware
 from lexicon.lexicon_ru import LEXICON_COMMANDS_RU
-from services.services import get_user_locale
 
 
 load_dotenv()

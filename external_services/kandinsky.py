@@ -112,7 +112,7 @@ if __name__ == "__main__":
     # uuid = api.generate("Sun in sky", model_id)
     # images = api.check_generation(uuid)
     # print(images)
-    print(kandinsky_api_key, kandinsky_secret_key)
+    # print(kandinsky_api_key, kandinsky_secret_key)
     prompt = "Красивый закат над морем"
     images = generate_image(prompt, style="ANIME")
-    print(images)
+    # print(images)

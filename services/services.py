@@ -1,8 +1,9 @@
+import logging
 import os
 import random
 import re
 import string
-from datetime import date
+from datetime import date, timedelta
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
@@ -10,9 +11,12 @@ from tortoise.expressions import Q
 
 from bot_init import bot
 from models import Subscription, TypeSubscription, User
+from services.yookassa import auto_renewal_subscription_command
 
 load_dotenv()
 location = os.getenv('LOCATION')
+
+logger = logging.getLogger('default')
 
 
 def remove_html_tags(text):
@@ -56,30 +60,45 @@ def replace_random_words(phrase):
 
 
 async def check_subscriptions():
-    free_subscription_type = await TypeSubscription.get_or_none(name="Free")
-    current_date = date.today()
+    try:
+        logger.info('Checking subscriptions...')
+        free_subscription_type = await TypeSubscription.get_or_none(name="Free")
+        current_date = date.today()
 
-    # Получение всех подписок, у которых истек срок действия
-    expired_subscriptions = await Subscription.filter(
-        Q(date_end__lt=current_date) | Q(date_end__isnull=True),
-        ~Q(type_subscription=free_subscription_type)
-    )
+        # Получение всех подписок, у которых истек срок действия
+        expired_subscriptions = await Subscription.filter(
+            Q(date_end__lt=current_date) | Q(date_end__isnull=True),
+            ~Q(type_subscription=free_subscription_type)
+        )
 
-    for subscription in expired_subscriptions:
-        # Установка типа подписки на "Free"
-        subscription.type_subscription = free_subscription_type
-        await subscription.save()
+        for subscription in expired_subscriptions:
+            # Установка типа подписки на "Free"
+            subscription.type_subscription = free_subscription_type
+            await subscription.save()
 
-        # Создание кнопки "Подписаться"
-        subscribe_button = InlineKeyboardButton(text="Подписаться", callback_data="open_subscribe_dialog")
-        free_subscribe_button = InlineKeyboardButton(text="Продолжить бесплатно", callback_data="use_free_subscribe")
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[[subscribe_button], [free_subscribe_button]])
+            # Создание кнопки "Подписаться"
+            subscribe_button = InlineKeyboardButton(text="Подписаться", callback_data="open_subscribe_dialog")
+            free_subscribe_button = InlineKeyboardButton(text="Продолжить бесплатно", callback_data="use_free_subscribe")
+            keyboard = InlineKeyboardMarkup(inline_keyboard=[[subscribe_button], [free_subscribe_button]])
 
-        # Отправка сообщения с кнопкой
-        # await bot.send_message(subscription.user_id, "Ваша подписка истекла.", reply_markup=keyboard)
+            # Отправка сообщения с кнопкой
+            # await bot.send_message(subscription.user_id, "Ваша подписка истекла.", reply_markup=keyboard)
+    except Exception as e:
+        logger.error(f"Error in check_subscriptions: {e}")
 
 
-async def get_user_locale(user_id: int) -> str:
-    user = await User.get_or_none(id=user_id)
+async def auto_renewal_subscriptions():
+    try:
+        logger.info('Auto renewal subscriptions')
+        free_subscription_type = await TypeSubscription.get_or_none(name="Free")
+        free_trial_subscription_type = await TypeSubscription.get_or_none(name="Free trial")
+        current_date = date.today()
 
-    return user.locale
+        # Получение всех подписок, которые заканчиваются в ближайшие 2 дня
+        ending_subscriptions = await Subscription.filter(Q(date_end__lte=current_date + timedelta(days=2)),
+                                                         (~Q(type_subscription=free_subscription_type) | ~Q(type_subscription=free_trial_subscription_type)))
+
+        for subscription in ending_subscriptions:
+            await auto_renewal_subscription_command(subscription.id)
+    except Exception as e:
+        logger.error(f"Error in auto_renewal_subscriptions: {e}")

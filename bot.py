@@ -14,7 +14,6 @@ from config_data.config import Config, load_config
 from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
-from handlers.pay import router as pay_router
 # from handlers.add_lexis_phrase import add_lexis_phrase_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
@@ -30,7 +29,8 @@ from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
 from handlers.user_management import user_management_dialog
 from keyboards.set_menu import set_default_commands
-from services.services import check_subscriptions
+from services.services import check_subscriptions, auto_renewal_subscriptions
+from services.yookassa import process_yookassa_webhook
 
 load_dotenv()
 
@@ -40,6 +40,7 @@ base_webhook_url = os.getenv('BASE_WEBHOOK_URL')
 webhook_path = os.getenv('WEBHOOK_PATH')
 webhook_url = f"{base_webhook_url}{webhook_path}"
 webhook_secret = os.getenv('WEBHOOK_SECRET')
+bot_webhook = os.getenv('BOT_WEBHOOK')
 
 # location = os.getenv('LOCATION')
 # language_code = location.split('-')[0]
@@ -59,10 +60,21 @@ async def on_startup(app):
     await init_db()
     await set_default_commands(bot)
     await bot.set_webhook(webhook_url, secret_token=webhook_secret)
+    # Инициализация планировщика
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_subscriptions, 'cron', hour=11, minute=0, misfire_grace_time=3600)
+    scheduler.add_job(auto_renewal_subscriptions, 'cron', hour=12, minute=0, misfire_grace_time=3600)
+    # scheduler.add_job(auto_renewal_subscriptions, "interval", minutes=3, misfire_grace_time=3600)
+    scheduler.start()
+
+    # Сохраните планировщик в app для последующего доступа
+    app['scheduler'] = scheduler
 
 
 async def on_shutdown(app):
     await bot.delete_webhook()
+    # Остановка планировщика при завершении работы приложения
+    app['scheduler'].shutdown()
 
 
 async def handle(request):
@@ -77,7 +89,6 @@ def main() -> None:
     routers = [
         admin_router,
         user_router,
-        pay_router,
         start_dialog,
         select_language_dialog,
         subscribe_dialog,
@@ -103,15 +114,6 @@ def main() -> None:
 
     # dp.include_router(other_handlers.router)
     setup_dialogs(dp)
-
-    # Инициализация планировщика
-    scheduler = AsyncIOScheduler()
-    # Добавление задачи на выполнение каждый день в полночь
-    scheduler.add_job(check_subscriptions, 'cron', hour=11, minute=0)
-    # Добавление задачи для выполнения каждую минуту
-    # scheduler.add_job(check_subscriptions, 'cron', minute='*')
-    # Запуск планировщика
-    scheduler.start()
     # Register startup hook to initialize webhook
     dp.startup.register(on_startup)
 
@@ -133,6 +135,8 @@ def main() -> None:
     )
     # Register webhook handler on application
     webhook_requests_handler.register(app, path=webhook_path)
+    # Добавляем обработчик для вебхуков ЮKassa
+    app.router.add_post(bot_webhook, process_yookassa_webhook)
 
     # Mount dispatcher startup and shutdown hooks to aiohttp application
     setup_application(app, dp, bot=bot)

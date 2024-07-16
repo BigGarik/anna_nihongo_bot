@@ -24,9 +24,9 @@ async def change_text_phrase_button_clicked(callback: CallbackQuery, button: But
 
 
 async def input_text_phrase(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str):
-    print(text_phrase)
+    # print(text_phrase)
     dialog_manager.dialog_data["text_phrase"] = text_phrase
-    print(dialog_manager.dialog_data["text_phrase"])
+    # print(dialog_manager.dialog_data["text_phrase"])
     await dialog_manager.switch_to(EditPhraseSG.start)
 
 

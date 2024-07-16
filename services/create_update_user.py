@@ -5,11 +5,11 @@ from bot_init import bot
 from models import User, TypeSubscription, Subscription
 from dotenv import load_dotenv
 
-
 logger = logging.getLogger('default')
 
 load_dotenv()
 location = os.getenv('LOCATION')
+admin_ids = os.getenv('ADMIN_IDS')
 
 
 async def create_user(message) -> None:
@@ -31,8 +31,10 @@ async def create_user(message) -> None:
                                   )
         logger.info(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
                     f"{message.from_user.last_name} создан.")
-        await bot.send_message(chat_id=693131974, text=f"У нас новый пользователь {message.from_user.username} "
-                                                       f"{message.from_user.first_name} {message.from_user.last_name}")
+        # Отправляем админам информацию о новом пользователе
+        for admin_id in admin_ids.split(','):
+            await bot.send_message(chat_id=admin_id, text=f"У нас новый пользователь {message.from_user.username} "
+                                                          f"{message.from_user.first_name} {message.from_user.last_name}")
     except Exception as e:
         logger.error("Ошибка при создании пользователя: %s", e)
 
@@ -48,3 +50,4 @@ async def update_user_info(message) -> None:
                     f"{message.from_user.last_name} обновлен.")
     except Exception as e:
         logger.error("Ошибка при обновлении информации о пользователе: %s", e)
+
