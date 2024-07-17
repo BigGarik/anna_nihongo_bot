@@ -327,4 +327,4 @@ voice-acting = Voice acting
 
 subscribe-button = Subscribe
 
-sentence-too-long = Фраза слишком длинная. Максимальная длина фразы: 150 символов.
+sentence-too-long = Фраза слишком длинная. Максимальная длина фразы: 150 символов. Попробуй еще раз.
