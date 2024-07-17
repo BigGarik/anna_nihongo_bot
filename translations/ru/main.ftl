@@ -321,3 +321,5 @@ phrase-saved = Фраза добавлена! ✅
 voice-acting = Озвучка
 
 subscribe-button = Подписаться
+
+sentence-too-long = Фраза слишком длинная. Максимальная длина фразы: 150 символов.

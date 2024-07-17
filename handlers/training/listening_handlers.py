@@ -8,7 +8,7 @@ from aiogram_dialog.widgets.kbd import Cancel, Group
 
 from external_services.google_cloud_services import google_text_to_speech
 from models import TextToSpeech
-from services.i18n_format import I18NFormat
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import TextToSpeechSG
 
 
@@ -22,26 +22,31 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
-    user_id = message.from_user.id
-    # Создать имя файла из строки
-    filename = re.sub(r'[^\w\s-]', '', text).replace(' ', '_')
-    # проверить есть ли в базе уже такая фраза
-    voice = await TextToSpeech.filter(text=filename).first()
-
-    if voice:
-        await message.answer_voice(voice=voice.voice_id, caption=f'{text}')
-
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    if len(text) >= 150:
+        await message.answer(i18n_format('sentence-too-long'))
     else:
-        response = await google_text_to_speech(text)
-        voice = BufferedInputFile(response.audio_content, filename="voice_tts.txt")
-        msg = await message.answer_voice(voice=voice, caption=f'{text}')
-        voice_id = msg.voice.file_id
-        await TextToSpeech.create(
-            voice_id=voice_id,
-            user_id=user_id,
-            text=filename,
-            voice=response.audio_content,
-        )
+        await phrase_to_speech(message, widget, dialog_manager, text)
+        user_id = message.from_user.id
+        # Создать имя файла из строки
+        filename = re.sub(r'[^\w\s-]', '', text).replace(' ', '_')
+        # проверить есть ли в базе уже такая фраза
+        voice = await TextToSpeech.filter(text=filename).first()
+
+        if voice:
+            await message.answer_voice(voice=voice.voice_id, caption=f'{text}')
+
+        else:
+            response = await google_text_to_speech(text)
+            voice = BufferedInputFile(response.audio_content, filename="voice_tts.txt")
+            msg = await message.answer_voice(voice=voice, caption=f'{text}')
+            voice_id = msg.voice.file_id
+            await TextToSpeech.create(
+                voice_id=voice_id,
+                user_id=user_id,
+                text=filename,
+                voice=response.audio_content,
+            )
 
 
 async def voice_message_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager) -> None:

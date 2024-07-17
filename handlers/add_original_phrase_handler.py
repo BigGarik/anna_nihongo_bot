@@ -74,15 +74,18 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
                             text_phrase: str) -> None:
-    phrase = await Phrase.get_or_none(text_phrase=text_phrase, user_id=message.from_user.id)
-    if phrase:
-        i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-        await bot.send_message(message.chat.id, i18n_format("already-added-this-phrase"))
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    if len(text_phrase) >= 150:
+        await message.answer(i18n_format('sentence-too-long'))
     else:
-        dialog_manager.dialog_data["text_phrase"] = text_phrase
-        spaced_phrase = openai_gpt_add_space(text_phrase)
-        dialog_manager.dialog_data["spaced_phrase"] = spaced_phrase
-        await dialog_manager.next()
+        phrase = await Phrase.get_or_none(text_phrase=text_phrase, user_id=message.from_user.id)
+        if phrase:
+            await bot.send_message(message.chat.id, i18n_format("already-added-this-phrase"))
+        else:
+            dialog_manager.dialog_data["text_phrase"] = text_phrase
+            spaced_phrase = openai_gpt_add_space(text_phrase)
+            dialog_manager.dialog_data["spaced_phrase"] = spaced_phrase
+            await dialog_manager.next()
 
 
 async def translation_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
