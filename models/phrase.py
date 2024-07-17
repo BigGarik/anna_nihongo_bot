@@ -28,8 +28,15 @@ class UserAnswer(models.Model):
     answer_text = fields.CharField(max_length=255, null=True)
     audio_id = fields.CharField(max_length=255, null=True)
     result = fields.BooleanField(default=False)
-
     created_at = fields.DatetimeField(auto_now_add=True)
+
+
+class ReviewStatus(models.Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField('models.User', related_name='review_statuses')
+    phrase = fields.ForeignKeyField('models.Phrase', related_name='review_statuses')
+    review_count = fields.IntField(default=0)
+    next_review = fields.DatetimeField()
 
 
 class Phrase(models.Model):

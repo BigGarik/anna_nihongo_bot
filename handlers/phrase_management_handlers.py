@@ -41,7 +41,8 @@ async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dia
         await callback.answer(i18n_format('phrase-limit'), show_alert=True)
     else:
         category_id = dialog_manager.dialog_data['category_id']
-        await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id})
+        await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id},
+                                   show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def category_filled(callback: CallbackQuery, checkbox: ManagedMultiselect, dialog_manager: DialogManager, *args,
