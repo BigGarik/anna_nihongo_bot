@@ -30,7 +30,8 @@ def openai_gpt_add_space(text):
     if location == 'ja-JP':
         client = OpenAI() if proxy_url is None or proxy_url == "" else OpenAI(http_client=httpx.Client(proxy=proxy_url))
         completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            # model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=[{"role": "user",
                        "content": f"add spaces between words in the following text {text} return only spaced text"}]
         )
@@ -42,7 +43,7 @@ def openai_gpt_add_space(text):
 def openai_gpt_translate(text):
     client = OpenAI() if proxy_url is None or proxy_url == "" else OpenAI(http_client=httpx.Client(proxy=proxy_url))
     completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
         messages=[{"role": "user",
                    "content": f"translate this text into Russian: {text}. answer only with translation"}]
     )
