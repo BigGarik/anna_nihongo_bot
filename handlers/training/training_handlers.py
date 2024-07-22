@@ -2,7 +2,8 @@ from aiogram_dialog import Dialog, Window
 from aiogram_dialog.widgets.kbd import Group, Start
 
 from services.i18n_format import I18NFormat
-from states import UserTrainingSG, TranslationTrainingSG, PronunciationTrainingSG, LexisTrainingSG, TextToSpeechSG
+from states import UserTrainingSG, TranslationTrainingSG, PronunciationTrainingSG, LexisTrainingSG, TextToSpeechSG, \
+    IntervalSG
 
 user_training_dialog = Dialog(
     Window(
@@ -23,6 +24,10 @@ user_training_dialog = Dialog(
             Start(I18NFormat('listening'),
                   id='start_text_to_speech_dialog',
                   state=TextToSpeechSG.start,
+                  ),
+            Start(I18NFormat('interval'),
+                  id='start_interval_training_dialog',
+                  state=IntervalSG.start,
                   ),
             width=2
         ),

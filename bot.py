@@ -14,7 +14,7 @@ from config_data.config import Config, load_config
 from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
-# from handlers.add_lexis_phrase import add_lexis_phrase_dialog
+from dialogs.training.interval_training import interval_training_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
@@ -97,7 +97,7 @@ def main() -> None:
         edit_phrase_dialog,
         admin_dialog,
         user_management_dialog,
-        # add_lexis_phrase_dialog,
+        interval_training_dialog,
         text_to_speech_dialog,
         add_category_dialog,
         lexis_training_dialog,

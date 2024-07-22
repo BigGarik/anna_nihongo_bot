@@ -1,7 +1,17 @@
 from dataclasses import dataclass
+from datetime import timedelta
 
 from environs import Env
 
+INTERVALS = [
+    timedelta(minutes=15),
+    timedelta(hours=6),
+    timedelta(days=1),
+    timedelta(days=2),
+    timedelta(days=8),
+    timedelta(weeks=3),
+    timedelta(days=60)
+]
 
 @dataclass
 class WebConfig:

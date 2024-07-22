@@ -1,46 +1,72 @@
 import logging
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import pytz
-from aiogram_dialog import DialogManager
+from aiogram_dialog import DialogManager, ShowMode
 from dotenv import load_dotenv
 
-from models import Phrase, Category, ReviewStatus
-
-from services.services import replace_random_words
+from bot_init import bot
+from config_data.config import INTERVALS
+from models import Phrase, ReviewStatus, UserAnswer
+from services.services import normalize_text
+from states import IntervalSG
 
 load_dotenv()
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('default')
 
 
-async def select_phrase_for_interval_training(user_id, category_id, dialog_manager: DialogManager) -> Phrase:
-    intervals = [
-        timedelta(minutes=15),
-        timedelta(hours=6),
-        timedelta(days=1),
-        timedelta(days=2),
-        timedelta(days=8),
-        timedelta(weeks=3),
-        timedelta(days=60)
-    ]
+async def check_user_answer(answer_text: str, phrase: Phrase, user, training_selected):
+    normalized_question = normalize_text(phrase.text_phrase)
+    normalized_answer = normalize_text(answer_text)
+    now = datetime.now(pytz.UTC)
 
+    review_status = await ReviewStatus.get_or_none(user=user, phrase=phrase)
+
+    if review_status:
+        if normalized_question == normalized_answer:
+            result = True
+            review_status.review_count = min(review_status.review_count + 1, len(INTERVALS) - 1)
+        else:
+            result = False
+            review_status.review_count = max(review_status.review_count - 1, 0)
+        review_status.next_review = now + INTERVALS[review_status.review_count]
+        # review_status.next_review = review_status.date_start + INTERVALS[review_status.review_count]
+    else:
+        result = normalized_question == normalized_answer
+        review_status = ReviewStatus(
+            user=user,
+            phrase=phrase,
+            review_count=0,
+            next_review=datetime.now(pytz.UTC) + INTERVALS[0]
+        )
+    await review_status.save()
+    await UserAnswer.create(
+        user=user,
+        phrase=phrase,
+        answer_text=answer_text,
+        exercise=training_selected,
+        result=result,
+    )
+    return result
+
+
+async def select_phrase_for_interval_training(user_id, dialog_manager: DialogManager):
     now = datetime.now(pytz.UTC)
 
     # 1. Выбираем все фразы из категории
-    all_phrases = await Phrase.filter(category_id=category_id).all()
+    all_phrases = await Phrase.filter(user_id=user_id).all()
+    logger.info(f'All phrases: {len(all_phrases)}')
 
     # 2. Исключаем последнюю введенную фразу, если она есть
     last_phrase = dialog_manager.dialog_data.get('question')
+    logger.info(f'Last phrase: {last_phrase}')
     if last_phrase:
         all_phrases = [phrase for phrase in all_phrases if phrase.text_phrase != last_phrase]
 
-    # if not all_phrases:
-    #     logger.warning("No phrases available in the category after excluding the last phrase.")
-    #     return None
-
-    # 3. Получаем все статусы повторений для пользователя и фраз в этой категории
+    # 3. Получаем все статусы повторений для пользователя и фраз
     phrase_ids = [phrase.id for phrase in all_phrases]
+    logger.info(f'phrase_ids: {phrase_ids}')
     review_statuses = await ReviewStatus.filter(
         user_id=user_id,
         phrase_id__in=phrase_ids
@@ -49,7 +75,7 @@ async def select_phrase_for_interval_training(user_id, category_id, dialog_manag
     # 4. Находим фразы, которые нужно повторить
     phrases_to_review = []
     for status in review_statuses:
-        if status.review_count < len(intervals) and now >= status.next_review:
+        if status.review_count < len(INTERVALS) and now >= status.next_review:
             phrases_to_review.append((status.phrase, status.next_review))
 
     if phrases_to_review:
@@ -58,23 +84,97 @@ async def select_phrase_for_interval_training(user_id, category_id, dialog_manag
     else:
         # Если нет фраз для повторения, выбираем случайную из тех, которые еще не изучались
         studied_phrase_ids = [status.phrase_id for status in review_statuses]
+        logger.info(f'Studied phrase IDS: {studied_phrase_ids}')
         unstudied_phrases = [phrase for phrase in all_phrases if phrase.id not in studied_phrase_ids]
+        logger.info(f'Unstudied phrases: {len(unstudied_phrases)}')
         if unstudied_phrases:
             chosen_phrase = random.choice(unstudied_phrases)
         else:
             # Если все фразы уже изучались, выбираем случайную
             chosen_phrase = random.choice(all_phrases)
+    logger.info(f'Chosen phrase: {chosen_phrase}')
 
-    # Обновляем данные диалога
-    dialog_manager.dialog_data['with_gap_phrase'] = replace_random_words(chosen_phrase.spaced_phrase)
-    dialog_manager.dialog_data['question'] = chosen_phrase.text_phrase
-    dialog_manager.dialog_data['audio_id'] = chosen_phrase.audio_id
-    dialog_manager.dialog_data['translation'] = chosen_phrase.translation
-    dialog_manager.dialog_data['counter'] = 0
+    return chosen_phrase.id
 
-    category = await Category.get(id=category_id)
-    dialog_manager.dialog_data['category'] = category.name
-    dialog_manager.dialog_data['category_id'] = category_id
+
+async def translation_training(phrase_id: int, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['phrase_id'] = phrase_id
+    await dialog_manager.switch_to(state=IntervalSG.translation)
+
+
+async def listening_training(phrase_id: int, dialog_manager: DialogManager):
+    phrase = await Phrase.get(id=phrase_id)
+    if not phrase.audio_id:
+        # TODO озвучить, отправить и сохранить ид в базу
+        pass
+    dialog_manager.dialog_data['phrase_id'] = phrase_id
+    await dialog_manager.switch_to(state=IntervalSG.listening, show_mode=ShowMode.SEND)
+
+
+async def lexis_training(phrase_id: int, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['phrase_id'] = phrase_id
+    await dialog_manager.switch_to(state=IntervalSG.lexis)
+
+
+async def pronunciation_training(phrase_id: int, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['phrase_id'] = phrase_id
+    await dialog_manager.switch_to(state=IntervalSG.pronunciation)
+
+
+async def pronunciation_text_training(phrase_id: int, dialog_manager: DialogManager):
+    dialog_manager.dialog_data['phrase_id'] = phrase_id
+    await dialog_manager.switch_to(state=IntervalSG.pronunciation_text)
+
+
+async def start_training(dialog_manager: DialogManager):
+    user_id = dialog_manager.event.from_user.id
+
+    phrase_id = await select_phrase_for_interval_training(user_id, dialog_manager)
+    logger.info(f'phrase_id: {phrase_id}')
+    review_status = await ReviewStatus.get_or_none(user_id=user_id, phrase_id=phrase_id)
+
+    # Получаем предыдущую тренировку, если она была
+    previous_training = dialog_manager.dialog_data.get('training_selected')
+
+    if review_status:
+        logger.info(f"next_review: {review_status.next_review}")
+        logger.info(f'review_count: {review_status.review_count}')
+        if review_status.review_count > 6:
+            training_selected = 'translation'
+        elif review_status.review_count < 3:
+            training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+            if previous_training in training_type:
+                training_type.remove(previous_training)
+            training_selected = random.choice(training_type)
+        else:
+            training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
+            # Удаляем предыдущую тренировку из списка, если она там есть
+            if previous_training in training_type:
+                training_type.remove(previous_training)
+            training_selected = random.choice(training_type)
+    else:
+        training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+        # Удаляем предыдущую тренировку из списка, если она там есть
+        if previous_training in training_type:
+            training_type.remove(previous_training)
+        training_selected = random.choice(training_type)
+
+    logger.info(f'training selected: {training_selected}')
+    dialog_manager.dialog_data['training_selected'] = training_selected
+
+    # Запуск соответствующей функции обучения
+    if training_selected == 'translation':
+        await translation_training(phrase_id, dialog_manager)
+    elif training_selected == 'listening':
+        await listening_training(phrase_id, dialog_manager)
+    elif training_selected == 'lexis':
+        await lexis_training(phrase_id, dialog_manager)
+    elif training_selected == 'pronunciation':
+        await pronunciation_training(phrase_id, dialog_manager)
+    elif training_selected == 'pronunciation_text':
+        await pronunciation_text_training(phrase_id, dialog_manager)
+    else:
+        logger.error(f'Неизвестный тип тренировки: {training_selected}')
 
 
 if __name__ == '__main__':

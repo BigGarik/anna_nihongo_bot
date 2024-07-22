@@ -323,3 +323,29 @@ voice-acting = Озвучка
 subscribe-button = Подписаться
 
 sentence-too-long = Фраза слишком длинная. Максимальная длина фразы 150 символов. Попробуй еще раз.
+
+interval = 🕧 💪 Интервальная тренировка
+
+interval-training-dialog = Текст про интервальную тренировку
+
+interval-training-translation-dialog = Переведи фразу:
+ { $translation }
+
+start-training = Начать тренировку
+
+enable-notifications = Включить уведомления
+
+disable-notifications = Выключить уведомления
+
+interval-training-pronunciation-dialog = Послушай и произнеси фразу
+
+interval-training-pronunciation-text-dialog = Произнеси эту фразу:
+ { $question }
+
+wrong = Неправильно, попробуй в другой раз
+
+right = Супер, ты лучший!!!
+
+interval-training-listening-dialog = Послушай и напиши фразу
+
+interval-training-translation-dialog = Напиши перевод фразы

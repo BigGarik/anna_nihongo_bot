@@ -80,11 +80,13 @@ async def six_month_subscription_button_clicked(callback: CallbackQuery, button:
 
 
 async def subscribe_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(SubscribeSG.start)
+    pass
+    # await dialog_manager.start(SubscribeSG.start)
 
 
 async def change_subscribe_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    await dialog_manager.start(SubscribeSG.start)
+    pass
+    # await dialog_manager.start(SubscribeSG.start)
 
 
 async def unsubscribe_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -122,7 +124,7 @@ subscribe_dialog = Dialog(
             ),
             width=3
         ),
-        # Cancel(I18NFormat("cancel"), id="button_cancel", on_click=cancel_button_clicked),
+        Cancel(I18NFormat("cancel"), id="button_cancel"),
         state=SubscribeSG.start,
         getter=get_data,
     ),

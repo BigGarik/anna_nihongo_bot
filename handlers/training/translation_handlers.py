@@ -7,7 +7,6 @@ from aiogram_dialog.widgets.text import Format, Multi
 
 from models import Phrase, User, UserAnswer
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
-from services.interval_training import select_phrase_for_interval_training
 from services.services import normalize_text
 from states import TranslationTrainingSG
 from ..system_handlers import get_random_phrase, get_user_categories, first_answer_getter, second_answer_getter, \
@@ -15,15 +14,15 @@ from ..system_handlers import get_random_phrase, get_user_categories, first_answ
 
 
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    await select_phrase_for_interval_training(callback.from_user.id, item_id, dialog_manager)
-    # await get_random_phrase(dialog_manager, item_id)
+    # await select_phrase_for_interval_training(callback.from_user.id, item_id, dialog_manager)
+    await get_random_phrase(dialog_manager, item_id)
     await dialog_manager.next()
 
 
 async def next_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     category_id = dialog_manager.dialog_data['category_id']
-    await select_phrase_for_interval_training(callback.from_user.id, category_id, dialog_manager)
-    # await get_random_phrase(dialog_manager, category_id)
+    # await select_phrase_for_interval_training(callback.from_user.id, category_id, dialog_manager)
+    await get_random_phrase(dialog_manager, category_id)
 
 
 async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager,
@@ -48,8 +47,8 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         await message.answer(i18n_format('congratulations'))
         dialog_manager.dialog_data.pop('answer', None)
         category_id = dialog_manager.dialog_data['category_id']
-        await select_phrase_for_interval_training(message.from_user.id, category_id, dialog_manager)
-        # await get_random_phrase(dialog_manager, category_id)
+        # await select_phrase_for_interval_training(message.from_user.id, category_id, dialog_manager)
+        await get_random_phrase(dialog_manager, category_id)
 
     else:
         dialog_manager.dialog_data['counter'] += 1

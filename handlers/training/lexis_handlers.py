@@ -14,11 +14,10 @@ from bot_init import bot
 from external_services.voice_recognizer import SpeechRecognizer
 from models import User, Phrase, UserAnswer, ReviewStatus
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
-from services.interval_training import select_phrase_for_interval_training
 from services.services import normalize_text
 from states import LexisTrainingSG
 from ..system_handlers import get_user_categories, first_answer_getter, second_answer_getter, \
-    get_context
+    get_context, get_random_phrase
 
 
 def get_counter(data, widget, dialog_manager: DialogManager):
@@ -95,53 +94,25 @@ async def check_answer_text(message: Message, widget: ManagedTextInput, dialog_m
         #     await bot.send_voice(chat_id=message.from_user.id, voice=voice_id)
         dialog_manager.dialog_data.pop('answer', None)
         category_id = dialog_manager.dialog_data['category_id']
-
-        await select_phrase_for_interval_training(message.from_user.id, category_id, dialog_manager)
+        await get_random_phrase(dialog_manager, category_id)
 
     else:
         dialog_manager.dialog_data['counter'] += 1
         user_answer.result = False
     await user_answer.save()
 
-    intervals = [
-        timedelta(minutes=15),
-        timedelta(hours=6),
-        timedelta(days=1),
-        timedelta(days=2),
-        timedelta(days=8),
-        timedelta(weeks=3),
-        timedelta(days=60)
-    ]
-
-    now = datetime.now(pytz.UTC)
-
-    review_status = await ReviewStatus.get_or_none(user_id=user_id, phrase_id=phrase.id)
-    if review_status:
-        if user_answer.result:
-            review_status.review_count = min(review_status.review_count + 1, len(intervals) - 1)
-        else:
-            review_status.review_count = max(review_status.review_count - 1, 0)
-        review_status.next_review = now + intervals[review_status.review_count]
-    else:
-        review_status = ReviewStatus(
-            user_id=user_id,
-            phrase_id=phrase.id,
-            review_count=0,
-            next_review=now + intervals[0]
-        )
-
-    await review_status.save()
-
 
 # Хэндлер для выбора категории
 async def category_selection(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
-    await select_phrase_for_interval_training(callback.from_user.id, item_id, dialog_manager)
+    # await select_phrase_for_interval_training(callback.from_user.id, item_id, dialog_manager)
+    await get_random_phrase(dialog_manager, item_id)
     await dialog_manager.next()
 
 
 async def next_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     category_id = dialog_manager.dialog_data['category_id']
-    await select_phrase_for_interval_training(callback.from_user.id, category_id, dialog_manager)
+    await get_random_phrase(dialog_manager, category_id)
+    # await select_phrase_for_interval_training(callback.from_user.id, category_id, dialog_manager)
 
 
 async def listen_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -191,9 +162,9 @@ lexis_training_dialog = Dialog(
             I18NFormat('training-translation'),
             I18NFormat('lexis-training'),
             I18NFormat('training-try-again',
-                  when=first_answer_getter),
+                       when=first_answer_getter),
             I18NFormat('enter-answer-text',
-                  when=second_answer_getter),
+                       when=second_answer_getter),
             sep='\n\n'
         ),
         MessageInput(
