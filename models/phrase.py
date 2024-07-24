@@ -37,6 +37,7 @@ class ReviewStatus(models.Model):
     phrase = fields.ForeignKeyField('models.Phrase', related_name='review_statuses')
     review_count = fields.IntField(default=0)
     next_review = fields.DatetimeField(null=True)
+    note = fields.BooleanField(default=False)
     date_start = fields.DatetimeField(auto_now_add=True)
 
 

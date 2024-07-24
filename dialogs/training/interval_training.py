@@ -4,12 +4,12 @@ from pathlib import Path
 from aiogram import F
 from aiogram.enums import ContentType
 from aiogram.types import CallbackQuery, Message
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode, StartMode
 from aiogram_dialog.api.entities import MediaAttachment, MediaId
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Group, Cancel, Button, Back
+from aiogram_dialog.widgets.kbd import Group, Button
 from aiogram_dialog.widgets.media import DynamicMedia
-from aiogram_dialog.widgets.text import Multi, Const
+from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
 from bot_init import bot
@@ -18,7 +18,7 @@ from models import Phrase, User
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from services.interval_training import check_user_answer, start_training
 from services.services import replace_random_words
-from states import IntervalSG
+from states import IntervalSG, IntervalTrainingSG, UserTrainingSG
 
 load_dotenv()
 logger = logging.getLogger('default')
@@ -32,28 +32,38 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 
 async def get_lexis_data(dialog_manager: DialogManager, **kwargs):
-    phrase = await Phrase.get(id=dialog_manager.dialog_data['phrase_id'])
+    phrase = await Phrase.get(id=dialog_manager.start_data['phrase_id'])
+    dialog_manager.dialog_data['phrase_id'] = dialog_manager.start_data['phrase_id']
     dialog_manager.dialog_data['question'] = phrase.text_phrase
     dialog_manager.dialog_data['translation'] = phrase.translation
     with_gap_phrase = replace_random_words(phrase.spaced_phrase)
     dialog_manager.dialog_data['with_gap_phrase'] = with_gap_phrase
+    dialog_manager.dialog_data['training_selected'] = dialog_manager.start_data['training_selected']
     return dialog_manager.dialog_data
 
 
 async def get_voice_data(dialog_manager: DialogManager, **kwargs):
-    phrase = await Phrase.get(id=dialog_manager.dialog_data['phrase_id'])
+    phrase = await Phrase.get(id=dialog_manager.start_data['phrase_id'])
+    dialog_manager.dialog_data['phrase_id'] = dialog_manager.start_data['phrase_id']
+    dialog_manager.dialog_data['training_selected'] = dialog_manager.start_data['training_selected']
     audio = MediaAttachment(ContentType.VOICE, file_id=MediaId(phrase.audio_id))
     return {'voice': audio}
 
 
 async def get_translation_data(dialog_manager: DialogManager, **kwargs):
-    phrase = await Phrase.get(id=dialog_manager.dialog_data['phrase_id'])
+    phrase = await Phrase.get(id=dialog_manager.start_data['phrase_id'])
+    dialog_manager.dialog_data['phrase_id'] = dialog_manager.start_data['phrase_id']
     dialog_manager.dialog_data['translation'] = phrase.translation
+    dialog_manager.dialog_data['training_selected'] = dialog_manager.start_data['training_selected']
     return dialog_manager.dialog_data
 
 
 async def cancel_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    dialog_manager.show_mode = ShowMode.SEND
+    await dialog_manager.start(state=IntervalSG.start, show_mode=ShowMode.SEND)
+
+
+async def cancel_interval_dialog(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=UserTrainingSG.start, show_mode=ShowMode.SEND, mode=StartMode.RESET_STACK)
 
 
 async def start_training_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -108,7 +118,7 @@ async def text_training_input(message: Message, widget: ManagedTextInput, dialog
     await start_training(dialog_manager)
 
 
-interval_training_dialog = Dialog(
+interval_dialog = Dialog(
     Window(
         I18NFormat('interval-training-dialog'),
         Button(
@@ -129,12 +139,21 @@ interval_training_dialog = Dialog(
             when='enabled_notifications',
         ),
         Group(
-            Cancel(I18NFormat('cancel'), id='button_cancel'),
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_interval_dialog),
+            # Next(I18NFormat('next'), id='button_next'),
             width=3
         ),
         getter=get_data,
         state=IntervalSG.start
     ),
+    # Window(
+    #     I18NFormat('interval-training-dialog'),
+    #     Back(I18NFormat('back'), id='button_back'),
+    #     state=IntervalSG.pronunciation
+    # ),
+)
+
+interval_training_dialog = Dialog(
     Window(
         I18NFormat('interval-training-pronunciation-dialog'),
         DynamicMedia("voice"),
@@ -143,11 +162,12 @@ interval_training_dialog = Dialog(
             content_types=ContentType.VOICE,
         ),
         Group(
-            Cancel(I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
+            # Cancel(I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
             width=3
         ),
         getter=get_voice_data,
-        state=IntervalSG.pronunciation
+        state=IntervalTrainingSG.pronunciation
     ),
     Window(
         I18NFormat('interval-training-pronunciation-text-dialog'),
@@ -156,11 +176,11 @@ interval_training_dialog = Dialog(
             content_types=ContentType.VOICE,
         ),
         Group(
-            Cancel(I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
             width=3
         ),
         getter=get_lexis_data,
-        state=IntervalSG.pronunciation_text
+        state=IntervalTrainingSG.pronunciation_text
     ),
     Window(
         Multi(
@@ -175,11 +195,11 @@ interval_training_dialog = Dialog(
             on_success=text_training_input,
         ),
         Group(
-            Cancel(I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
             width=3
         ),
         getter=get_lexis_data,
-        state=IntervalSG.lexis
+        state=IntervalTrainingSG.lexis
     ),
     Window(
         I18NFormat('interval-training-listening-dialog'),
@@ -189,11 +209,11 @@ interval_training_dialog = Dialog(
             on_success=text_training_input,
         ),
         Group(
-            Cancel(I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
             width=3
         ),
         getter=get_voice_data,
-        state=IntervalSG.listening
+        state=IntervalTrainingSG.listening
     ),
     Window(
         I18NFormat('interval-training-translation-dialog'),
@@ -202,10 +222,10 @@ interval_training_dialog = Dialog(
             on_success=text_training_input,
         ),
         Group(
-            Cancel(I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_button_clicked),
             width=3
         ),
         getter=get_translation_data,
-        state=IntervalSG.translation
+        state=IntervalTrainingSG.translation
     ),
 )

@@ -150,10 +150,6 @@ management_dialog = Dialog(
             id='deletion_category',
             on_click=delite_categories_button_clicked,
         ),
-        Group(
-            # Cancel(I18NFormat('cancel'), id='button_cancel'),
-            width=3
-        ),
         getter=get_user_categories_to_manage,
         state=ManagementSG.start
     ),

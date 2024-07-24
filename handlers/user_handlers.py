@@ -1,7 +1,7 @@
 import logging
 import os
 
-from aiogram import Router, types
+from aiogram import Router, types, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -17,8 +17,9 @@ from models import User, Subscription
 from models.main import MainPhoto
 from services.create_update_user import update_user_info, create_user
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
+from services.interval_training import start_training
 from services.services import is_admin
-from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG, SelectLanguageSG
+from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG, SelectLanguageSG, IntervalSG
 
 load_dotenv()
 admin_id = os.getenv('ADMIN_ID')
@@ -91,7 +92,7 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
                                                  "💪 Exercises"])
 async def process_start_training(message: Message, dialog_manager: DialogManager):
     await update_user_info(message)
-    await dialog_manager.start(state=UserTrainingSG.start)
+    await dialog_manager.start(state=UserTrainingSG.start, mode=StartMode.RESET_STACK)
 
 
 @router.message(lambda message: message.text in ["📝 Управление фразами для тренировок 💎",
@@ -104,11 +105,18 @@ async def process_phrase_management(message: Message, dialog_manager: DialogMana
         if subscription.type_subscription.name == 'Free':
             await message.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
         else:
-            await dialog_manager.start(state=ManagementSG.start)
+            await dialog_manager.start(state=ManagementSG.start, mode=StartMode.RESET_STACK)
 
 
 @router.message(lambda message: message.text in ["🔔 Управление подпиской 💎",
                                                  "🔔 Manage my subscription 💎"])
 async def process_subscribe_management(message: Message, dialog_manager: DialogManager):
     await update_user_info(message)
-    await dialog_manager.start(state=SubscribeManagementSG.start)
+    await dialog_manager.start(state=SubscribeManagementSG.start, mode=StartMode.RESET_STACK)
+
+
+@router.callback_query(F.data == 'open_interval_dialog')
+async def open_interval_dialog(callback_query: types.CallbackQuery, dialog_manager: DialogManager):
+    # await dialog_manager.start(state=IntervalSG.start)
+    # await dialog_manager.reset_stack()
+    await start_training(dialog_manager)

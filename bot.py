@@ -14,7 +14,7 @@ from config_data.config import Config, load_config
 from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
-from dialogs.training.interval_training import interval_training_dialog
+from dialogs.training.interval_training import interval_training_dialog, interval_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
@@ -29,7 +29,7 @@ from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
 from handlers.user_management import user_management_dialog
 from keyboards.set_menu import set_default_commands
-from services.services import check_subscriptions, auto_renewal_subscriptions
+from services.services import check_subscriptions, auto_renewal_subscriptions, interval_notifications
 from services.yookassa import process_yookassa_webhook
 
 load_dotenv()
@@ -60,11 +60,16 @@ async def on_startup(app):
     await init_db()
     await set_default_commands(bot)
     await bot.set_webhook(webhook_url, secret_token=webhook_secret)
+
+    # Настройка диалогового менеджера
+    dialog_manager = setup_dialogs(dp)
+
     # Инициализация планировщика
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_subscriptions, 'cron', hour=11, minute=0, misfire_grace_time=3600)
     scheduler.add_job(auto_renewal_subscriptions, 'cron', hour=12, minute=0, misfire_grace_time=3600)
-    # scheduler.add_job(auto_renewal_subscriptions, "interval", minutes=3, misfire_grace_time=3600)
+    scheduler.add_job(interval_notifications, "interval", minutes=5, misfire_grace_time=3600)
+    scheduler.add_job(check_subscriptions, "interval", minutes=1, misfire_grace_time=3600)
     scheduler.start()
 
     # Сохраните планировщик в app для последующего доступа
@@ -97,6 +102,7 @@ def main() -> None:
         edit_phrase_dialog,
         admin_dialog,
         user_management_dialog,
+        interval_dialog,
         interval_training_dialog,
         text_to_speech_dialog,
         add_category_dialog,
@@ -113,7 +119,7 @@ def main() -> None:
         dp.include_router(router)
 
     # dp.include_router(other_handlers.router)
-    setup_dialogs(dp)
+    #setup_dialogs(dp)
     # Register startup hook to initialize webhook
     dp.startup.register(on_startup)
 

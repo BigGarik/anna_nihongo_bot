@@ -29,8 +29,8 @@ async def create_user(message) -> None:
                                   date_start=datetime.now(),
                                   date_end=datetime.now() + timedelta(days=30),
                                   )
-        logger.info(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
-                    f"{message.from_user.last_name} создан.")
+        logger.debug(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
+                     f"{message.from_user.last_name} создан.")
         # Отправляем админам информацию о новом пользователе
         for admin_id in admin_ids.split(','):
             await bot.send_message(chat_id=admin_id, text=f"У нас новый пользователь {message.from_user.username} "
@@ -46,8 +46,7 @@ async def update_user_info(message) -> None:
         user.first_name = message.from_user.first_name
         user.last_name = message.from_user.last_name
         await user.save()
-        logger.info(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
-                    f"{message.from_user.last_name} обновлен.")
+        logger.debug(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
+                     f"{message.from_user.last_name} обновлен.")
     except Exception as e:
         logger.error("Ошибка при обновлении информации о пользователе: %s", e)
-

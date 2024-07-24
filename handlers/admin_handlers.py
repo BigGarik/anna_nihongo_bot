@@ -1,19 +1,18 @@
 import base64
 import logging
-import os
 
 from aiogram import Router
 from aiogram.enums import ContentType
 from aiogram.types import Message, CallbackQuery, BufferedInputFile
-from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
+from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
-from aiogram_dialog.widgets.kbd import Start, Button, Group, Back, Next
+from aiogram_dialog.widgets.kbd import Start, Button, Group, Next
 
 from external_services.kandinsky import generate_image
 from handlers.system_handlers import getter_prompt, repeat_ai_generate_image
 from models import Category
 from models.main import MainPhoto
-from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import AdminDialogSG, UserManagementSG
 
 # Инициализируем роутер уровня модуля
@@ -50,11 +49,9 @@ async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_m
             await message.answer_photo(photo=image, caption=i18n_format("generated-image"))
         else:
             await message.answer(i18n_format("failed-generate-image"))
-        # await dialog_manager.show(show_mode=ShowMode.SEND)
     except Exception as e:
         logger.error('Ошибка при генерации изображения: %s', e)
         await message.answer(text=i18n_format("failed-generate-image"))
-        # await dialog_manager.show(show_mode=ShowMode.SEND)
 
 
 async def add_main_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -104,7 +101,6 @@ admin_dialog = Dialog(
                 id='go_start_window',
                 on_click=go_start_window
             ),
-            # Back(I18NFormat('back'), id='back'),
             width=3
         ),
         state=AdminDialogSG.add_category,
@@ -144,7 +140,6 @@ admin_dialog = Dialog(
                 id='go_start_window',
                 on_click=go_start_window
             ),
-            # Back(I18NFormat('back'), id='back'),
             width=3
         ),
         state=AdminDialogSG.add_main_image,
@@ -154,4 +149,4 @@ admin_dialog = Dialog(
 
 @router.message(lambda message: message.text in ["⚙️ Настройки(для админов)", "⚙️ Settings (for admins)"])
 async def process_admin_settings(message: Message, dialog_manager: DialogManager):
-    await dialog_manager.start(state=AdminDialogSG.start)
+    await dialog_manager.start(state=AdminDialogSG.start, mode=StartMode.RESET_STACK)

@@ -10,7 +10,7 @@ First-hello-user-jp =
 
  My name is Hatsu.
  I'll help you perfect your Japanese pronunciation, grammar and vocabulary.
- Give me the phrases you want to practice and I'll make exercises for you.
+ Give me the phrases you want to practice, and I'll make exercises for you.
 
  じゃ、始めましょう！
 
@@ -20,7 +20,7 @@ First-hello-user-en =
 
  My name is Hatsu.
  I'll help you perfect your English pronunciation, grammar and vocabulary.
- Give me the phrases you want to practice and I'll make exercises for you.
+ Give me the phrases you want to practice, and I'll make exercises for you.
 
  Let's start!
 
@@ -138,7 +138,7 @@ lexis-training-dialog =
 
 lexis-training =
     Try to remember the whole phrase and write it to me.
- Tap SKIP to go to the next task.
+ Tap NEXT to go to the next task.
  Tap BACK to choose another category.
 
 selected-category = <b>Selected category:</b> { $category }
@@ -167,11 +167,11 @@ congratulations = 🏆 Great job!!! 🥳
 listen = 🎧 Listen
 
 translate-training-dialog = Here you can practice back translation.
- You will see the translation of your phrase. Remember the original phrase and write it to me.
+ You will see the translation of your phrase. Write me the original English phrase.
  Choose a category:
 
 translate-training = Enter this phrase in English.
- Tap SKIP to go to the next task.
+ Tap NEXT to go to the next task.
  Tap BACK to choose another category.
 
 translate-training-phrase = Phrase:
@@ -230,7 +230,7 @@ text-phrase = <b>Phrase:</b> { $text_phrase }
 
 input-text-phrase = 💬 Enter new phrase:
 
-input-translate = 🌐 Enter translation or tap SKIP and I'll translate it for you:
+input-translate = 🌐 Enter translation or tap NEXT and I'll translate it for you:
 
 translation-phrase = <b>Translation:</b> { $translation }
 
@@ -245,13 +245,13 @@ summary-information = Summary:
 
 add-audio = <b>Add audio</b>
 
-add-audio-info-first = 🔊 Send me a audio file or an voice message with the new phrase or tap on <b>VOICE USING AI</b>.
+add-audio-info-first = 🔊 Send me an audio file or an voice message with the new phrase or tap on <b>VOICE USING AI</b>.
 
-add-audio-info-second = Chack the sound and tap <b>CONTINUE</b> or send me another audio message.
+add-audio-info-second = Check the sound and tap <b>CONTINUE</b> or send me another audio message.
 
 voice-with-ai-button = 🤖 Voice using AI
 
-add-image-info = <b>🎨 Send me an image for your phrase, generate the image using AI, or just skip this step:</b>
+add-image-info = <b>🎨 Send me an image for your phrase, generate an AI illistration, or just skip this step:</b>
 
 
 
@@ -265,12 +265,12 @@ select-language = Select bot language
 language-changed = Language changed to
 
 
-summary-information-to-edit = Суммарная информация
- <b>Выбранная категория:</b> { $category }
- <b>Текст:</b> { $text_phrase }
- <b>Перевод:</b> { $translation }
- <b>Комментарий:</b> { $comment }
- Выбирай, что редактировать.
+summary-information-to-edit = Summary
+ <b>Category:</b> { $category }
+ <b>Text:</b> { $text_phrase }
+ <b>Translation:</b> { $translation }
+ <b>Comment:</b> { $comment }
+ Choose the item you want to edit.
 
 select-phrase-to-delete = Select to delete
 
@@ -280,38 +280,38 @@ translation-to-edit = Translation
 
 audio-to-edit = Audio
 
-image-to-edit = Photo
+image-to-edit = Image
 
 comment-to-edit = Comment
 
-send-text-phrase-to-edit = Отправь текст фразы для изменения
+send-text-phrase-to-edit = Send the new text
 
-send-translation-to-edit = Отправь перевод для изменения
+send-translation-to-edit = Send the new translation
 
-send-audio-to-edit = Отправь аудио или голосовое сообщение для изменения
+send-audio-to-edit = Send the new audio or voice message 
 
-send-image-to-edit = Отправь фото или сгенерируй новое для изменения
+send-image-to-edit = Send the new image or generate one with AI 
 
-send-comment-to-edit = Отправь комментарий для изменения
+send-comment-to-edit = Send the new comment
 
-subscription-information = Описание подписки...
- Подписаться на:
+subscription-information = Subscription details
+ Subscribe for:
 
-one-month-subscription-button = ⭐ 1 месяц
+one-month-subscription-button = ⭐ 1 month
 
-one-month-subscription-description = Подписка на один месяц
+one-month-subscription-description = One month subscription
 
-three-month-subscription-button = ⭐⭐ 3 месяца
+three-month-subscription-button = ⭐⭐ 3 months
 
-three-month-subscription-description = Подписка на три месяца
+three-month-subscription-description = Tree months subscription
 
-six-month-subscription-button = ⭐⭐⭐ 6 месяцев
+six-month-subscription-button = ⭐⭐⭐ 6 months
 
-six-month-subscription-description = Подписка на шесть месяцев
+six-month-subscription-description = Six months subscription
 
 error-adding-category = Error adding category
 
-you-already-have-category = You already have such a category
+you-already-have-category = You already have such category
 
 category-added-successfully = Category added successfully
 
@@ -321,36 +321,42 @@ already-added-this-phrase = You have already added this phrase. Try something el
 
 failed-save-phrase = Error when saving phrase
 
-phrase-saved = Фраза добавлена! ✅
+phrase-saved = Phrase saved! ✅
 
 voice-acting = Voice acting
 
 subscribe-button = Subscribe
 
-sentence-too-long = Фраза слишком длинная. Максимальная длина фразы: 150 символов. Попробуй еще раз.
+sentence-too-long = The phrase should contain no more then 150 symbols. Try something else 😉
 
 interval = 🕧 💪 Interval training
 
-interval-training-dialog = Текст про интервальную тренировку
+interval-training-dialog = Let's start interval training. Here I'll give randon exercises with all your phrases in all categories. Practice for 10-20 minutes then come back when you see the reminder. 
 
-interval-training-translation-dialog = Переведи фразу:
+interval-training-translation-dialog = translate the phrase:
  { $translation }
 
-start-training = Начать тренировку
+start-training = Start exersise
 
-enable-notifications = Включить уведомления
+enable-notifications = Turn on the riminder
 
-disable-notifications = Выключить уведомления
+disable-notifications = Turn off the reminder
 
-interval-training-pronunciation-dialog = Послушай и произнеси фразу
+interval-training-pronunciation-dialog = Listen and repeat 
 
-interval-training-pronunciation-text-dialog = Произнеси эту фразу:
+interval-training-pronunciation-text-dialog = Say the phrase:
  { $question }
 
-wrong = Неправильно, попробуй в другой раз
+wrong = Try again later!
 
-right = Супер, ты лучший!!!
+right = Great job!!!
 
-interval-training-listening-dialog = Послушай и напиши фразу
+interval-training-listening-dialog = Listen and write what you've heard
 
-interval-training-translation-dialog = Напиши перевод фразы
+interval-training-translation-dialog = Translate the phrase
+
+practice-time = It's time to practice!
+
+use-free = Contunue for free
+
+subscription-expired = You sudcription is expired

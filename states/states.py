@@ -73,6 +73,14 @@ class TextToSpeechSG(StatesGroup):
 
 class IntervalSG(StatesGroup):
     start = State()
+    # pronunciation = State()
+    # pronunciation_text = State()
+    # lexis = State()
+    # listening = State()
+    # translation = State()
+
+
+class IntervalTrainingSG(StatesGroup):
     pronunciation = State()
     pronunciation_text = State()
     lexis = State()

@@ -32,7 +32,7 @@ async def getter_prompt(dialog_manager: DialogManager, **kwargs):
 
 async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     prompt = dialog_manager.dialog_data['prompt']
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     await callback.message.answer(text=i18n_format("starting-generate-image"))
     try:
         images = generate_image(prompt)
