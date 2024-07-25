@@ -80,6 +80,13 @@ async def process_language_command(message: Message, dialog_manager: DialogManag
     await dialog_manager.start(state=SelectLanguageSG.start)
 
 
+@router.message(Command(commands='contacts'))
+async def process_cancel_command(message: Message, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    await message.answer(text=i18n_format('contacts-teacher'))
+    await message.answer(text=i18n_format('contacts-developer'))
+
+
 @router.message(Command(commands='cancel'))
 async def process_cancel_command(message: Message, state: FSMContext, dialog_manager: DialogManager):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
@@ -91,6 +98,10 @@ async def process_cancel_command(message: Message, state: FSMContext, dialog_man
 @router.message(lambda message: message.text in ["💪 Тренировки",
                                                  "💪 Exercises"])
 async def process_start_training(message: Message, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    user_menu = await get_localized_menu(i18n_format)
+    chat_id = message.chat.id
+    await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
     await update_user_info(message)
     await dialog_manager.start(state=UserTrainingSG.start, mode=StartMode.RESET_STACK)
 
@@ -98,9 +109,12 @@ async def process_start_training(message: Message, dialog_manager: DialogManager
 @router.message(lambda message: message.text in ["📝 Управление фразами для тренировок 💎",
                                                  "📝 Manage phrases for my exercises 💎"])
 async def process_phrase_management(message: Message, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    user_menu = await get_localized_menu(i18n_format)
+    chat_id = message.chat.id
+    await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
     await update_user_info(message)
     subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     if subscription:
         if subscription.type_subscription.name == 'Free':
             await message.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
@@ -111,6 +125,10 @@ async def process_phrase_management(message: Message, dialog_manager: DialogMana
 @router.message(lambda message: message.text in ["🔔 Управление подпиской 💎",
                                                  "🔔 Manage my subscription 💎"])
 async def process_subscribe_management(message: Message, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    user_menu = await get_localized_menu(i18n_format)
+    chat_id = message.chat.id
+    await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
     await update_user_info(message)
     await dialog_manager.start(state=SubscribeManagementSG.start, mode=StartMode.RESET_STACK)
 

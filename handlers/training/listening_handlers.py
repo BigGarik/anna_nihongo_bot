@@ -26,7 +26,6 @@ async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_ma
     if len(text) >= 150:
         await message.answer(i18n_format('sentence-too-long'))
     else:
-        await phrase_to_speech(message, widget, dialog_manager, text)
         user_id = message.from_user.id
         # Создать имя файла из строки
         filename = re.sub(r'[^\w\s-]', '', text).replace(' ', '_')

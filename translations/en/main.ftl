@@ -2,7 +2,15 @@ command-start = Let's start training
 
 command-language = Language selection
 
+command-contacts = Contacts
+
 command-cancel = Complete training
+
+contacts-teacher = Teacher Anna Rogaleva
+ https://t.me/anna_j_ro
+
+contacts-developer = Developer Igor Bocharov
+ https://t.me/inetsmol
 
 First-hello-user-jp =
      <b>{ $username }さん、</b>ようこそ！
