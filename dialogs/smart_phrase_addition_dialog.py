@@ -51,7 +51,7 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
             i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
             msg = await message.answer_voice(voice=voice, caption=i18n_format("voice-acting"))
             voice_id = msg.voice.file_id
-
+            await message.answer(i18n_format("starting-generate-image"))
             images = generate_image(prompt=translation)
             if images and len(images) > 0:
                 # Декодируем изображение из Base64
