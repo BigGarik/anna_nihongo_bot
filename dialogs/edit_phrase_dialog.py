@@ -93,24 +93,30 @@ async def input_comment(message: Message, widget: ManagedTextInput, dialog_manag
 
 
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    logger.info(f"save_phrase_button_clicked: {dialog_manager.dialog_data}")
+
     if dialog_manager.dialog_data.get("phrase_id"):
+        logger.info(f"save_phrase_button_clicked: {dialog_manager.dialog_data}")
         phrase = await Phrase.get(id=dialog_manager.dialog_data["phrase_id"])
+        translation = dialog_manager.dialog_data.get("translation")
+        audio_id = dialog_manager.dialog_data.get("audio_id")
+        image_id = dialog_manager.dialog_data.get("image_id")
+        comment = dialog_manager.dialog_data.get("comment")
     else:
+        logger.info(f"save_phrase_button_clicked: {dialog_manager.start_data}")
         text_phrase = dialog_manager.dialog_data["text_phrase"]
         category_id = dialog_manager.dialog_data["category_id"]
         phrase = await Phrase.create(text_phrase=text_phrase, category_id=category_id)
+        translation = dialog_manager.start_data.get("translation")
+        audio_id = dialog_manager.start_data.get("audio_id")
+        image_id = dialog_manager.start_data.get("image_id")
+        comment = dialog_manager.start_data.get("comment")
 
-    translation = dialog_manager.dialog_data.get("translation")
     if translation:
         phrase.translation = translation
-    audio_id = dialog_manager.dialog_data.get("audio_id")
     if audio_id:
         phrase.audio_id = audio_id
-    image_id = dialog_manager.dialog_data.get("image_id")
     if image_id:
         phrase.image_id = image_id
-    comment = dialog_manager.dialog_data.get("comment")
     if comment:
         phrase.comment = comment
     await phrase.save()
