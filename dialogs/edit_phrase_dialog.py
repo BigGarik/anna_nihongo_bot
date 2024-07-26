@@ -13,7 +13,7 @@ from dialogs.getters.get_edit_phrase_data import get_data
 from external_services.kandinsky import generate_image
 from models import Phrase
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
-from states import EditPhraseSG
+from states import EditPhraseSG, ManagementSG
 
 load_dotenv()
 logger = logging.getLogger('default')
@@ -122,6 +122,7 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
         phrase.comment = comment
     await phrase.save()
     await dialog_manager.done()
+    await dialog_manager.start(state=ManagementSG.select_phrase)
 
 
 async def back_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
