@@ -64,6 +64,7 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
             else:
                 image_id = None
 
+            dialog_manager.dialog_data["category_id"] = dialog_manager.start_data["category_id"]
             dialog_manager.dialog_data["text_phrase"] = text_phrase
             dialog_manager.dialog_data["spaced_phrase"] = spaced_phrase
             dialog_manager.dialog_data["translation"] = translation
