@@ -11,7 +11,11 @@ logger = logging.getLogger('default')
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
-    if not dialog_manager.dialog_data.get('text_phrase'):
+    if dialog_manager.dialog_data.get('text_phrase'):
+        return dialog_manager.dialog_data
+    elif dialog_manager.start_data.get('text_phrase'):
+        return dialog_manager.start_data
+    else:
         phrase_id = dialog_manager.start_data.get("phrase_id")
         dialog_manager.dialog_data['phrase_id'] = phrase_id
         phrase = await Phrase.get(id=phrase_id).prefetch_related('category')
@@ -35,5 +39,3 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
             dialog_manager.dialog_data["prompt"] = prompt
 
             return dialog_manager.dialog_data
-    else:
-        return dialog_manager.dialog_data

@@ -3,7 +3,7 @@ import logging
 import os
 
 from aiogram.types import Message, BufferedInputFile, CallbackQuery
-from aiogram_dialog import Dialog, Window, DialogManager
+from aiogram_dialog import Dialog, Window, DialogManager, ShowMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput
 from aiogram_dialog.widgets.kbd import Group, Cancel, Back, Button
 from aiogram_dialog.widgets.text import Multi
@@ -15,7 +15,7 @@ from external_services.kandinsky import generate_image
 from external_services.openai_services import openai_gpt_add_space, openai_gpt_translate
 from models import Phrase, Category, AudioFile, User
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
-from states import SmartPhraseAdditionSG
+from states import SmartPhraseAdditionSG, EditPhraseSG
 
 load_dotenv()
 logger = logging.getLogger('default')
@@ -24,9 +24,8 @@ logger = logging.getLogger('default')
 async def get_data(dialog_manager: DialogManager, **kwargs):
     category_id = dialog_manager.start_data.get("category_id")
     category = await Category.get_or_none(id=category_id)
-    # Инициализируем response с именем категории
-    response = {"category": category.name}
-    return response
+    dialog_manager.dialog_data['category'] = category.name
+    return dialog_manager.dialog_data
 
 
 async def get_summary_data(dialog_manager: DialogManager, **kwargs):
@@ -69,6 +68,8 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
             dialog_manager.dialog_data["translation"] = translation
             dialog_manager.dialog_data["audio_tg_id"] = voice_id
             dialog_manager.dialog_data["image_id"] = image_id
+            dialog_manager.dialog_data["comment"] = ''
+            print(dialog_manager.dialog_data)
 
             await dialog_manager.next()
 
@@ -107,6 +108,11 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
     await dialog_manager.done(result={"new_phrase": new_phrase})
 
 
+async def edit_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=EditPhraseSG.start, data=dialog_manager.dialog_data)
+    # await dialog_manager.start(state=EditPhraseSG.start, show_mode=ShowMode.DELETE_AND_SEND, data=dialog_manager.dialog_data)
+
+
 smart_phrase_addition_dialog = Dialog(
     Window(
         Multi(
@@ -127,6 +133,11 @@ smart_phrase_addition_dialog = Dialog(
     Window(
         Multi(
             I18NFormat("summary-information"),
+        ),
+        Button(
+            text=I18NFormat('edit-phrase-button'),
+            id='edit_phrase',
+            on_click=edit_phrase_button_clicked,
         ),
         Group(
             Back(I18NFormat("back"), id="back"),

@@ -364,3 +364,5 @@ use-free = Продолжить бесплатно
 subscription-expired = Ваша подписка истекла.
 
 quick-add-phrase-button = ➕ Быстро добавить фразу
+
+edit-phrase-button = Редактировать

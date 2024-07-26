@@ -371,3 +371,5 @@ editing-category = Category: <b>{ $category }</b>
  Tap «БЫСТРО ДОБАВИТЬ ФРАЗУ» to add a new phrase
  или «ДОБАВИТЬ ФРАЗУ» для добавления по шагам.
  Tap on the phrases you want to delete and then tap DELETE SELECTION
+
+edit-phrase-button = Edit
