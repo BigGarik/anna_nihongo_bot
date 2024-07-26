@@ -24,6 +24,7 @@ logger = logging.getLogger('default')
 async def get_data(dialog_manager: DialogManager, **kwargs):
     category_id = dialog_manager.start_data.get("category_id")
     category = await Category.get_or_none(id=category_id)
+    dialog_manager.dialog_data['category_id'] = category_id
     dialog_manager.dialog_data['category'] = category.name
     return dialog_manager.dialog_data
 

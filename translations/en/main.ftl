@@ -372,4 +372,4 @@ editing-category = Category: <b>{ $category }</b>
  или «ДОБАВИТЬ ФРАЗУ» для добавления по шагам.
  Tap on the phrases you want to delete and then tap DELETE SELECTION
 
-edit-phrase-button = Edit
+edit-phrase-button = ✏️ Edit
