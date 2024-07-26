@@ -118,3 +118,8 @@ class UserManagementSG(StatesGroup):
 
 class SelectLanguageSG(StatesGroup):
     start = State()
+
+
+class SmartPhraseAdditionSG(StatesGroup):
+    start = State()
+    save = State()

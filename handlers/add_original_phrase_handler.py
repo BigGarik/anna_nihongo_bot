@@ -296,9 +296,9 @@ add_original_phrase_dialog = Dialog(
         Multi(
             I18NFormat("add-audio"),
             I18NFormat("add-audio-info-first",
-                  when=first_state_audio_getter),
+                       when=first_state_audio_getter),
             I18NFormat("add-audio-info-second",
-                  when=second_state_audio_getter),
+                       when=second_state_audio_getter),
             sep="\n\n"
         ),
         MessageInput(

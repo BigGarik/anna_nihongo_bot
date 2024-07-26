@@ -14,6 +14,7 @@ from config_data.config import Config, load_config
 from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
+from dialogs.smart_phrase_addition_dialog import smart_phrase_addition_dialog
 from dialogs.training.interval_training import interval_training_dialog, interval_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
@@ -98,6 +99,7 @@ def main() -> None:
         select_language_dialog,
         subscribe_dialog,
         subscribe_management_dialog,
+        smart_phrase_addition_dialog,
         add_original_phrase_dialog,
         edit_phrase_dialog,
         admin_dialog,

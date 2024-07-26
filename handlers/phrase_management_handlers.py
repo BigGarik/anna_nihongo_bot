@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.text import Format, List, Multi
 from handlers.system_handlers import get_user_categories_to_manage, get_phrases
 from models import Category, Phrase
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
-from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG, EditPhraseSG
+from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG, EditPhraseSG, SmartPhraseAdditionSG
 
 
 async def management_dialog_process_result(statr_data: Data, result: dict, dialog_manager: DialogManager, **kwargs):
@@ -33,6 +33,16 @@ async def get_phrases_for_delite(dialog_manager: DialogManager, **kwargs):
     phrases = await Phrase.filter(id__in=phrases_ids).all()
     items = [(phrase.text_phrase, str(phrase.id)) for phrase in phrases]
     return {'phrases_to_be_deleted': items}
+
+
+async def quick_add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    if dialog_manager.dialog_data.get('phrases_count') > 15:
+        await callback.answer(i18n_format('phrase-limit'), show_alert=True)
+    else:
+        category_id = dialog_manager.dialog_data['category_id']
+        await dialog_manager.start(state=SmartPhraseAdditionSG.start, data={"category_id": category_id},
+                                   show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -214,6 +224,11 @@ management_dialog = Dialog(
                 items="phrases",
                 on_click=phrase_selected,
             ),
+        ),
+        Button(
+            text=I18NFormat('quick-add-phrase-button'),
+            id='quick_add_phrase',
+            on_click=quick_add_phrase_button_clicked,
         ),
         Button(
             text=I18NFormat('add-phrase-button'),

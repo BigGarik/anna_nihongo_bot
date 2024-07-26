@@ -6,19 +6,14 @@ import string
 from datetime import date, timedelta, datetime
 
 import pytz
-from aiogram import Router
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Chat
-from aiogram.types import User as AiogramUser
-from aiogram_dialog.manager.bg_manager import BgManager
-from aiogram_dialog import DialogManager, StartMode, ShowMode
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
 from tortoise.expressions import Q
 
-from bot_init import bot, dp
+from bot_init import bot
 from models import Subscription, TypeSubscription, User, ReviewStatus
 from services.i18n import create_translator_hub
 from services.yookassa import auto_renewal_subscription_command
-from states import IntervalSG
 
 load_dotenv()
 location = os.getenv('LOCATION')
@@ -115,7 +110,8 @@ async def auto_renewal_subscriptions():
                                                           ~Q(type_subscription=free_trial_subscription_type)))
 
         for subscription in ending_subscriptions:
-            await auto_renewal_subscription_command(subscription.id)
+            if subscription.payment_token:
+                await auto_renewal_subscription_command(subscription.id)
     except Exception as e:
         logger.error(f"Error in auto_renewal_subscriptions: {e}")
 

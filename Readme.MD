@@ -6,7 +6,7 @@ git clone git@github.com:BigGarik/anna_nihongo_bot.git
 ```
 Установить зависимости
 ```bash
-sudo apt install redis-server ffmpeg
+sudo apt install -y redis-server ffmpeg
 ```
 ```bash
 sudo service redis-server start
@@ -107,6 +107,8 @@ sudo journalctl --rotate --vacuum-time=1s -u anna_nihongo_bot.service
 
 
 sudo systemctl restart english_mrhatsu_bot.service anna_nihongo_bot.service
+sudo systemctl stop english_mrhatsu_bot.service anna_nihongo_bot.service
+sudo systemctl disable english_mrhatsu_bot.service anna_nihongo_bot.service
 
 
 ```

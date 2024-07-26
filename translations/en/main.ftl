@@ -209,11 +209,6 @@ add-category-button = ➕ Create new category
 
 delite-category-button = ❌ Delete category
 
-editing-category = Category: <b>{ $category }</b>
-
- Tap ADD PHRASE to add a new phrase
- Tap on the phrases you want to delete and then tap DELETE SELECTION
-
 add-phrase-button = ➕ Add new phrase
 
 delete-selected-button = ❌ Delete selection
@@ -368,3 +363,11 @@ practice-time = It's time to practice!
 use-free = Contunue for free
 
 subscription-expired = You sudcription is expired
+
+quick-add-phrase-button = ➕ Быстро добавить фразу
+
+editing-category = Category: <b>{ $category }</b>
+
+ Tap «БЫСТРО ДОБАВИТЬ ФРАЗУ» to add a new phrase
+ или «ДОБАВИТЬ ФРАЗУ» для добавления по шагам.
+ Tap on the phrases you want to delete and then tap DELETE SELECTION
