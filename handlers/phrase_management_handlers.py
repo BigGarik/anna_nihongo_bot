@@ -131,8 +131,8 @@ async def confirm_deletion_category_button_clicked(callback: CallbackQuery, butt
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     category_ids = dialog_manager.dialog_data['category_filled']
     for cat_id in category_ids:
-        await Category.filter(id=cat_id).delete()
         await Phrase.filter(category_id=cat_id).delete()
+        await Category.filter(id=cat_id).delete()
     # await dialog_manager.back()
     await callback.message.answer(i18n_format('deleted-categories'))
     await dialog_manager.switch_to(state=ManagementSG.start, show_mode=ShowMode.SEND)

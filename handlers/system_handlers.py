@@ -111,7 +111,8 @@ async def get_user_categories_to_manage(dialog_manager: DialogManager, **kwargs)
     user_id = dialog_manager.event.from_user.id
     categories = await Category.filter(user_id=user_id).all()
     items = [(category.name, str(category.id)) for category in categories]
-    return {'categories': items}
+    dialog_manager.dialog_data['categories'] = items
+    return dialog_manager.dialog_data
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
@@ -121,13 +122,9 @@ async def get_phrases(dialog_manager: DialogManager, **kwargs):
         category_id = dialog_manager.dialog_data['category_id']
 
     category = await Category.get_or_none(id=category_id)
-
-    if dialog_manager.dialog_data.get('phrases'):
-        phrases = dialog_manager.dialog_data['phrases']
-    else:
-        user_id = dialog_manager.event.from_user.id
-        user_phrases = await Phrase.filter(category_id=category_id, user_id=user_id).all()
-        phrases = [(phrase.text_phrase, str(phrase.id)) for phrase in user_phrases]
+    user_id = dialog_manager.event.from_user.id
+    user_phrases = await Phrase.filter(category_id=category_id, user_id=user_id).all()
+    phrases = [(phrase.text_phrase, str(phrase.id)) for phrase in user_phrases]
     if phrases:
         show_random_button = True
     else:
