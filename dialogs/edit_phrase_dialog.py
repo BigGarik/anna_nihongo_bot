@@ -99,11 +99,9 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
     comment = dialog_manager.dialog_data.get("comment")
 
     if dialog_manager.dialog_data.get("phrase_id"):
-        logger.info(f"save_phrase_button_clicked: {dialog_manager.dialog_data}")
         phrase = await Phrase.get(id=dialog_manager.dialog_data["phrase_id"])
 
     else:
-        logger.info(f"save_phrase_button_clicked: {dialog_manager.start_data}")
         phrase = await Phrase.create(text_phrase=dialog_manager.start_data["text_phrase"],
                                      category_id=dialog_manager.start_data["category_id"],
                                      spaced_phrase=dialog_manager.start_data["spaced_phrase"],
