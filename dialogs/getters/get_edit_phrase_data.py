@@ -11,16 +11,14 @@ logger = logging.getLogger('default')
 
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
-    if dialog_manager.dialog_data.get('text_phrase'):
-        return dialog_manager.dialog_data
-    elif dialog_manager.start_data.get('text_phrase'):
-        return dialog_manager.start_data
-    else:
+    if dialog_manager.start_data.get("phrase_id"):
         phrase_id = dialog_manager.start_data.get("phrase_id")
+        del dialog_manager.start_data['phrase_id']
         dialog_manager.dialog_data['phrase_id'] = phrase_id
         phrase = await Phrase.get(id=phrase_id).prefetch_related('category')
         if phrase:
             category_id = phrase.category_id
+            dialog_manager.dialog_data["category_id"] = category_id
             category = await Category.get_or_none(id=category_id)
             dialog_manager.dialog_data["category"] = category.name
             text_phrase = phrase.text_phrase
@@ -39,3 +37,47 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
             dialog_manager.dialog_data["prompt"] = prompt
 
             return dialog_manager.dialog_data
+    else:
+        response = {}
+        if dialog_manager.dialog_data.get('category_id'):
+            response['category_id'] = dialog_manager.dialog_data['category_id']
+        else:
+            response['category_id'] = dialog_manager.start_data.get('category_id')
+
+        if dialog_manager.dialog_data.get('category'):
+            response['category'] = dialog_manager.dialog_data['category']
+        else:
+            response['category'] = dialog_manager.start_data.get('category')
+
+        if dialog_manager.dialog_data.get('text_phrase'):
+            response['text_phrase'] = dialog_manager.dialog_data['text_phrase']
+        else:
+            response['text_phrase'] = dialog_manager.start_data.get('text_phrase')
+
+        if dialog_manager.dialog_data.get('spaced_phrase'):
+            response['spaced_phrase'] = dialog_manager.dialog_data['spaced_phrase']
+        else:
+            response['spaced_phrase'] = dialog_manager.start_data.get('spaced_phrase')
+
+        if dialog_manager.dialog_data.get('translation'):
+            response['translation'] = dialog_manager.dialog_data['translation']
+        else:
+            response['translation'] = dialog_manager.start_data.get('translation')
+
+        if dialog_manager.dialog_data.get('audio_id'):
+            response['audio_id'] = dialog_manager.dialog_data['audio_id']
+        else:
+            response['audio_id'] = dialog_manager.start_data.get('audio_tg_id')
+
+        if dialog_manager.dialog_data.get('image_id'):
+            response['image_id'] = dialog_manager.dialog_data['image_id']
+        else:
+            response['image_id'] = dialog_manager.start_data.get('image_id')
+
+        if dialog_manager.dialog_data.get('comment'):
+            response['comment'] = dialog_manager.dialog_data['comment']
+        else:
+            response['comment'] = dialog_manager.start_data.get('comment')
+        dialog_manager.dialog_data.update(response)
+
+        return dialog_manager.dialog_data

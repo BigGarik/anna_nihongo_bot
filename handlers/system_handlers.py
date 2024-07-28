@@ -115,13 +115,27 @@ async def get_user_categories_to_manage(dialog_manager: DialogManager, **kwargs)
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
-    category_id = dialog_manager.dialog_data['category_id']
+    print(dialog_manager.dialog_data)
+    print(dialog_manager.start_data)
+    if dialog_manager.start_data:
+        category_id = dialog_manager.start_data.get('category_id')
+    else:
+        category_id = dialog_manager.dialog_data['category_id']
+
     category = await Category.get_or_none(id=category_id)
-    phrases = dialog_manager.dialog_data['phrases']
+
+    if dialog_manager.dialog_data.get('phrases'):
+        phrases = dialog_manager.dialog_data['phrases']
+    else:
+        user_id = dialog_manager.event.from_user.id
+        user_phrases = await Phrase.filter(category_id=category_id, user_id=user_id).all()
+        phrases = [(phrase.text_phrase, str(phrase.id)) for phrase in user_phrases]
     if phrases:
         show_random_button = True
     else:
         show_random_button = False
+    if dialog_manager.start_data:
+        dialog_manager.start_data.popitem()
     return {'phrases': phrases, 'category': category.name, 'show_random_button': show_random_button}
 
 

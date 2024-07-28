@@ -110,16 +110,15 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
                                      user_id=dialog_manager.event.from_user.id)
     if not translation:
         translation = dialog_manager.start_data.get("translation")
-    if audio_id:
+    if not audio_id:
         audio_id = dialog_manager.start_data.get("audio_tg_id")
-    if image_id:
+    if not image_id:
         image_id = dialog_manager.start_data.get("image_id")
-    if comment:
+    if not comment:
         comment = dialog_manager.start_data.get("comment")
 
     if translation:
         phrase.translation = translation
-
     if audio_id:
         phrase.audio_id = audio_id
     if image_id:
@@ -127,8 +126,8 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
     if comment:
         phrase.comment = comment
     await phrase.save()
-    await dialog_manager.done()
-    await dialog_manager.start(state=ManagementSG.select_phrase)
+    # await dialog_manager.done()
+    await dialog_manager.start(state=ManagementSG.select_phrase, data=dialog_manager.dialog_data)
 
 
 async def back_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

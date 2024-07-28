@@ -37,22 +37,30 @@ async def get_phrases_for_delite(dialog_manager: DialogManager, **kwargs):
 
 async def quick_add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-    if dialog_manager.dialog_data.get('phrases_count') > 15:
+    if dialog_manager.dialog_data.get('category_id'):
+        category_id = dialog_manager.dialog_data['category_id']
+    else:
+        category_id = dialog_manager.start_data.get('category_id')
+    phrases = await Phrase.filter(category_id=category_id, user_id=dialog_manager.event.from_user.id).all()
+    count = len(phrases)
+    if count > 15:
         await callback.answer(i18n_format('phrase-limit'), show_alert=True)
     else:
-        category_id = dialog_manager.dialog_data['category_id']
-        await dialog_manager.start(state=SmartPhraseAdditionSG.start, data={"category_id": category_id},
-                                   show_mode=ShowMode.DELETE_AND_SEND)
+        await dialog_manager.start(state=SmartPhraseAdditionSG.start, data={"category_id": category_id})
 
 
 async def add_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-    if dialog_manager.dialog_data.get('phrases_count') > 15:
+    if dialog_manager.dialog_data.get('category_id'):
+        category_id = dialog_manager.dialog_data['category_id']
+    else:
+        category_id = dialog_manager.start_data.get('category_id')
+    phrases = await Phrase.filter(category_id=category_id, user_id=dialog_manager.event.from_user.id).all()
+    count = len(phrases)
+    if count > 15:
         await callback.answer(i18n_format('phrase-limit'), show_alert=True)
     else:
-        category_id = dialog_manager.dialog_data['category_id']
-        await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id},
-                                   show_mode=ShowMode.DELETE_AND_SEND)
+        await dialog_manager.start(state=AddOriginalPhraseSG.text_phrase, data={"category_id": category_id})
 
 
 async def category_filled(callback: CallbackQuery, checkbox: ManagedMultiselect, dialog_manager: DialogManager, *args,

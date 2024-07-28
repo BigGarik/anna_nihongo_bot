@@ -43,17 +43,36 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
         if phrase:
             await bot.send_message(message.chat.id, i18n_format("already-added-this-phrase"))
         else:
-            spaced_phrase = openai_gpt_add_space(text_phrase)
+            try:
+                spaced_phrase = openai_gpt_add_space(text_phrase)
+            except Exception as e:
+                logger.error('Ошибка при попытке добавления пробелов: %s', e)
+                spaced_phrase = text_phrase
+            try:
+                translation = openai_gpt_translate(text_phrase)
+            except Exception as e:
+                logger.error('Ошибка при попытке перевода: %s', e)
+                translation = text_phrase
 
-            translation = openai_gpt_translate(text_phrase)
+            try:
+                text_to_speech = await google_text_to_speech(text_phrase)
+                voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
+            except Exception as e:
+                logger.error('Ошибка при попытке генерации голоса: %s', e)
+                voice = None
+            if voice:
+                i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+                msg = await message.answer_voice(voice=voice, caption=i18n_format("voice-acting"))
+                voice_id = msg.voice.file_id
+            else:
+                voice_id = None
 
-            text_to_speech = await google_text_to_speech(text_phrase)
-            voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
-            i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-            msg = await message.answer_voice(voice=voice, caption=i18n_format("voice-acting"))
-            voice_id = msg.voice.file_id
             await message.answer(i18n_format("starting-generate-image"))
-            images = generate_image(prompt=translation)
+            try:
+                images = generate_image(prompt=translation)
+            except Exception as e:
+                logger.error('Ошибка при попытке генерации изображения: %s', e)
+                images = None
             if images and len(images) > 0:
                 # Декодируем изображение из Base64
                 image_data = base64.b64decode(images[0])
@@ -71,7 +90,7 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
             dialog_manager.dialog_data["audio_tg_id"] = voice_id
             dialog_manager.dialog_data["image_id"] = image_id
             dialog_manager.dialog_data["comment"] = ''
-            print(dialog_manager.dialog_data)
+            # print(dialog_manager.dialog_data)
 
             await dialog_manager.next()
 
