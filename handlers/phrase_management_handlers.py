@@ -128,20 +128,28 @@ async def back_phrases_to_be_deleted(callback: CallbackQuery, button: Button, di
 
 async def confirm_deletion_category_button_clicked(callback: CallbackQuery, button: Button,
                                                    dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     category_ids = dialog_manager.dialog_data['category_filled']
     for cat_id in category_ids:
         await Category.filter(id=cat_id).delete()
         await Phrase.filter(category_id=cat_id).delete()
-    await dialog_manager.back()
-    await dialog_manager.switch_to(state=ManagementSG.start)
+    # await dialog_manager.back()
+    await callback.message.answer(i18n_format('deleted-categories'))
+    await dialog_manager.switch_to(state=ManagementSG.start, show_mode=ShowMode.SEND)
+
 
 
 async def confirm_deletion_phrase_button_clicked(callback: CallbackQuery, button: Button,
                                                  dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     phrase_ids = dialog_manager.dialog_data['phrases_filled']
     for phrase_id in phrase_ids:
         await Phrase.filter(id=phrase_id).delete()
-    await dialog_manager.switch_to(state=ManagementSG.start)
+    # await dialog_manager.done()
+    await callback.message.answer(i18n_format('deleted-phrases'))
+    await dialog_manager.switch_to(state=ManagementSG.select_phrase, show_mode=ShowMode.SEND)
+
+
 
 
 management_dialog = Dialog(

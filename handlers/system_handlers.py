@@ -115,8 +115,6 @@ async def get_user_categories_to_manage(dialog_manager: DialogManager, **kwargs)
 
 
 async def get_phrases(dialog_manager: DialogManager, **kwargs):
-    print(dialog_manager.dialog_data)
-    print(dialog_manager.start_data)
     if dialog_manager.start_data:
         category_id = dialog_manager.start_data.get('category_id')
     else:

@@ -373,3 +373,7 @@ editing-category = Category: <b>{ $category }</b>
  Tap on the phrases you want to delete and then tap DELETE SELECTION
 
 edit-phrase-button = ✏️ Edit
+
+deleted-phrases = Фразы удалены.
+
+deleted-categories = Категории удалены.

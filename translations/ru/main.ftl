@@ -366,3 +366,7 @@ subscription-expired = Ваша подписка истекла.
 quick-add-phrase-button = ➕ Быстро добавить фразу
 
 edit-phrase-button = ✏️ Редактировать
+
+deleted-phrases = Фразы удалены.
+
+deleted-categories = Категории удалены.
