@@ -288,7 +288,8 @@ image-to-edit = Изображение
 
 comment-to-edit = Комментарий
 
-send-text-phrase-to-edit = Отправь текст фразы для изменения
+send-text-phrase-to-edit = <b>Текст:</b> { $text_phrase }
+ Отправь новый текст фразы
 
 send-translation-to-edit = Отправь перевод для изменения
 
@@ -370,3 +371,9 @@ edit-phrase-button = ✏️ Редактировать
 deleted-phrases = Фразы удалены.
 
 deleted-categories = Категории удалены.
+
+deleted-image = Изображение удалено.
+
+delite-image-button = Удалить изображение
+
+new-voice-acting = Новая озвучка

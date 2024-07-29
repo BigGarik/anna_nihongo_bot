@@ -46,7 +46,8 @@ async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dial
         logger.error('Ошибка при генерации изображения: %s', e)
         await callback.message.answer(text=i18n_format("failed-generate-image"))
 
-    await dialog_manager.show(show_mode=ShowMode.SEND)
+    # await dialog_manager.show(show_mode=ShowMode.SEND)
+    dialog_manager.show_mode = ShowMode.SEND
 
 
 async def start_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
@@ -101,7 +102,7 @@ async def get_user_categories(dialog_manager: DialogManager, **kwargs):
     categories = await Category.filter(user_id=user_id).prefetch_related('phrases').filter(phrases__isnull=False).distinct()
     items = [(category.name, str(category.id)) for category in categories]
 
-    categories_for_all = await Category.filter(public=True).prefetch_related('phrases').filter(phrases__isnull=False).distinct()
+    categories_for_all = await Category.filter(public=True).exclude(user_id=user_id).prefetch_related('phrases').filter(phrases__isnull=False).distinct()
     cat_for_all = [(category.name, str(category.id)) for category in categories_for_all]
 
     return {'categories': items, 'categories_for_all': cat_for_all}

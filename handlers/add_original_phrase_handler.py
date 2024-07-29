@@ -193,14 +193,26 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
             # Отправляем изображение
             msg = await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
             image_id = msg.photo[-1].file_id
+            image_msg_id = msg.message_id
+            dialog_manager.dialog_data['image_msg_id'] = image_msg_id
             dialog_manager.dialog_data["image_id"] = image_id
         else:
             await callback.message.answer(i18n_format("failed-generate-image"))
-        await dialog_manager.show(show_mode=ShowMode.SEND)
+        dialog_manager.show_mode = ShowMode.SEND
+        # await dialog_manager.show(show_mode=ShowMode.SEND)
     except Exception as e:
         await callback.message.answer(text=i18n_format("failed-generate-image"))
-        await dialog_manager.show(show_mode=ShowMode.SEND)
+        dialog_manager.show_mode = ShowMode.SEND
         logger.error('Ошибка при генерации изображения: %s', e)
+
+
+async def delite_image_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data.pop('image_id')
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    await callback.message.answer(i18n_format("deleted-image"))
+    await bot.delete_message(chat_id=dialog_manager.event.from_user.id,
+                             message_id=dialog_manager.dialog_data['image_msg_id'])
+    dialog_manager.show_mode = ShowMode.SEND
 
 
 async def comment_input(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, comment: str):
@@ -330,9 +342,9 @@ add_original_phrase_dialog = Dialog(
             id="ai_image",
             on_click=ai_image),
         Button(
-            I18NFormat("repeat"),
-            id="repeat_generate_image_button",
-            on_click=repeat_ai_generate_image,
+            I18NFormat("delite-image-button"),
+            id="delite_image",
+            on_click=delite_image_button_clicked,
             when="is_prompt",
         ),
         Group(

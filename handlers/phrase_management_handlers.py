@@ -86,11 +86,14 @@ async def category_selected(callback: CallbackQuery, widget: Select, dialog_mana
 
 async def phrase_selected(callback: CallbackQuery, widget: Select, dialog_manager: DialogManager, item_id: str):
     phrase = await Phrase.get(id=item_id)
+    response = {"phrase_id": item_id}
     if phrase.image_id:
-        await callback.message.answer_photo(photo=phrase.image_id)
+        msg_photo = await callback.message.answer_photo(photo=phrase.image_id)
+        response['msg_photo_id'] = msg_photo.message_id
     if phrase.audio_id:
-        await callback.message.answer_audio(audio=phrase.audio_id)
-    await dialog_manager.start(state=EditPhraseSG.start, show_mode=ShowMode.DELETE_AND_SEND, data={"phrase_id": item_id})
+        msg_audio = await callback.message.answer_audio(audio=phrase.audio_id)
+        response['msg_audio_id'] = msg_audio.message_id
+    await dialog_manager.start(state=EditPhraseSG.start, show_mode=ShowMode.DELETE_AND_SEND, data=response)
 
 
 async def select_phrase_for_delete_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

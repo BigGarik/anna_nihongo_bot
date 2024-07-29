@@ -37,10 +37,10 @@ async def error_handler(event: ErrorEvent):
             intent_id = intent_id_match.group(1)
 
             # Поиск и удаление ключа в Redis
-            for key in redis.scan_iter("*"):
-                value = redis.get(key)
+            async for key in redis.scan_iter("*"):
+                value = await redis.get(key)
                 if value and intent_id.encode() in value:
-                    redis.delete(key)
+                    await redis.delete(key)
                     logger.info(f"Удален ключ из Redis: {key}")
                     break
             else:

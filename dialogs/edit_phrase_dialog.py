@@ -9,9 +9,11 @@ from aiogram_dialog.widgets.kbd import Group, Cancel, Button
 from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
 
+from bot_init import bot
 from dialogs.getters.get_edit_phrase_data import get_data
+from external_services.google_cloud_services import google_text_to_speech
 from external_services.kandinsky import generate_image
-from models import Phrase
+from models import Phrase, AudioFile
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import EditPhraseSG, ManagementSG
 
@@ -49,13 +51,34 @@ async def input_audio(message: Message, widget: MessageInput, dialog_manager: Di
     await dialog_manager.switch_to(EditPhraseSG.start)
 
 
+async def ai_voice_message(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    text_phrase = dialog_manager.dialog_data["text_phrase"]
+
+    text_to_speech = await google_text_to_speech(text_phrase)
+    voice = BufferedInputFile(text_to_speech.audio_content, filename="voice_tts.ogg")
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    msg = await callback.message.answer_voice(voice=voice, caption=i18n_format("new-voice-acting"))
+
+    dialog_manager.dialog_data["audio_id"] = msg.voice.file_id
+    dialog_manager.show_mode = ShowMode.SEND
+    await dialog_manager.switch_to(EditPhraseSG.start)
+
+
 async def change_image_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    image_id = dialog_manager.dialog_data["image_id"]
+    msg = await callback.message.answer_photo(photo=image_id)
+    dialog_manager.dialog_data["msg_photo_id"] = msg.message_id
+    dialog_manager.show_mode = ShowMode.SEND
     await dialog_manager.switch_to(EditPhraseSG.image)
 
 
 async def input_image(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     image_id = message.photo[-1].file_id
     dialog_manager.dialog_data["image_id"] = image_id
+    msg_photo_id = dialog_manager.dialog_data["msg_photo_id"]
+    await bot.delete_message(chat_id=dialog_manager.event.from_user.id,
+                             message_id=msg_photo_id)
+    dialog_manager.show_mode = ShowMode.SEND
     await dialog_manager.switch_to(EditPhraseSG.start)
 
 
@@ -67,6 +90,10 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     try:
         images = generate_image(prompt=prompt)
         if images and len(images) > 0:
+            msg_photo_id = dialog_manager.dialog_data["msg_photo_id"]
+            # Удаляем предыдущее изображение
+            await bot.delete_message(chat_id=dialog_manager.event.from_user.id,
+                                     message_id=msg_photo_id)
             # Декодируем изображение из Base64
             image_data = base64.b64decode(images[0])
             image = BufferedInputFile(image_data, filename="image.png")
@@ -74,13 +101,27 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
             msg = await callback.message.answer_photo(photo=image, caption=i18n_format("generated-image"))
             image_id = msg.photo[-1].file_id
             dialog_manager.dialog_data["image_id"] = image_id
+            dialog_manager.dialog_data["msg_photo_id"] = msg.message_id
+
         else:
             await callback.message.answer(i18n_format("failed-generate-image"))
-        await dialog_manager.show(show_mode=ShowMode.SEND)
+        dialog_manager.show_mode = ShowMode.SEND
+        await dialog_manager.switch_to(EditPhraseSG.start)
     except Exception as e:
         await callback.message.answer(text=i18n_format("failed-generate-image"))
-        await dialog_manager.show(show_mode=ShowMode.SEND)
+        dialog_manager.show_mode = ShowMode.SEND
         logger.error('Ошибка при генерации изображения: %s', e)
+
+
+async def delite_image_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    dialog_manager.dialog_data.pop('image_id')
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    await callback.message.answer(i18n_format("deleted-image"))
+    msg_photo_id = dialog_manager.dialog_data['msg_photo_id']
+    dialog_manager.dialog_data.pop('msg_photo_id')
+    await bot.delete_message(chat_id=dialog_manager.event.from_user.id,
+                             message_id=msg_photo_id)
+    dialog_manager.show_mode = ShowMode.SEND
 
 
 async def change_comment_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -200,6 +241,7 @@ edit_phrase_dialog = Dialog(
             func=input_audio,
             content_types=[ContentType.AUDIO, ContentType.VOICE],
         ),
+        Button(I18NFormat("voice-with-ai-button"), id="voice_message", on_click=ai_voice_message),
         Button(I18NFormat("back"), id="back", on_click=back_button_clicked),
         getter=get_data,
         state=EditPhraseSG.audio
@@ -214,6 +256,12 @@ edit_phrase_dialog = Dialog(
             I18NFormat("generate-image-button"),
             id="ai_image",
             on_click=ai_image),
+        Button(
+            I18NFormat("delite-image-button"),
+            id="delite_image",
+            on_click=delite_image_button_clicked,
+            when="msg_photo_id",
+        ),
         Button(I18NFormat("back"), id="back", on_click=back_button_clicked),
         getter=get_data,
         state=EditPhraseSG.image

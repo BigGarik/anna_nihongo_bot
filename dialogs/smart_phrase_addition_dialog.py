@@ -67,30 +67,13 @@ async def text_phrase_input(message: Message, widget: ManagedTextInput, dialog_m
             else:
                 voice_id = None
 
-            # await message.answer(i18n_format("starting-generate-image"))
-            # try:
-            #     images = generate_image(prompt=translation)
-            # except Exception as e:
-            #     logger.error('Ошибка при попытке генерации изображения: %s', e)
-            #     images = None
-            # if images and len(images) > 0:
-            #     # Декодируем изображение из Base64
-            #     image_data = base64.b64decode(images[0])
-            #     image = BufferedInputFile(image_data, filename="image.png")
-            #     # Отправляем изображение
-            #     msg = await message.answer_photo(photo=image, caption=i18n_format("generated-image"))
-            #     image_id = msg.photo[-1].file_id
-            # else:
-            #     image_id = None
-
             dialog_manager.dialog_data["category_id"] = dialog_manager.start_data["category_id"]
             dialog_manager.dialog_data["text_phrase"] = text_phrase
             dialog_manager.dialog_data["spaced_phrase"] = spaced_phrase
             dialog_manager.dialog_data["translation"] = translation
+            dialog_manager.dialog_data["prompt"] = translation
             dialog_manager.dialog_data["audio_tg_id"] = voice_id
-            # dialog_manager.dialog_data["image_id"] = image_id
             dialog_manager.dialog_data["comment"] = ''
-            # print(dialog_manager.dialog_data)
 
             await dialog_manager.next()
 
@@ -131,7 +114,6 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
 
 async def edit_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.start(state=EditPhraseSG.start, data=dialog_manager.dialog_data)
-    # await dialog_manager.start(state=EditPhraseSG.start, show_mode=ShowMode.DELETE_AND_SEND, data=dialog_manager.dialog_data)
 
 
 smart_phrase_addition_dialog = Dialog(
