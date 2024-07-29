@@ -48,3 +48,15 @@ def openai_gpt_translate(text):
                    "content": f"translate this text into Russian: {text}. answer only with translation"}]
     )
     return completion.choices[0].message.content
+
+
+def openai_gpt_get_phrase_from_text(text):
+    client = OpenAI() if proxy_url is None or proxy_url == "" else OpenAI(http_client=httpx.Client(proxy=proxy_url))
+    completion = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user",
+                   "content": f"выбери из текста 5 фраз из 2-3 слов содержащих прилагательные и глаголы. фразы не "
+                              f"должны содержать имена собственные. Текст: {text}. составь пары фраза-перевод на "
+                              f"русский. в ответ пришли только полученные фразы. пример: たくさん降っています - много идет"}]
+    )
+    return completion.choices[0].message.content

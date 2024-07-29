@@ -1,4 +1,5 @@
 import os
+import random
 from datetime import datetime
 import gspread
 import requests
@@ -14,7 +15,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import urljoin
 
-from openai_services import openai_gpt_translate
+from openai_services import openai_gpt_translate, openai_gpt_get_phrase_from_text
 
 
 def fetch_webpage_with_js(url):
@@ -90,6 +91,25 @@ def parse_news(html, base_url):
     return parsed_news
 
 
+def get_random_today_news(news_list):
+    today = datetime.now().date()
+    today_news = []
+
+    for news in news_list:
+        try:
+            news_date = datetime.strptime(news.get('date'), "%Y-%m-%d %H:%M:%S").date()
+            if news_date == today:
+                today_news.append(news)
+        except ValueError:
+            print(f"Неправильный формат даты: {news.get('date')}")
+            continue
+
+    if today_news:
+        return random.choice(today_news)
+    else:
+        return None
+
+
 def get_news():
     base_url = "https://www3.nhk.or.jp"
     url = f"{base_url}/news/easy/"
@@ -99,40 +119,29 @@ def get_news():
         news_list = parse_news(html_content, base_url)
 
         if news_list:
-            # Аутентификация в Google Sheets
-            scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-            creds = Credentials.from_service_account_file('../anna-nihongo-bot-96c6f518f0cd.json', scopes=scope)
-            client = gspread.authorize(creds)
+            random_today_news = get_random_today_news(news_list)
+            if random_today_news:
+                # Аутентификация в Google Sheets
+                scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+                creds = Credentials.from_service_account_file('../anna-nihongo-bot-96c6f518f0cd.json', scopes=scope)
+                client = gspread.authorize(creds)
 
-            # Открываем таблицу (замените 'Your Google Sheet Name' на имя вашей таблицы)
-            sheet = client.open('news_nhk_or_jp').sheet1
-            # TODO получить перевод
-            # TODO получить 5 фраз из новости
-
-            print(f"Найдено {len(news_list)} новостей:")
-            for i, news in enumerate(news_list, 1):
-                news_date = datetime.strptime(news.get('date'), "%Y-%m-%d %H:%M:%S").date()
-                today = datetime.now().date()
-                if news_date == today:
-                    translated_text = openai_gpt_translate(news.get('full_text'))
-                    row = [
-                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                        news.get('title', 'Нет заголовка'),
-                        news.get('link', 'Нет ссылки'),
-                        news.get('image', 'Нет изображения'),
-                        news.get('date', 'Нет даты'),
-                        news.get('full_text', 'Не удалось получить полный текст'),
-                        translated_text,
-                        # TODO: Добавьте сюда перевод и 5 фраз, когда они будут реализованы
-                    ]
-                    sheet.append_row(row)
-                    # print(f"\nНовость {i}:")
-                    print(f"Заголовок: {news.get('title')}")
-                    # print(f"Ссылка: {news.get('link', 'Нет ссылки')}")
-                    # print(f"Изображение: {news.get('image', 'Нет изображения')}")
-                    # print(f"Дата: {news.get('date', 'Нет даты')}")
-                    # print(f"Полный текст: {news.get('full_text', 'Не удалось получить полный текст')}")
-                    break
+                # Открываем таблицу (замените 'Your Google Sheet Name' на имя вашей таблицы)
+                sheet = client.open('news_nhk_or_jp').sheet1
+                translated_text = openai_gpt_translate(random_today_news.get('full_text'))
+                dictionary = openai_gpt_get_phrase_from_text(random_today_news.get('full_text'))
+                row = [
+                    datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    random_today_news.get('title', 'Нет заголовка'),
+                    random_today_news.get('link', 'Нет ссылки'),
+                    random_today_news.get('image', 'Нет изображения'),
+                    random_today_news.get('date', 'Нет даты'),
+                    random_today_news.get('full_text', 'Не удалось получить полный текст'),
+                    translated_text,
+                    dictionary,
+                ]
+                sheet.append_row(row)
+                print(f"Словарь: {dictionary}")
         else:
             print("Новости не найдены. Возможно, структура страницы снова изменилась.")
     else:
