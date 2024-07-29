@@ -14,7 +14,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
 from urllib.parse import urljoin
 
-from external_services.openai_services import openai_gpt_translate
+from openai_services import openai_gpt_translate
 
 
 def fetch_webpage_with_js(url):
