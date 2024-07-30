@@ -12,13 +12,11 @@ logger = logging.getLogger('default')
 
 async def get_data(dialog_manager: DialogManager, **kwargs):
     # Если есть ключ phrase_id в старт дата значит перешли из менеджера фраз
-
     if dialog_manager.start_data.get("phrase_id"):
         msg_photo_id = dialog_manager.start_data.get("msg_photo_id")
         msg_audio_id = dialog_manager.start_data.get("msg_audio_id")
         phrase_id = dialog_manager.start_data.get("phrase_id")
-        dialog_manager.start_data.popitem()
-        # del dialog_manager.start_data['phrase_id']
+        dialog_manager.start_data.clear()
         dialog_manager.dialog_data['phrase_id'] = phrase_id
         if msg_photo_id:
             dialog_manager.dialog_data['msg_photo_id'] = msg_photo_id
@@ -44,7 +42,6 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
                 dialog_manager.dialog_data["image_id"] = image_id
             prompt = phrase.translation or phrase.text_phrase
             dialog_manager.dialog_data["prompt"] = prompt
-
             return dialog_manager.dialog_data
     # Иначе перешли из диалога добавления фразы и она еще не сохранена в базе данных
     else:
@@ -94,5 +91,5 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
         else:
             response['comment'] = dialog_manager.start_data.get('comment')
         dialog_manager.dialog_data.update(response)
-
         return dialog_manager.dialog_data
+

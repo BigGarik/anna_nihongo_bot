@@ -13,6 +13,7 @@ from bot_init import bot
 from dialogs.getters.get_edit_phrase_data import get_data
 from external_services.google_cloud_services import google_text_to_speech
 from external_services.kandinsky import generate_image
+from external_services.openai_services import openai_gpt_add_space
 from models import Phrase, AudioFile
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import EditPhraseSG, ManagementSG
@@ -26,9 +27,13 @@ async def change_text_phrase_button_clicked(callback: CallbackQuery, button: But
 
 
 async def input_text_phrase(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text_phrase: str):
-    # print(text_phrase)
     dialog_manager.dialog_data["text_phrase"] = text_phrase
-    # print(dialog_manager.dialog_data["text_phrase"])
+    try:
+        spaced_phrase = openai_gpt_add_space(text_phrase)
+    except Exception as e:
+        logger.error('Ошибка при попытке добавления пробелов: %s', e)
+        spaced_phrase = text_phrase
+    dialog_manager.dialog_data["spaced_phrase"] = spaced_phrase
     await dialog_manager.switch_to(EditPhraseSG.start)
 
 
@@ -134,19 +139,22 @@ async def input_comment(message: Message, widget: ManagedTextInput, dialog_manag
 
 
 async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    text_phrase = dialog_manager.dialog_data.get("text_phrase")
+    spaced_phrase = dialog_manager.dialog_data.get("spaced_phrase")
     translation = dialog_manager.dialog_data.get("translation")
     audio_id = dialog_manager.dialog_data.get("audio_id")
     image_id = dialog_manager.dialog_data.get("image_id")
     comment = dialog_manager.dialog_data.get("comment")
-
+    # Если редактируем существующую фразу
     if dialog_manager.dialog_data.get("phrase_id"):
         phrase = await Phrase.get(id=dialog_manager.dialog_data["phrase_id"])
-
+    # Если редактируем новую фразу, добавляем фразу
     else:
         phrase = await Phrase.create(text_phrase=dialog_manager.start_data["text_phrase"],
                                      category_id=dialog_manager.start_data["category_id"],
                                      spaced_phrase=dialog_manager.start_data["spaced_phrase"],
                                      user_id=dialog_manager.event.from_user.id)
+
     if not translation:
         translation = dialog_manager.start_data.get("translation")
     if not audio_id:
@@ -156,6 +164,10 @@ async def save_phrase_button_clicked(callback: CallbackQuery, button: Button, di
     if not comment:
         comment = dialog_manager.start_data.get("comment")
 
+    if text_phrase:
+        phrase.text_phrase = text_phrase
+    if spaced_phrase:
+        phrase.spaced_phrase = spaced_phrase
     if translation:
         phrase.translation = translation
     if audio_id:
