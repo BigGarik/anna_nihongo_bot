@@ -19,20 +19,29 @@ from states import PronunciationTrainingSG
 from ..system_handlers import category_selected, get_user_categories, get_phrases
 
 
+async def get_again(dialog_manager: DialogManager, **kwargs):
+    return dialog_manager.dialog_data
+
+
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     phrase = await Phrase.get_or_none(id=item_id)
     dialog_manager.dialog_data['phrase_id'] = phrase.id
+    dialog_manager.dialog_data['first'] = True
+    dialog_manager.dialog_data['again'] = False
     # отправить изображение и голосовое с подписью
     if phrase.image_id:
         await callback.message.answer_photo(phrase.image_id)
-    await callback.message.answer_voice(phrase.audio_id,
-                                        caption=i18n_format('listen-original'))
-    await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
+    await callback.message.answer_voice(phrase.audio_id)  # , caption=i18n_format('listen-original'))
+
+    dialog_manager.show_mode = ShowMode.SEND
+    await dialog_manager.next()
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    dialog_manager.dialog_data['first'] = True
+    dialog_manager.dialog_data['again'] = False
     phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
     if dialog_manager.dialog_data.get('phrase_id'):
         phrase_id = dialog_manager.dialog_data['phrase_id']
@@ -51,6 +60,8 @@ async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    dialog_manager.dialog_data['again'] = True
+    dialog_manager.dialog_data['first'] = False
     await message.answer(i18n_format('processing-message'))
     phrase_id = dialog_manager.dialog_data['phrase_id']
     phrase = await Phrase.get_or_none(id=phrase_id)
@@ -158,7 +169,8 @@ pronunciation_training_dialog = Dialog(
         state=PronunciationTrainingSG.select_phrase
     ),
     Window(
-        I18NFormat('try-again'),
+        I18NFormat('listen-original', when='first'),
+        I18NFormat('try-again', when='again'),
         MessageInput(
             func=answer_audio_handler,
             content_types=ContentType.VOICE,
@@ -172,6 +184,7 @@ pronunciation_training_dialog = Dialog(
             Cancel(I18NFormat('cancel'), id='button_cancel'),
             width=3
         ),
+        getter=get_again,
         state=PronunciationTrainingSG.waiting_answer
     ),
 )
