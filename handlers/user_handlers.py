@@ -15,7 +15,7 @@ from keyboards.reply_kb import get_keyboard
 from keyboards.set_menu import get_localized_menu
 from models import User, Subscription
 from models.main import MainPhoto
-from services.create_update_user import update_user_info, create_user
+from services.create_update_user import update_user_info
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.interval_training import start_training
 from services.services import is_admin
@@ -62,7 +62,6 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
         await update_user_info(message)
     else:
         new_user = True
-        await create_user(message)
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     user_menu = await get_localized_menu(i18n_format)
     chat_id = message.chat.id

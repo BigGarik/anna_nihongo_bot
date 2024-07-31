@@ -7,6 +7,11 @@ class UserGroup(models.Model):
 
 
 class User(models.Model):
+    USER_STATUS_CHOICES = [
+        ('active', 'Active'),
+        ('blocked', 'Blocked'),
+    ]
+
     id = fields.BigIntField(pk=True)
     username = fields.CharField(max_length=100, null=True)
     first_name = fields.CharField(max_length=100, null=True)
@@ -16,6 +21,8 @@ class User(models.Model):
     updated_at = fields.DatetimeField(auto_now=True)
     language = fields.CharField(max_length=10, default='en')
     notifications = fields.BooleanField(default=False)
+    user_status = fields.CharField(max_length=10, choices=USER_STATUS_CHOICES, default='active')
+
 
     def __str__(self):
         return f"{self.first_name}"
