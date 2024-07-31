@@ -53,7 +53,8 @@ async def select_phrase_for_interval_training(user_id, dialog_manager: DialogMan
     now = datetime.now(pytz.UTC)
 
     # 1. Выбираем все фразы из категории
-    all_phrases = await Phrase.filter(user_id=user_id).all()
+    # all_phrases = await Phrase.filter(user_id=user_id).all()
+    all_phrases = await Phrase.filter(user_id=user_id, category__public=False).prefetch_related('category')
 
     # 2. Исключаем последнюю введенную фразу, если она есть
     last_phrase = dialog_manager.dialog_data.get('question')

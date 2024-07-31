@@ -1,13 +1,18 @@
 import logging
+import os
 import re
 
-from aiogram import Router
-from aiogram.exceptions import TelegramAPIError
+from aiogram import Router, Bot
+from aiogram.filters import ChatMemberUpdatedFilter, KICKED
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, Update, ErrorEvent
+from aiogram.types import CallbackQuery, Message, ErrorEvent, ChatMemberUpdated
+from dotenv import load_dotenv
 
 from bot_init import redis
 from lexicon.lexicon_ru import LEXICON_RU
+
+load_dotenv()
+admin_ids = os.getenv('ADMIN_IDS')
 
 # Инициализируем роутер уровня модуля
 router = Router()
@@ -18,6 +23,19 @@ logger = logging.getLogger('default')
 @router.callback_query()
 async def process_phrase(callback: CallbackQuery):
     await callback.message.answer(text=callback.data)
+
+
+@router.my_chat_member(ChatMemberUpdatedFilter(member_status_changed=KICKED))
+async def kick_member_bot(event: ChatMemberUpdated, bot: Bot):
+    message_for_admin = (
+        f'🤖 <b>Пользователь заблокировал бота</b>\n'
+        f'[id: {event.from_user.id}]\n'
+        f'[first name: {event.from_user.first_name}]\n'
+        f'[last name: {event.from_user.last_name}]\n'
+        f'[username: {event.from_user.username}]\n'
+    )
+    for admin_id in admin_ids.split(','):
+        await bot.send_message(chat_id=admin_id, text=message_for_admin)
 
 
 # Этот хэндлер будет срабатывать на любые сообщения

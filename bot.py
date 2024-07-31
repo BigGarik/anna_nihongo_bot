@@ -70,7 +70,7 @@ async def on_startup(app):
     scheduler.add_job(check_subscriptions, 'cron', hour=11, minute=0, misfire_grace_time=3600)
     scheduler.add_job(auto_renewal_subscriptions, 'cron', hour=12, minute=0, misfire_grace_time=3600)
     scheduler.add_job(interval_notifications, "interval", minutes=5, misfire_grace_time=3600)
-    scheduler.add_job(check_subscriptions, "interval", minutes=1, misfire_grace_time=3600)
+    # scheduler.add_job(check_subscriptions, "interval", minutes=1, misfire_grace_time=3600)
     scheduler.start()
 
     # Сохраните планировщик в app для последующего доступа
