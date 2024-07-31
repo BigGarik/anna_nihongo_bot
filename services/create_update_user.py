@@ -55,15 +55,15 @@ async def update_user_info(message) -> None:
         user.last_name = message.from_user.last_name
         await user.save()
         # Отправляем админам информацию о вернувшемся пользователе
-        message_for_admin = (
-            f'🤖 <b>Пользователь снова с нами</b>\n'
-            f'[id: {message.from_user.id}]\n'
-            f'[first name: {message.from_user.first_name}]\n'
-            f'[last name: {message.from_user.last_name}]\n'
-            f'[username: {message.from_user.username}]\n'
-        )
-        for admin_id in admin_ids.split(','):
-            await bot.send_message(chat_id=admin_id, text=message_for_admin)
+        # message_for_admin = (
+        #     f'🤖 <b>Пользователь снова с нами</b>\n'
+        #     f'[id: {message.from_user.id}]\n'
+        #     f'[first name: {message.from_user.first_name}]\n'
+        #     f'[last name: {message.from_user.last_name}]\n'
+        #     f'[username: {message.from_user.username}]\n'
+        # )
+        # for admin_id in admin_ids.split(','):
+        #     await bot.send_message(chat_id=admin_id, text=message_for_admin)
         logger.debug(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
                      f"{message.from_user.last_name} обновлен.")
     except Exception as e:
