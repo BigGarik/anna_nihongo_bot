@@ -267,7 +267,9 @@ edit_phrase_dialog = Dialog(
         Button(
             I18NFormat("generate-image-button"),
             id="ai_image",
-            on_click=ai_image),
+            on_click=ai_image,
+            when='is_subscriber',
+        ),
         Button(
             I18NFormat("delite-image-button"),
             id="delite_image",

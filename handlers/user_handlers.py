@@ -113,12 +113,13 @@ async def process_phrase_management(message: Message, dialog_manager: DialogMana
     chat_id = message.chat.id
     await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
     await update_or_create_user(message)
-    subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
-    if subscription:
-        if subscription.type_subscription.name == 'Free':
-            await message.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
-        else:
-            await dialog_manager.start(state=ManagementSG.start, mode=StartMode.RESET_STACK)
+    await dialog_manager.start(state=ManagementSG.start, mode=StartMode.RESET_STACK)
+    # subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
+    # if subscription:
+    #     if subscription.type_subscription.name == 'Free':
+    #         await message.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
+    #     else:
+    #         await dialog_manager.start(state=ManagementSG.start, mode=StartMode.RESET_STACK)
 
 
 @router.message(lambda message: message.text in ["📈 Мой прогресс",

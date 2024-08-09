@@ -17,7 +17,7 @@ from models import Phrase, Category, AudioFile, User
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import SmartPhraseAdditionSG, EditPhraseSG
 
-load_dotenv()
+
 logger = logging.getLogger('default')
 
 

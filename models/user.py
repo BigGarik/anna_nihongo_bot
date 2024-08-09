@@ -44,3 +44,9 @@ class UserProgress(models.Model):
     date = fields.DateField()
     score = fields.IntField()
 
+    class Meta:
+        unique_together = (("user", "date"),)
+        table = "userprogress"
+
+    def __str__(self):
+        return f"Progress for {self.user.username} on {self.date}: {self.score}"

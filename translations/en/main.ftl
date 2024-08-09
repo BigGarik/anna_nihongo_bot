@@ -254,7 +254,7 @@ add-audio-info-second = Check the sound and tap <b>CONTINUE</b> or send me anoth
 
 voice-with-ai-button = 🤖 Voice using AI
 
-add-image-info = <b>🎨 Send me an image for your phrase, generate an AI illistration, or just skip this step:</b>
+add-image-info = <b>🎨 Send me an image for your phrase, generate(by subscription only) an AI illistration, or just skip this step:</b>
 
 
 
@@ -294,7 +294,7 @@ send-translation-to-edit = Send the new translation
 
 send-audio-to-edit = Send the new audio or voice message 
 
-send-image-to-edit = Send the new image or generate one with AI 
+send-image-to-edit = Send the new image or generate(by subscription only) one with AI
 
 send-comment-to-edit = Send the new comment
 

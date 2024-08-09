@@ -15,7 +15,7 @@ from external_services.google_cloud_services import google_text_to_speech
 from external_services.kandinsky import generate_image
 from external_services.openai_services import openai_gpt_translate, openai_gpt_add_space
 from handlers.system_handlers import repeat_ai_generate_image
-from models import AudioFile, Category, Phrase, User
+from models import AudioFile, Category, Phrase, User, Subscription
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from services.services import remove_html_tags
 from states import AddOriginalPhraseSG
@@ -68,6 +68,10 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
     else:
         is_audio = False
     response["is_audio"] = is_audio
+
+    subscription = await Subscription.get(user_id=dialog_manager.event.from_user.id).prefetch_related('type_subscription')
+    if subscription.type_subscription.name != 'Free':
+        response['is_subscriber'] = True
 
     return response
 
@@ -340,7 +344,9 @@ add_original_phrase_dialog = Dialog(
         Button(
             I18NFormat("generate-image-button"),
             id="ai_image",
-            on_click=ai_image),
+            on_click=ai_image,
+            when='is_subscriber',
+        ),
         Button(
             I18NFormat("delite-image-button"),
             id="delite_image",

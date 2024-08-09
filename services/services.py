@@ -10,6 +10,7 @@ import pytz
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
+from tortoise.exceptions import IntegrityError
 from tortoise.expressions import Q
 from tortoise.functions import Avg
 
@@ -154,12 +155,31 @@ async def interval_notifications():
 
 async def auto_reset_daily_counter():
     users = await User.all()
+    today = datetime.now().date()
     for user in users:
-        await UserProgress.create(user_id=user.id,
-                                  date=datetime.today(),
-                                  score=user.day_counter)
+        try:
+            # Попытка создать новую запись
+            progress = await UserProgress.create(
+                user_id=user.id,
+                date=today,
+                score=user.day_counter
+            )
+            logger.info(f"Created new progress for user {user.id}: {progress.score}")
+        except IntegrityError:
+            # Если запись уже существует, получаем и обновляем ее
+            progress = await UserProgress.get(
+                user_id=user.id,
+                date=today
+            )
+            progress.score = user.day_counter
+            await progress.save()
+            logger.info(f"Updated progress for user {user.id}: {progress.score}")
+
+        # Опционально: сбрасываем day_counter пользователя
         user.day_counter = 0
         await user.save()
+
+    logger.info('=============================================')
 
 
 async def build_user_progress_histogram(user_id: int, days: int = 30):
@@ -173,7 +193,7 @@ async def build_user_progress_histogram(user_id: int, days: int = 30):
         raise ValueError("Период должен быть 7 или 30 дней")
 
     end_date = datetime.now().date()
-    start_date = end_date - timedelta(days=days-1)
+    start_date = end_date - timedelta(days=days - 1)
 
     user = await User.get(id=user_id)
     today_counter = user.day_counter
@@ -209,7 +229,7 @@ async def build_user_progress_histogram(user_id: int, days: int = 30):
     # Добавляем текстовые метки с точными значениями над каждым столбцом
     for bar in bars:
         height = bar.get_height()
-        plt.text(bar.get_x() + bar.get_width()/2., height,
+        plt.text(bar.get_x() + bar.get_width() / 2., height,
                  f'{height:.0f}', ha='center', va='bottom')
 
     plt.tight_layout()
