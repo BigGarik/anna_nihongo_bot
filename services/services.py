@@ -217,7 +217,7 @@ async def build_user_progress_histogram(user_id: int, days: int = 30):
         daily_scores[item['date']] = item['score']
 
     # Добавляем данные текущего дня
-    daily_scores[end_date] = max(daily_scores[end_date], today_counter)
+    daily_scores[end_date] = today_counter
 
     # Подготавливаем данные для построения графика
     dates = list(daily_scores.keys())
