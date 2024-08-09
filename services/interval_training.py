@@ -6,11 +6,9 @@ import pytz
 from aiogram_dialog import DialogManager, ShowMode
 from dotenv import load_dotenv
 
-from bot_init import bot
 from config_data.config import INTERVALS
 from handlers.system_handlers import check_day_counter
-from models import Phrase, ReviewStatus, UserAnswer, Subscription, User
-from services.i18n_format import I18N_FORMAT_KEY
+from models import Phrase, ReviewStatus, UserAnswer
 from services.services import normalize_text
 from states import IntervalTrainingSG
 
@@ -158,21 +156,18 @@ async def start_training(dialog_manager: DialogManager) -> None:
             if review_status.review_count > 5:
                 training_selected = 'translation'
             elif review_status.review_count < 3:
-                # training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
-                training_type = ['listening', 'lexis']
+                training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
                 if previous_training in training_type:
                     training_type.remove(previous_training)
                 training_selected = random.choice(training_type)
             else:
-                # training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
-                training_type = ['translation', 'listening', 'lexis']
+                training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
                 # Удаляем предыдущую тренировку из списка, если она там есть
                 if previous_training in training_type:
                     training_type.remove(previous_training)
                 training_selected = random.choice(training_type)
         else:
-            # training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
-            training_type = ['listening', 'lexis']
+            training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
             # Удаляем предыдущую тренировку из списка, если она там есть
             if previous_training in training_type:
                 training_type.remove(previous_training)
