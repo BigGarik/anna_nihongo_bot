@@ -5,6 +5,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.fsm.storage.redis import RedisStorage, Redis, DefaultKeyBuilder
+from aiogram_dialog import setup_dialogs
 from dotenv import load_dotenv
 from fluent.runtime import FluentResourceLoader, FluentLocalization
 
@@ -48,5 +49,8 @@ storage = RedisStorage(redis=redis, key_builder=DefaultKeyBuilder(with_destiny=T
 # Инициализируем бот и диспетчер
 bot = Bot(token=os.getenv('BOT_TOKEN'), default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
+
+# Настройка диалогового менеджера
+bg_factory = setup_dialogs(dp)
 
 

@@ -153,8 +153,6 @@ async def confirm_deletion_phrase_button_clicked(callback: CallbackQuery, button
     await dialog_manager.switch_to(state=ManagementSG.select_phrase, show_mode=ShowMode.SEND)
 
 
-
-
 management_dialog = Dialog(
     Window(
         Multi(
@@ -178,6 +176,7 @@ management_dialog = Dialog(
             text=I18NFormat('delite-category-button'),
             id='deletion_category',
             on_click=delite_categories_button_clicked,
+            when='categories',
         ),
         getter=get_user_categories_to_manage,
         state=ManagementSG.start

@@ -3,13 +3,14 @@ import os
 import re
 from datetime import datetime, timedelta
 
-from aiogram import Router, Bot
+from aiogram import Router, Bot, F
+from aiogram.enums import ContentType
 from aiogram.filters import ChatMemberUpdatedFilter, KICKED, MEMBER
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ErrorEvent, ChatMemberUpdated
 from dotenv import load_dotenv
 
-from bot_init import redis
+from bot_init import redis, bot
 from lexicon.lexicon_ru import LEXICON_RU
 from models import User, Subscription, TypeSubscription
 

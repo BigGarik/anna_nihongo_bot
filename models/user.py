@@ -22,7 +22,7 @@ class User(models.Model):
     language = fields.CharField(max_length=10, default='en')
     notifications = fields.BooleanField(default=False)
     user_status = fields.CharField(max_length=10, choices=USER_STATUS_CHOICES, default='active')
-
+    day_counter = fields.IntField(default=0)
 
     def __str__(self):
         return f"{self.first_name}"
@@ -36,3 +36,11 @@ class Teacher(User):
 class Student(User):
     teacher = fields.ManyToManyField('models.Teacher', related_name='students', null=True)
     group = fields.ManyToManyField('models.UserGroup', related_name='students', null=True)
+
+
+class UserProgress(models.Model):
+    id = fields.IntField(pk=True)
+    user = fields.ForeignKeyField('models.User', related_name='user_progress')
+    date = fields.DateField()
+    score = fields.IntField()
+

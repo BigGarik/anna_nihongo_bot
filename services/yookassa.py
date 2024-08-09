@@ -5,7 +5,9 @@ from datetime import datetime
 from typing import Optional
 
 from aiogram import Router
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram_dialog import DialogManager
 from aiohttp import web
 from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
@@ -13,9 +15,10 @@ from yookassa import Configuration, Payment
 from yookassa.domain.common import SecurityHelper
 from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotificationEventType
 
-from bot_init import bot
+from bot_init import bot, bg_factory
 from models import Payment as PaymentModel, Subscription
 from models import TypeSubscription, User
+from states import SubscribeSG
 
 load_dotenv()
 router = Router()
@@ -58,10 +61,11 @@ def get_client_ip(request: web.Request) -> Optional[str]:
     return ip
 
 
-async def subscribe_command(callback: CallbackQuery):
+async def subscribe_command(callback: CallbackQuery, description: str):
     try:
         type_subscription = await TypeSubscription.get(payload=callback.data)
-        description = type_subscription.description
+        # description = type_subscription.description
+        description = description
         payload = callback.data
         amount_value = type_subscription.price
 
@@ -102,7 +106,7 @@ async def subscribe_command(callback: CallbackQuery):
         button = InlineKeyboardButton(text="Оплатить подписку", url=order.confirmation.confirmation_url)
         keyboard = InlineKeyboardMarkup(inline_keyboard=[[button]])
 
-        await callback.message.answer("Для оплаты подписки перейдите по ссылке:", reply_markup=keyboard)
+        await callback.message.answer('<a href="https://www.google.com">договор оферты</a>\nДля оплаты подписки перейдите по ссылке:', reply_markup=keyboard)
     except Exception as e:
         logger.error(f"Ошибка при сохранении платежа: {e}")
 
@@ -148,15 +152,17 @@ async def auto_renewal_subscription_command(subscription_id):
 
 async def process_yookassa_webhook(request: web.Request):
     try:
-        # print(f"Получен запрос {request.method} {request.url}")
+        print(f"Получен запрос {request.method} {request.url}")
         event_json = await request.json()
-        # print(event_json)
+        print(event_json)
+
         payment_id = event_json.get('paymentId')
         user_id = event_json.get('userId')
         payload = event_json.get('payload')
         is_auto = event_json.get('is_auto')
         amount = event_json.get('amount')
         currency = event_json.get('currency')
+
         type_subscription = await TypeSubscription.get(payload=payload)
 
         subscription = await Subscription.get(user_id=user_id)
@@ -166,6 +172,13 @@ async def process_yookassa_webhook(request: web.Request):
         await subscription.save()
 
         user = await User.get(id=user_id)
+        # Получаем менеджер диалога для конкретного пользователя и чата
+        dialog_manager = bg_factory.bg(
+            bot=bot,
+            user_id=user_id,
+            chat_id=user_id
+        )
+        await dialog_manager.switch_to(state=SubscribeSG.payment_result)
 
         if is_auto:
             msg_to_admin = (

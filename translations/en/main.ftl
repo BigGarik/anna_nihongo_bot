@@ -298,20 +298,29 @@ send-image-to-edit = Send the new image or generate one with AI
 
 send-comment-to-edit = Send the new comment
 
-subscription-information = Subscription details
- Subscribe for:
+subscription-information = Доступны подписки на 1, 3 и 6 месяцев.
+ Стоимость подписки:
+   - 1 месяц - { $one-month-subscription-name } рублей
+   - 3 месяца - { $three-month-subscription-name } рублей
+   - 6 месяцев - { $six-month-subscription-name } рублей
 
 one-month-subscription-button = ⭐ 1 month
 
-one-month-subscription-description = One month subscription
+one-month-subscription-description = Описание подписки на один месяц
 
-three-month-subscription-button = ⭐⭐ 3 months
+one-month-subscription-name = Подписка на один месяц
 
-three-month-subscription-description = Tree months subscription
+three-month-subscription-button = ⭐⭐ 3 месяца
 
-six-month-subscription-button = ⭐⭐⭐ 6 months
+three-month-subscription-description = Описание подписки на три месяца
 
-six-month-subscription-description = Six months subscription
+three-month-subscription-name = Подписка на три месяца
+
+six-month-subscription-button = ⭐⭐⭐ 6 месяцев
+
+six-month-subscription-description = Описание подписки шесть месяцев
+
+six-month-subscription-name = Подписка на три месяца
 
 error-adding-category = Error adding category
 
@@ -384,3 +393,17 @@ deleted-image = Изображение удалено.
 delite-image-button = Удалить изображение
 
 new-voice-acting = Новая озвучка
+
+click-to-pay = Нажмите кнопку ниже для оплаты.
+
+pay = Оплатить
+
+subscription-canceled = Вы успешно отписались. Надеемся вы скоро вернетесь.
+
+subscription = Поздравляем!!!
+ Вы успешно оформили { $type_subscription }
+ Желаем приятного обучения!
+
+daily-limit = Дневной лимит на бесплатном тарифе 50 упражнений. Для продолжения возвращайся завтра.
+
+my-progress-history-button = 📈 My progress

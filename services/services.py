@@ -1,17 +1,20 @@
+import io
 import logging
 import os
 import random
 import re
 import string
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 
 import pytz
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
+from matplotlib import pyplot as plt
 from tortoise.expressions import Q
+from tortoise.functions import Avg
 
 from bot_init import bot
-from models import Subscription, TypeSubscription, User, ReviewStatus
+from models import Subscription, TypeSubscription, User, ReviewStatus, UserProgress
 from services.i18n import create_translator_hub
 from services.yookassa import auto_renewal_subscription_command
 
@@ -147,3 +150,74 @@ async def interval_notifications():
 
             except Exception as e:
                 logger.error(f"Не удалось отправить сообщение пользователю {user.id}: {e}")
+
+
+async def auto_reset_daily_counter():
+    users = await User.all()
+    for user in users:
+        await UserProgress.create(user_id=user.id,
+                                  date=datetime.today(),
+                                  score=user.day_counter)
+        user.day_counter = 0
+        await user.save()
+
+
+async def build_user_progress_histogram(user_id: int, days: int = 30):
+    """
+    Строит гистограмму прогресса пользователя за указанный период.
+    :param user_id: ID пользователя
+    :param days: количество дней для анализа (7 или 30)
+    :return: объект BytesIO с изображением гистограммы
+    """
+    if days not in [7, 30]:
+        raise ValueError("Период должен быть 7 или 30 дней")
+
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=days-1)
+
+    user = await User.get(id=user_id)
+    today_counter = user.day_counter
+
+    # Получаем данные о прогрессе пользователя
+    progress_data = await UserProgress.filter(
+        user_id=user_id,
+        date__range=[start_date, end_date]
+    ).values('date', 'score')
+
+    # Создаем словарь для хранения данных за каждый день
+    daily_scores = {start_date + timedelta(days=i): 0 for i in range(days)}
+
+    # Заполняем словарь данными из базы
+    for item in progress_data:
+        daily_scores[item['date']] = item['score']
+
+    # Добавляем данные текущего дня
+    daily_scores[end_date] = max(daily_scores[end_date], today_counter)
+
+    # Подготавливаем данные для построения графика
+    dates = list(daily_scores.keys())
+    scores = list(daily_scores.values())
+
+    # Создаем график
+    plt.figure(figsize=(12, 6))
+    bars = plt.bar(dates, scores, align='center', alpha=0.8)
+    plt.title(f"Прогресс за последние {days} дней")
+    plt.xlabel("Дата")
+    plt.ylabel("Количество выполненных заданий")
+    plt.xticks(rotation=45)
+
+    # Добавляем текстовые метки с точными значениями над каждым столбцом
+    for bar in bars:
+        height = bar.get_height()
+        plt.text(bar.get_x() + bar.get_width()/2., height,
+                 f'{height:.0f}', ha='center', va='bottom')
+
+    plt.tight_layout()
+
+    # Сохраняем график в BytesIO объект
+    img_buf = io.BytesIO()
+    plt.savefig(img_buf, format='png')
+    img_buf.seek(0)
+    plt.close()
+
+    return img_buf

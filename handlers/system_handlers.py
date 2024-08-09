@@ -8,9 +8,10 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Select, Button
 from tortoise.expressions import Q
 
+from bot_init import bot
 from external_services.kandinsky import generate_image
 from models import User, Category, Phrase, Subscription
-from services.i18n_format import I18N_FORMAT_KEY, default_format_text
+from services.i18n_format import I18N_FORMAT_KEY
 from services.services import replace_random_words
 
 location = os.getenv('LOCATION')
@@ -183,12 +184,12 @@ async def get_random_phrase(dialog_manager: DialogManager, item_id: str, **kwarg
 
 
 async def get_context(dialog_manager: DialogManager, **kwargs):
-    with_gap_phrase = dialog_manager.dialog_data['with_gap_phrase']
-    question = dialog_manager.dialog_data['question']
-    translation = dialog_manager.dialog_data['translation']
-    counter = dialog_manager.dialog_data['counter']
-    category = dialog_manager.dialog_data['category']
-    category_id = dialog_manager.dialog_data['category_id']
+    with_gap_phrase = dialog_manager.dialog_data.get('with_gap_phrase')
+    question = dialog_manager.dialog_data.get('question')
+    translation = dialog_manager.dialog_data.get('translation')
+    counter = dialog_manager.dialog_data.get('counter')
+    category = dialog_manager.dialog_data.get('category')
+    category_id = dialog_manager.dialog_data.get('category_id')
     first_time = dialog_manager.current_context().dialog_data.get("first_open", True)
     if first_time:
         dialog_manager.current_context().dialog_data["first_open"] = False
@@ -208,3 +209,19 @@ def first_answer_getter(data, widget, dialog_manager: DialogManager):
 
 def second_answer_getter(data, widget, dialog_manager: DialogManager):
     return not first_answer_getter(data, widget, dialog_manager)
+
+
+async def check_day_counter(dialog_manager: DialogManager) -> bool:
+    user_id = dialog_manager.event.from_user.id
+    user = await User.get(id=user_id)
+    subscription = await Subscription.get_or_none(user=user).prefetch_related('type_subscription')
+    day_counter = user.day_counter
+    if str(subscription.type_subscription) != 'Free' or (str(subscription.type_subscription) == 'Free' and day_counter <= 50):
+        user.day_counter += 1
+        await user.save()
+        return True
+    else:
+        i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+        await bot.send_message(chat_id=user_id,
+                               text=i18n_format('daily-limit'))
+        return False

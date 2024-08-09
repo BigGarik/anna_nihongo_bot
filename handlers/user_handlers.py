@@ -4,7 +4,7 @@ import os
 from aiogram import Router, types, F
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import Message, InputFile, BufferedInputFile
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.text import Multi
 from dotenv import load_dotenv
@@ -15,10 +15,10 @@ from keyboards.reply_kb import get_keyboard
 from keyboards.set_menu import get_localized_menu
 from models import User, Subscription
 from models.main import MainPhoto
-from services.create_update_user import update_user_info
+from services.create_update_user import update_or_create_user
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
 from services.interval_training import start_training
-from services.services import is_admin
+from services.services import is_admin, build_user_progress_histogram
 from states import StartDialogSG, UserTrainingSG, ManagementSG, SubscribeManagementSG, SelectLanguageSG, IntervalSG
 
 load_dotenv()
@@ -59,7 +59,7 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
     new_user = False
     if user:
         not_new_user = True
-        await update_user_info(message)
+        await update_or_create_user(message)
     else:
         new_user = True
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
@@ -101,7 +101,7 @@ async def process_start_training(message: Message, dialog_manager: DialogManager
     user_menu = await get_localized_menu(i18n_format)
     chat_id = message.chat.id
     await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
-    await update_user_info(message)
+    await update_or_create_user(message)
     await dialog_manager.start(state=UserTrainingSG.start, mode=StartMode.RESET_STACK)
 
 
@@ -112,13 +112,28 @@ async def process_phrase_management(message: Message, dialog_manager: DialogMana
     user_menu = await get_localized_menu(i18n_format)
     chat_id = message.chat.id
     await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
-    await update_user_info(message)
+    await update_or_create_user(message)
     subscription = await Subscription.get_or_none(user_id=message.from_user.id).prefetch_related('type_subscription')
     if subscription:
         if subscription.type_subscription.name == 'Free':
             await message.answer(text=i18n_format("managing-your-own-phrases-only-available-subscription"), show_alert=True)
         else:
             await dialog_manager.start(state=ManagementSG.start, mode=StartMode.RESET_STACK)
+
+
+@router.message(lambda message: message.text in ["📈 Мой прогресс",
+                                                 "📈 My progress"])
+async def process_phrase_management(message: Message, dialog_manager: DialogManager):
+    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+    user_menu = await get_localized_menu(i18n_format)
+    chat_id = message.chat.id
+    user_id = message.from_user.id
+    await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
+    await update_or_create_user(message)
+    days = 7
+    img_buf = await build_user_progress_histogram(user_id, days=days)
+    photo = BufferedInputFile(img_buf.read(), filename='image.jpg')
+    await message.answer_photo(photo=photo)
 
 
 @router.message(lambda message: message.text in ["🔔 Управление подпиской 💎",
@@ -128,7 +143,7 @@ async def process_subscribe_management(message: Message, dialog_manager: DialogM
     user_menu = await get_localized_menu(i18n_format)
     chat_id = message.chat.id
     await bot.set_my_commands(user_menu, scope=types.BotCommandScopeChat(chat_id=chat_id))
-    await update_user_info(message)
+    await update_or_create_user(message)
     await dialog_manager.start(state=SubscribeManagementSG.start, mode=StartMode.RESET_STACK)
 
 

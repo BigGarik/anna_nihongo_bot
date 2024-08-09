@@ -16,7 +16,7 @@ from external_services.voice_recognizer import SpeechRecognizer
 from models import Phrase, UserAnswer
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import PronunciationTrainingSG
-from ..system_handlers import category_selected, get_user_categories, get_phrases
+from ..system_handlers import category_selected, get_user_categories, get_phrases, check_day_counter
 
 
 async def get_again(dialog_manager: DialogManager, **kwargs):
@@ -24,38 +24,41 @@ async def get_again(dialog_manager: DialogManager, **kwargs):
 
 
 async def phrase_selected(callback: CallbackQuery, button: Button, dialog_manager: DialogManager, item_id: str):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-    phrase = await Phrase.get_or_none(id=item_id)
-    dialog_manager.dialog_data['phrase_id'] = phrase.id
-    dialog_manager.dialog_data['first'] = True
-    dialog_manager.dialog_data['again'] = False
-    # отправить изображение и голосовое с подписью
-    if phrase.image_id:
-        await callback.message.answer_photo(phrase.image_id)
-    await callback.message.answer_voice(phrase.audio_id)  # , caption=i18n_format('listen-original'))
+    is_day_counter = await check_day_counter(dialog_manager)
+    if is_day_counter:
+        phrase = await Phrase.get_or_none(id=item_id)
+        dialog_manager.dialog_data['phrase_id'] = phrase.id
+        dialog_manager.dialog_data['first'] = True
+        dialog_manager.dialog_data['again'] = False
+        # отправить изображение и голосовое с подписью
+        if phrase.image_id:
+            await callback.message.answer_photo(phrase.image_id)
+        await callback.message.answer_voice(phrase.audio_id)  # , caption=i18n_format('listen-original'))
 
-    dialog_manager.show_mode = ShowMode.SEND
-    await dialog_manager.next()
+        dialog_manager.show_mode = ShowMode.SEND
+        await dialog_manager.next()
 
 
 async def random_phrase_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-    dialog_manager.dialog_data['first'] = True
-    dialog_manager.dialog_data['again'] = False
-    phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
-    if dialog_manager.dialog_data.get('phrase_id'):
-        phrase_id = dialog_manager.dialog_data['phrase_id']
-        if len(phrases) > 1:
-            filtered_phrases = [phrase for phrase in phrases if phrase.id != phrase_id]
+    is_day_counter = await check_day_counter(dialog_manager)
+    if is_day_counter:
+        i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
+        dialog_manager.dialog_data['first'] = True
+        dialog_manager.dialog_data['again'] = False
+        phrases = await Phrase.filter(category_id=dialog_manager.dialog_data['category_id']).all()
+        if dialog_manager.dialog_data.get('phrase_id'):
+            phrase_id = dialog_manager.dialog_data['phrase_id']
+            if len(phrases) > 1:
+                filtered_phrases = [phrase for phrase in phrases if phrase.id != phrase_id]
+            else:
+                filtered_phrases = phrases
         else:
             filtered_phrases = phrases
-    else:
-        filtered_phrases = phrases
-    if phrases:
-        random_phrase = random.choice(filtered_phrases)
-        await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))
-    else:
-        await callback.message.answer(i18n_format('no-phrases-available'))
+        if phrases:
+            random_phrase = random.choice(filtered_phrases)
+            await phrase_selected(callback, button, dialog_manager, item_id=str(random_phrase.id))
+        else:
+            await callback.message.answer(i18n_format('no-phrases-available'))
 
 
 async def answer_audio_handler(message: Message, widget: MessageInput, dialog_manager: DialogManager):

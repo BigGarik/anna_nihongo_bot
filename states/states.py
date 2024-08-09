@@ -104,6 +104,8 @@ class ManagementSG(StatesGroup):
 
 class SubscribeSG(StatesGroup):
     start = State()
+    payment = State()
+    payment_result = State()
 
 
 class SubscribeManagementSG(StatesGroup):

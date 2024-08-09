@@ -43,7 +43,8 @@ def openai_gpt_add_space(text):
 def openai_gpt_translate(text):
     client = OpenAI() if proxy_url is None or proxy_url == "" else OpenAI(http_client=httpx.Client(proxy=proxy_url))
     completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o-mini",
+        # model="gpt-3.5-turbo",
         messages=[{"role": "user",
                    "content": f"translate this text into Russian: {text}. answer only with translation"}]
     )
@@ -60,3 +61,7 @@ def openai_gpt_get_phrase_from_text(text):
                               f"русский. в ответ пришли только полученные фразы. пример: たくさん降っています - много идет"}]
     )
     return completion.choices[0].message.content
+
+
+if __name__ == '__main__':
+    print(openai_gpt_translate('hello'))

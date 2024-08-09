@@ -4,7 +4,7 @@ from tortoise import fields, models
 class TypeSubscription(models.Model):
     id = fields.IntField(pk=True)
     name = fields.CharField(max_length=100)
-    price = fields.FloatField(null=True)
+    price = fields.IntField(null=True)
     months = fields.IntField(null=True)
     description = fields.TextField(null=True)
     payload = fields.CharField(max_length=250, null=True)

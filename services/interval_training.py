@@ -6,8 +6,11 @@ import pytz
 from aiogram_dialog import DialogManager, ShowMode
 from dotenv import load_dotenv
 
+from bot_init import bot
 from config_data.config import INTERVALS
-from models import Phrase, ReviewStatus, UserAnswer
+from handlers.system_handlers import check_day_counter
+from models import Phrase, ReviewStatus, UserAnswer, Subscription, User
+from services.i18n_format import I18N_FORMAT_KEY
 from services.services import normalize_text
 from states import IntervalTrainingSG
 
@@ -132,50 +135,51 @@ async def pronunciation_text_training(dialog_manager: DialogManager):
 
 async def start_training(dialog_manager: DialogManager) -> None:
     user_id = dialog_manager.event.from_user.id
+    is_day_counter = await check_day_counter(dialog_manager)
+    if is_day_counter:
+        phrase_id = await select_phrase_for_interval_training(user_id, dialog_manager)
+        dialog_manager.dialog_data['phrase_id'] = phrase_id
+        review_status = await ReviewStatus.get_or_none(user_id=user_id, phrase_id=phrase_id)
 
-    phrase_id = await select_phrase_for_interval_training(user_id, dialog_manager)
-    dialog_manager.dialog_data['phrase_id'] = phrase_id
-    review_status = await ReviewStatus.get_or_none(user_id=user_id, phrase_id=phrase_id)
+        # Получаем предыдущую тренировку, если она была
+        previous_training = dialog_manager.dialog_data.get('training_selected')
 
-    # Получаем предыдущую тренировку, если она была
-    previous_training = dialog_manager.dialog_data.get('training_selected')
-
-    if review_status:
-        if review_status.review_count > 6:
-            training_selected = 'translation'
-        elif review_status.review_count < 3:
-            training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
-            if previous_training in training_type:
-                training_type.remove(previous_training)
-            training_selected = random.choice(training_type)
+        if review_status:
+            if review_status.review_count > 6:
+                training_selected = 'translation'
+            elif review_status.review_count < 3:
+                training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+                if previous_training in training_type:
+                    training_type.remove(previous_training)
+                training_selected = random.choice(training_type)
+            else:
+                training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
+                # Удаляем предыдущую тренировку из списка, если она там есть
+                if previous_training in training_type:
+                    training_type.remove(previous_training)
+                training_selected = random.choice(training_type)
         else:
-            training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
+            training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
             # Удаляем предыдущую тренировку из списка, если она там есть
             if previous_training in training_type:
                 training_type.remove(previous_training)
             training_selected = random.choice(training_type)
-    else:
-        training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
-        # Удаляем предыдущую тренировку из списка, если она там есть
-        if previous_training in training_type:
-            training_type.remove(previous_training)
-        training_selected = random.choice(training_type)
 
-    dialog_manager.dialog_data['training_selected'] = training_selected
+        dialog_manager.dialog_data['training_selected'] = training_selected
 
-    # Запуск соответствующей функции обучения
-    if training_selected == 'translation':
-        await translation_training(dialog_manager)
-    elif training_selected == 'listening':
-        await listening_training(dialog_manager)
-    elif training_selected == 'lexis':
-        await lexis_training(dialog_manager)
-    elif training_selected == 'pronunciation':
-        await pronunciation_training(dialog_manager)
-    elif training_selected == 'pronunciation_text':
-        await pronunciation_text_training(dialog_manager)
-    else:
-        logger.error(f'Неизвестный тип тренировки: {training_selected}')
+        # Запуск соответствующей функции обучения
+        if training_selected == 'translation':
+            await translation_training(dialog_manager)
+        elif training_selected == 'listening':
+            await listening_training(dialog_manager)
+        elif training_selected == 'lexis':
+            await lexis_training(dialog_manager)
+        elif training_selected == 'pronunciation':
+            await pronunciation_training(dialog_manager)
+        elif training_selected == 'pronunciation_text':
+            await pronunciation_text_training(dialog_manager)
+        else:
+            logger.error(f'Неизвестный тип тренировки: {training_selected}')
 
 
 if __name__ == '__main__':

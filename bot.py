@@ -30,7 +30,9 @@ from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
 from handlers.user_management import user_management_dialog
 from keyboards.set_menu import set_default_commands
-from services.services import check_subscriptions, auto_renewal_subscriptions, interval_notifications
+from middlewares.outer_middlewares import LoggingMiddleware
+from services.services import check_subscriptions, auto_renewal_subscriptions, interval_notifications, \
+    auto_reset_daily_counter
 from services.yookassa import process_yookassa_webhook
 
 load_dotenv()
@@ -62,14 +64,12 @@ async def on_startup(app):
     await set_default_commands(bot)
     await bot.set_webhook(webhook_url, secret_token=webhook_secret)
 
-    # Настройка диалогового менеджера
-    dialog_manager = setup_dialogs(dp)
-
     # Инициализация планировщика
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_subscriptions, 'cron', hour=11, minute=0, misfire_grace_time=3600)
     scheduler.add_job(auto_renewal_subscriptions, 'cron', hour=12, minute=0, misfire_grace_time=3600)
     scheduler.add_job(interval_notifications, "interval", minutes=5, misfire_grace_time=3600)
+    scheduler.add_job(auto_reset_daily_counter, 'cron', hour=23, minute=0, misfire_grace_time=3600)
     # scheduler.add_job(check_subscriptions, "interval", minutes=1, misfire_grace_time=3600)
     scheduler.start()
 
@@ -129,6 +129,8 @@ def main() -> None:
     i18n_middleware = make_i18n_middleware()
     dp.message.middleware(i18n_middleware)
     dp.callback_query.middleware(i18n_middleware)
+    # для логирования
+    # dp.update.outer_middleware(LoggingMiddleware())
 
     # Create aiohttp.web.Application instance
     app = web.Application()

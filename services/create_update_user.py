@@ -37,14 +37,49 @@ admin_ids = os.getenv('ADMIN_IDS')
     #     logger.error("Ошибка при создании пользователя: %s", e)
 
 
-async def update_user_info(message) -> None:
-    try:
-        user = await User.get(id=message.from_user.id)
-        user.username = message.from_user.username
-        user.first_name = message.from_user.first_name
-        user.last_name = message.from_user.last_name
-        await user.save()
-        logger.debug(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
-                     f"{message.from_user.last_name} обновлен.")
-    except Exception as e:
-        logger.error("Ошибка при обновлении информации о пользователе: %s", e)
+async def update_or_create_user(message) -> None:
+    user = await User.get_or_none(id=message.from_user.id)
+    if user is None:
+        # Новый пользователь
+        try:
+            user = User(
+                id=message.from_user.id,
+                username=message.from_user.username,
+                first_name=message.from_user.first_name,
+                last_name=message.from_user.last_name,
+            )
+            if location == 'ja-JP':
+                user.language = 'ru'
+            await user.save()
+            type_subscription = await TypeSubscription.get(name='Free trial')
+            await Subscription.create(user=user,
+                                      type_subscription=type_subscription,
+                                      date_start=datetime.now(),
+                                      date_end=datetime.now() + timedelta(days=30),
+                                      )
+            # Отправляем админам информацию о новом пользователе
+            message_for_admin = (
+                f'🤖 <b>У нас новый пользователь</b>\n'
+                f'[id: {message.from_user.id}]\n'
+                f'[first name: {message.from_user.first_name}]\n'
+                f'[last name: {message.from_user.last_name}]\n'
+                f'[username: {message.from_user.username}]\n'
+            )
+            for admin_id in admin_ids.split(','):
+                await bot.send_message(chat_id=admin_id, text=message_for_admin)
+            logger.debug(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
+                         f"{message.from_user.last_name} создан.")
+        except Exception as e:
+            logger.error("Ошибка при создании пользователя: %s", e)
+    else:
+        # Пользователь вернулся
+        try:
+            user = await User.get(id=message.from_user.id)
+            user.username = message.from_user.username
+            user.first_name = message.from_user.first_name
+            user.last_name = message.from_user.last_name
+            await user.save()
+            logger.debug(f"Пользователь {message.from_user.username} {message.from_user.first_name} "
+                         f"{message.from_user.last_name} обновлен.")
+        except Exception as e:
+            logger.error("Ошибка при обновлении информации о пользователе: %s", e)
