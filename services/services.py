@@ -150,12 +150,9 @@ async def interval_notifications():
                 # Обновляем статусы
                 await ReviewStatus.filter(id__in=[status.id for status in review_statuses]).update(note=True)
 
-                current_date = datetime.now()
-                three_days_ago = current_date - timedelta(days=3)
-                await ReviewStatus.filter(
-                    id__in=[status.id for status in review_statuses],
-                    next_review__lt=three_days_ago
-                ).update(note=False, review_count=0)
+                three_days_ago = now - timedelta(days=3)
+                await ReviewStatus.filter(id__in=[status.id for status in review_statuses],
+                                          next_review__lt=three_days_ago).delete()
 
             except Exception as e:
                 logger.error(f"Не удалось отправить сообщение пользователю {user.id}: {e}")
