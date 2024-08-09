@@ -40,6 +40,10 @@ class ReviewStatus(models.Model):
     note = fields.BooleanField(default=False)
     date_start = fields.DatetimeField(auto_now_add=True)
 
+    def __str__(self):
+        return (f"ReviewStatus for {self.user.id} phrase {self.phrase}, "
+                f"{self.next_review}, review_count: {self.review_count}, note: {self.note}")
+
 
 class Phrase(models.Model):
     id = fields.IntField(pk=True)

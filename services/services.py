@@ -134,6 +134,7 @@ async def interval_notifications():
             Q(note=False) &
             Q(next_review__lt=now)
         ).all()
+        logger.debug(f'Interval notifications review statuses: {review_statuses}')
 
         if review_statuses:
             # Отправляем сообщение пользователю
@@ -148,6 +149,13 @@ async def interval_notifications():
                 await bot.send_message(chat_id=user.id, text=practice_time, reply_markup=keyboard)
                 # Обновляем статусы
                 await ReviewStatus.filter(id__in=[status.id for status in review_statuses]).update(note=True)
+
+                current_date = datetime.now()
+                three_days_ago = current_date - timedelta(days=3)
+                await ReviewStatus.filter(
+                    id__in=[status.id for status in review_statuses],
+                    next_review__lt=three_days_ago
+                ).update(note=False, review_count=0)
 
             except Exception as e:
                 logger.error(f"Не удалось отправить сообщение пользователю {user.id}: {e}")
@@ -164,7 +172,7 @@ async def auto_reset_daily_counter():
                 date=today,
                 score=user.day_counter
             )
-            logger.info(f"Created new progress for user {user.id}: {progress.score}")
+            logger.debug(f"Created new progress for user {user.id}: {progress.score}")
         except IntegrityError:
             # Если запись уже существует, получаем и обновляем ее
             progress = await UserProgress.get(
@@ -173,13 +181,13 @@ async def auto_reset_daily_counter():
             )
             progress.score = user.day_counter
             await progress.save()
-            logger.info(f"Updated progress for user {user.id}: {progress.score}")
+            logger.debug(f"Updated progress for user {user.id}: {progress.score}")
 
         # Опционально: сбрасываем day_counter пользователя
         user.day_counter = 0
         await user.save()
 
-    logger.info('=============================================')
+    logger.debug('=============================================')
 
 
 async def build_user_progress_histogram(user_id: int, days: int = 30):

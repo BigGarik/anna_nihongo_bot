@@ -39,10 +39,11 @@ async def check_user_answer(answer_text: str, phrase: Phrase, user, training_sel
             user=user,
             phrase=phrase,
             review_count=0,
-            next_review=datetime.now(pytz.UTC) + INTERVALS[0]
+            next_review=now + INTERVALS[0]
         )
+    review_status.note = False
     await review_status.save()
-    answer = await UserAnswer.create(
+    await UserAnswer.create(
         user=user,
         phrase=phrase,
         answer_text=answer_text,
@@ -58,11 +59,13 @@ async def select_phrase_for_interval_training(user_id, dialog_manager: DialogMan
     # 1. Выбираем все фразы из категории
     # all_phrases = await Phrase.filter(user_id=user_id).all()
     all_phrases = await Phrase.filter(user_id=user_id, category__public=False).prefetch_related('category')
+    logger.debug(f'All phrases: {all_phrases}')
 
     # 2. Исключаем последнюю введенную фразу, если она есть
     last_phrase = dialog_manager.dialog_data.get('question')
     if last_phrase:
         all_phrases = [phrase for phrase in all_phrases if phrase.text_phrase != last_phrase]
+        logger.debug(f'Phrase without last phrase: {all_phrases}')
 
     # 3. Получаем все статусы повторений для пользователя и фраз
     phrase_ids = [phrase.id for phrase in all_phrases]
@@ -70,25 +73,32 @@ async def select_phrase_for_interval_training(user_id, dialog_manager: DialogMan
         user_id=user_id,
         phrase_id__in=phrase_ids
     ).prefetch_related('phrase')
+    logger.debug(f'Review statuses: {review_statuses}')
 
     # 4. Находим фразы, которые нужно повторить
     phrases_to_review = []
     for status in review_statuses:
+        print(status.next_review)
         if status.review_count < len(INTERVALS) and now >= status.next_review:
             phrases_to_review.append((status.phrase, status.next_review))
-
+    logger.debug(f'Phrases to review: {phrases_to_review}')
     if phrases_to_review:
         # Выбираем фразу с самой ранней датой следующего повторения
         chosen_phrase, _ = min(phrases_to_review, key=lambda x: x[1])
+        logger.debug(f'Chosen phrase: {chosen_phrase}')
     else:
         # Если нет фраз для повторения, выбираем случайную из тех, которые еще не изучались
         studied_phrase_ids = [status.phrase_id for status in review_statuses]
+        logger.debug(f'Studied phrase ids: {studied_phrase_ids}')
         unstudied_phrases = [phrase for phrase in all_phrases if phrase.id not in studied_phrase_ids]
+        logger.debug(f'Unstudied phrases: {unstudied_phrases}')
         if unstudied_phrases:
             chosen_phrase = random.choice(unstudied_phrases)
+            logger.debug(f'Chosen phrase: {chosen_phrase}')
         else:
             # Если все фразы уже изучались, выбираем случайную
             chosen_phrase = random.choice(all_phrases)
+            logger.debug(f'Chosen phrase: {chosen_phrase}')
 
     return chosen_phrase.id
 
@@ -145,21 +155,24 @@ async def start_training(dialog_manager: DialogManager) -> None:
         previous_training = dialog_manager.dialog_data.get('training_selected')
 
         if review_status:
-            if review_status.review_count > 6:
+            if review_status.review_count > 5:
                 training_selected = 'translation'
             elif review_status.review_count < 3:
-                training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+                # training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+                training_type = ['listening', 'lexis']
                 if previous_training in training_type:
                     training_type.remove(previous_training)
                 training_selected = random.choice(training_type)
             else:
-                training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
+                # training_type = ['translation', 'listening', 'lexis', 'pronunciation', 'pronunciation_text']
+                training_type = ['translation', 'listening', 'lexis']
                 # Удаляем предыдущую тренировку из списка, если она там есть
                 if previous_training in training_type:
                     training_type.remove(previous_training)
                 training_selected = random.choice(training_type)
         else:
-            training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+            # training_type = ['listening', 'lexis', 'pronunciation', 'pronunciation_text']
+            training_type = ['listening', 'lexis']
             # Удаляем предыдущую тренировку из списка, если она там есть
             if previous_training in training_type:
                 training_type.remove(previous_training)
