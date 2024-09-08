@@ -1,3 +1,4 @@
+import os
 import re
 
 from aiogram.enums import ContentType
@@ -14,6 +15,9 @@ from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import TextToSpeechSG
 
 
+admin_ids = os.getenv('ADMIN_IDS')
+
+
 async def get_data(dialog_manager: DialogManager, **kwargs):
     first_time = dialog_manager.current_context().dialog_data.get("first_open", True)
     if first_time:
@@ -25,7 +29,7 @@ async def get_data(dialog_manager: DialogManager, **kwargs):
 
 async def phrase_to_speech(message: Message, widget: ManagedTextInput, dialog_manager: DialogManager, text: str):
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
-    if len(text) >= 150:
+    if (len(text) >= 150) and (str(dialog_manager.event.from_user.id) not in admin_ids.split(',')):
         await message.answer(i18n_format('sentence-too-long'))
     else:
         user_id = dialog_manager.event.from_user.id
