@@ -6,7 +6,7 @@ from aiogram_dialog.widgets.text import Format, List, Multi
 
 from handlers.system_handlers import get_user_categories_to_manage, get_phrases
 from models import Category, Phrase
-from services.i18n_format import I18NFormat, I18N_FORMAT_KEY, default_format_text
+from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from states import ManagementSG, AddCategorySG, AddOriginalPhraseSG, EditPhraseSG, SmartPhraseAdditionSG
 
 
@@ -14,9 +14,11 @@ async def management_dialog_process_result(statr_data: Data, result: dict, dialo
     if result:
         if 'new_phrase' in result:
             new_phrase = result["new_phrase"]
+            if 'phrases' not in dialog_manager.dialog_data:
+                dialog_manager.dialog_data['phrases'] = []
             phrases = dialog_manager.dialog_data['phrases']
             phrases.append(new_phrase)
-            phrases_count = dialog_manager.dialog_data.get('phrases_count')
+            phrases_count = dialog_manager.dialog_data.get('phrases_count', 0)
             phrases_count += 1
             dialog_manager.dialog_data['phrases_count'] = phrases_count
 
@@ -139,7 +141,6 @@ async def confirm_deletion_category_button_clicked(callback: CallbackQuery, butt
     # await dialog_manager.back()
     await callback.message.answer(i18n_format('deleted-categories'))
     await dialog_manager.switch_to(state=ManagementSG.start, show_mode=ShowMode.SEND)
-
 
 
 async def confirm_deletion_phrase_button_clicked(callback: CallbackQuery, button: Button,
