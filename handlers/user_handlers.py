@@ -62,6 +62,7 @@ async def process_start_command(message: Message, dialog_manager: DialogManager)
         await update_or_create_user(message)
     else:
         new_user = True
+        await update_or_create_user(message)
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY, default_format_text)
     user_menu = await get_localized_menu(i18n_format)
     chat_id = message.chat.id

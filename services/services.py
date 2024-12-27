@@ -7,12 +7,12 @@ import string
 from datetime import date, timedelta, datetime, timezone
 
 import pytz
+from aiogram import Bot
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from dotenv import load_dotenv
 from matplotlib import pyplot as plt
 from tortoise.exceptions import IntegrityError
 from tortoise.expressions import Q
-from tortoise.functions import Avg
 
 from bot_init import bot
 from models import Subscription, TypeSubscription, User, ReviewStatus, UserProgress
@@ -20,7 +20,8 @@ from services.i18n import create_translator_hub
 from services.yookassa import auto_renewal_subscription_command
 
 load_dotenv()
-location = os.getenv('LOCATION')
+location = os.getenv("LOCATION")
+admin_ids = os.getenv('ADMIN_IDS')
 
 logger = logging.getLogger('default')
 
@@ -32,7 +33,12 @@ def remove_html_tags(text):
 
 
 def is_admin(user_id) -> bool:
-    admin_ids = os.getenv('ADMIN_IDS', '')
+    """
+    Проверяет, является ли пользователь администратором.
+
+    :param user_id: ID пользователя для проверки.
+    :return: True, если пользователь администратор, иначе False.
+    """
     admin_ids_list = [int(admin_id) for admin_id in admin_ids.split(',') if admin_id.isdigit()]
     return user_id in admin_ids_list
 
@@ -246,3 +252,24 @@ async def build_user_progress_histogram(user_id: int, days: int = 30):
     plt.close()
 
     return img_buf
+
+
+async def notify_admins(user: User, message_prefix: str):
+    """
+    Отправляет сообщение администраторам о пользователе.
+
+    :param user: Объект пользователя, информация о котором будет отправлена.
+    :param message_prefix: Текст, который будет добавлен в начало сообщения.
+    """
+    message_for_admin = (
+        f'🤖 <b>{message_prefix}</b>\n'
+        f'[id: {user.id}]\n'
+        f'[first name: {user.first_name}]\n'
+        f'[last name: {user.last_name}]\n'
+        f'[username: {user.username}]\n'
+    )
+    try:
+        for admin_id in map(str.strip, admin_ids.split(',')):
+            await bot.send_message(chat_id=admin_id, text=message_for_admin)
+    except Exception as e:
+        logger.error(f"Ошибка отправки уведомления администраторам: {e}")
