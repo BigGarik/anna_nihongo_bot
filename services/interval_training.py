@@ -76,7 +76,6 @@ async def select_phrase_for_interval_training(user_id, dialog_manager: DialogMan
     # 4. Находим фразы, которые нужно повторить
     phrases_to_review = []
     for status in review_statuses:
-        print(status.next_review)
         if status.review_count < len(INTERVALS) and now >= status.next_review:
             phrases_to_review.append((status.phrase, status.next_review))
     logger.debug(f'Phrases to review: {phrases_to_review}')
