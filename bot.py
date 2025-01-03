@@ -15,7 +15,7 @@ from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
 from dialogs.smart_phrase_addition_dialog import smart_phrase_addition_dialog
-from dialogs.training.interval_training import interval_training_dialog, interval_dialog
+from dialogs.training.interval_training import interval_training_dialog, interval_dialog, error_interval_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
@@ -107,6 +107,7 @@ def main() -> None:
         user_management_dialog,
         interval_dialog,
         interval_training_dialog,
+        error_interval_dialog,
         text_to_speech_dialog,
         add_category_dialog,
         lexis_training_dialog,
