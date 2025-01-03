@@ -344,6 +344,8 @@ sentence-too-long = The phrase should contain no more then 150 symbols. Try some
 
 interval = 🕧 💪 Interval training
 
+error-interval-training-dialog = It looks like you don't have any added phrases. Add at least one.
+
 interval-training-dialog = Let's start interval training. Here I'll give randon exercises with all your phrases in all categories. Practice for 10-20 minutes then come back when you see the reminder. 
 
 interval-training-translation-dialog = translate the phrase:

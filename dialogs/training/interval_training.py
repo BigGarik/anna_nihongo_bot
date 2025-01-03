@@ -18,7 +18,7 @@ from models import Phrase, User
 from services.i18n_format import I18NFormat, I18N_FORMAT_KEY
 from services.interval_training import check_user_answer, start_training
 from services.services import replace_random_words
-from states import IntervalSG, IntervalTrainingSG, UserTrainingSG
+from states import IntervalSG, IntervalTrainingSG, UserTrainingSG, ManagementSG, ErrorIntervalSG
 
 load_dotenv()
 logger = logging.getLogger('default')
@@ -116,6 +116,10 @@ async def text_training_input(message: Message, widget: ManagedTextInput, dialog
         await message.answer(i18n_format('wrong'))
 
     await start_training(dialog_manager)
+
+
+async def phrase_management_button_clicked(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    await dialog_manager.start(state=ManagementSG.start, mode=StartMode.RESET_STACK)
 
 
 interval_dialog = Dialog(
@@ -227,5 +231,23 @@ interval_training_dialog = Dialog(
         ),
         getter=get_translation_data,
         state=IntervalTrainingSG.translation
+    ),
+)
+
+
+error_interval_dialog = Dialog(
+    Window(
+        I18NFormat('error-interval-training-dialog'),  # нет добавленных фраз
+        Button(  # кнопка управление фразами
+            text=I18NFormat('phrase-management-button'),
+            id='phrase_management_button',
+            on_click=phrase_management_button_clicked,
+        ),
+        Group(
+            Button(text=I18NFormat('cancel'), id='button_cancel', on_click=cancel_interval_dialog),
+            # Next(I18NFormat('next'), id='button_next'),
+            width=3
+        ),
+        state=ErrorIntervalSG.start
     ),
 )

@@ -88,6 +88,10 @@ class IntervalTrainingSG(StatesGroup):
     translation = State()
 
 
+class ErrorIntervalSG(StatesGroup):
+    start = State()
+
+
 class TranslationTrainingSG(StatesGroup):
     start = State()
     waiting_answer = State()
