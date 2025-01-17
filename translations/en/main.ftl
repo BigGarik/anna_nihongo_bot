@@ -22,6 +22,8 @@ First-hello-user-jp =
 
  じゃ、始めましょう！
 
+ If you have any questions please contact: @inetsmol
+
 First-hello-user-en =
  Hi, <b>{ $username }</b>!
  Welcome!
@@ -32,6 +34,8 @@ First-hello-user-en =
 
  Let's start!
 
+ If you have any questions please contact: @inetsmol
+
 hello-user-jp =
  <b>{ $username }さん</b>、日本語を勉強しましょう！
  It's time to study Japanese!
@@ -39,12 +43,16 @@ hello-user-jp =
  Tap EXERCISES to start a new training.
  Tap MANAGE PHRASES FOR MY EXERCISES to add or delete phrases.
 
+ If you have any questions please contact: @inetsmol
+
 hello-user-en =
  <b>{ $username }</b>, let's go to the next level!
  It's time to study English!
 
  Tap EXERCISES to start a new training.
  Tap MANAGE PHRASES FOR MY EXERCISES to add or delete phrases.
+
+ If you have any questions please contact: @inetsmol
 
 start-training-button = 💪 Exercises
 
