@@ -1,9 +1,13 @@
 import base64
+import json
 import logging
+from urllib import parse
 
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.enums import ContentType
-from aiogram.types import Message, CallbackQuery, BufferedInputFile
+from aiogram.filters import Command
+from aiogram.types import Message, CallbackQuery, BufferedInputFile, InlineKeyboardMarkup, InlineKeyboardButton, \
+    WebAppInfo
 from aiogram_dialog import Dialog, Window, DialogManager, StartMode
 from aiogram_dialog.widgets.input import TextInput, ManagedTextInput, MessageInput
 from aiogram_dialog.widgets.kbd import Start, Button, Group, Next
@@ -150,3 +154,56 @@ admin_dialog = Dialog(
 @router.message(lambda message: message.text in ["⚙️ Настройки(для админов)", "⚙️ Settings (for admins)"])
 async def process_admin_settings(message: Message, dialog_manager: DialogManager):
     await dialog_manager.start(state=AdminDialogSG.start, mode=StartMode.RESET_STACK)
+
+
+@router.message(Command(commands="miniapp"))
+async def handle_miniapp_command(message: Message):
+    """
+    Хендлер для команды '/miniapp', отправляет кнопку для запуска Telegram Mini App.
+    """
+    # Создаем данные для передачи
+    init_data = {
+        'user_id': message.from_user.id,
+        'username': message.from_user.username
+    }
+
+    # Кодируем данные для URL
+    encoded_data = parse.urlencode(init_data)
+    MINIAPP_URL = f"https://biggarik.ru/payment/test?{encoded_data}"
+
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="Запустить Mini App",
+            web_app=WebAppInfo(url=MINIAPP_URL)
+        )]
+    ])
+
+    await message.answer(
+        text="Нажмите на кнопку ниже, чтобы открыть Mini App:",
+        reply_markup=keyboard
+    )
+
+
+@router.message(F.web_app_data)
+async def web_app_data_handler(message: Message):
+    """
+    Обработчик данных, отправленных из Mini App
+    """
+    logger.info("Получены данные из Mini App")
+    try:
+        # Получаем и парсим данные
+        data = json.loads(message.web_app_data.data)
+
+        # Обрабатываем полученные данные
+        action = data.get('action')
+        if action == 'submit':
+            user_id = data.get('user_id')
+            username = data.get('username')
+
+            await message.answer(
+                f"Получены данные:\n"
+                f"User ID: {user_id}\n"
+                f"Username: {username}"
+            )
+    except Exception as e:
+        await message.answer(f"Ошибка обработки данных: {str(e)}")

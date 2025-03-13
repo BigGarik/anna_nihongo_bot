@@ -22,7 +22,9 @@ async def get_localized_menu(i18n_format):
         types.BotCommand(command="start", description=i18n_format("command-start")),
         types.BotCommand(command="language", description=i18n_format("command-language")),
         types.BotCommand(command="contacts", description=i18n_format("command-contacts")),
-        types.BotCommand(command="help", description=i18n_format("command-help"))
+        types.BotCommand(command="help", description=i18n_format("command-help")),
+        # запуск приложения
+        types.BotCommand(command="miniapp", description=i18n_format("command-miniapp")),
     ]
 
 
