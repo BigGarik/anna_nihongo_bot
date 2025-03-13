@@ -1,4 +1,3 @@
-import logging
 import os
 
 from aiogram import Bot, Dispatcher
@@ -12,7 +11,6 @@ from fluent.runtime import FluentResourceLoader, FluentLocalization
 from middlewares.i18n_middleware import I18nMiddleware, update_middleware_manager
 
 load_dotenv()
-logger = logging.getLogger('default')
 
 
 default_locale = os.getenv('DEFAULT_LOCALE')

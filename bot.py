@@ -11,6 +11,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from bot_init import bot, dp, make_i18n_middleware
 from config_data.config import Config, load_config
+from config_data.logger_config import logger
 from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
@@ -48,12 +49,12 @@ bot_webhook = os.getenv('BOT_WEBHOOK')
 # location = os.getenv('LOCATION')
 # language_code = location.split('-')[0]
 
-
-with open('config_data/logging_config.yaml', 'rt') as f:
-    logging_config = yaml.safe_load(f.read())
-# Загружаем настройки логирования из словаря `logging_config`
-logging.config.dictConfig(logging_config)
-logger = logging.getLogger(__name__)
+#
+# with open('config_data/logging_config.yaml', 'rt') as f:
+#     logging_config = yaml.safe_load(f.read())
+# # Загружаем настройки логирования из словаря `logging_config`
+# logging.config.dictConfig(logging_config)
+# logger = logging.getLogger(__name__)
 
 # Загружаем конфиг в переменную config
 config: Config = load_config()
