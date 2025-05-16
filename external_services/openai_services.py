@@ -11,7 +11,7 @@ location = os.getenv('LOCATION')
 proxy_url = ''
 
 
-# api_key = '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'
+# api_key = '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'
 
 
 async def openai_text_to_speech(text: str):

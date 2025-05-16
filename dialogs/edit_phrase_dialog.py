@@ -93,7 +93,7 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     await callback.message.answer(i18n_format("starting-generate-image"))
     # Функция для генерации изображения автоматически
     try:
-        images = generate_image(prompt=prompt)
+        images = await generate_image(prompt=prompt)
         if images and len(images) > 0:
             msg_photo_id = dialog_manager.dialog_data["msg_photo_id"]
             # Удаляем предыдущее изображение

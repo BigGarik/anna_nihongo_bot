@@ -42,7 +42,7 @@ async def ai_generate_image(message: Message, widget: ManagedTextInput, dialog_m
     await message.answer(text=i18n_format("starting-generate-image"))
     # Генерируем изображение
     try:
-        images = generate_image(prompt)
+        images = await generate_image(prompt)
         if images and len(images) > 0:
             image_data = base64.b64decode(images[0])
             image = BufferedInputFile(image_data, filename="image.png")

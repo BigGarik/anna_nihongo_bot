@@ -1,19 +1,17 @@
-import os
 import random
+import re
 from datetime import datetime
+from urllib.parse import urljoin
+
 import gspread
 import requests
 from bs4 import BeautifulSoup
-import re
-import json
-
 from google.oauth2.service_account import Credentials
 from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.chrome.options import Options
-from urllib.parse import urljoin
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 from openai_services import openai_gpt_translate, openai_gpt_get_phrase_from_text
 

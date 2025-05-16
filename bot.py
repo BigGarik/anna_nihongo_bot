@@ -1,13 +1,10 @@
-import logging.config
 import os
 
-import yaml
 from aiogram.types import Update
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
-from aiogram_dialog import setup_dialogs
 from aiohttp import web
-from dotenv import load_dotenv
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from dotenv import load_dotenv
 
 from bot_init import bot, dp, make_i18n_middleware
 from config_data.config import Config, load_config
@@ -16,13 +13,13 @@ from db import init_db
 from dialogs.edit_phrase_dialog import edit_phrase_dialog
 from dialogs.select_language_dialog import select_language_dialog
 from dialogs.smart_phrase_addition_dialog import smart_phrase_addition_dialog
+from dialogs.subscribe_management_dialog import subscribe_dialog, subscribe_management_dialog
 from dialogs.training.interval_training import interval_training_dialog, interval_dialog, error_interval_dialog
+from handlers.add_category import add_category_dialog
 from handlers.add_original_phrase_handler import add_original_phrase_dialog
 from handlers.admin_handlers import router as admin_router, admin_dialog
 from handlers.other_handlers import router as other_router
 from handlers.phrase_management_handlers import management_dialog
-from handlers.add_category import add_category_dialog
-from dialogs.subscribe_management_dialog import subscribe_dialog, subscribe_management_dialog
 from handlers.training.lexis_handlers import lexis_training_dialog
 from handlers.training.listening_handlers import text_to_speech_dialog
 from handlers.training.pronunciation_handlers import pronunciation_training_dialog
@@ -31,7 +28,6 @@ from handlers.training.translation_handlers import translation_training_dialog
 from handlers.user_handlers import router as user_router, start_dialog
 from handlers.user_management import user_management_dialog
 from keyboards.set_menu import set_default_commands
-from middlewares.outer_middlewares import LoggingMiddleware
 from services.services import check_subscriptions, auto_renewal_subscriptions, interval_notifications, \
     auto_reset_daily_counter
 from services.yookassa import process_yookassa_webhook

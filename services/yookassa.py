@@ -1,19 +1,14 @@
 import json
 import logging
 import os
-from datetime import datetime
 from typing import Optional
 
 from aiogram import Router
-from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram_dialog import DialogManager
 from aiohttp import web
 from dateutil.relativedelta import relativedelta
 from dotenv import load_dotenv
 from yookassa import Configuration, Payment
-from yookassa.domain.common import SecurityHelper
-from yookassa.domain.notification import WebhookNotificationFactory, WebhookNotificationEventType
 
 from bot_init import bot, bg_factory
 from models import Payment as PaymentModel, Subscription

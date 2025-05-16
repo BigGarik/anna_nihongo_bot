@@ -36,7 +36,7 @@ async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dial
     i18n_format = dialog_manager.middleware_data.get(I18N_FORMAT_KEY)
     await callback.message.answer(text=i18n_format("starting-generate-image"))
     try:
-        images = generate_image(prompt)
+        images = await generate_image(prompt)
         if images and len(images) > 0:
             image_data = base64.b64decode(images[0])
             image = BufferedInputFile(image_data, filename="image.png")

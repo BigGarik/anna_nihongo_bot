@@ -189,7 +189,7 @@ async def ai_image(callback: CallbackQuery, button: Button, dialog_manager: Dial
     await callback.message.answer(i18n_format("starting-generate-image"))
     # Функция для генерации изображения автоматически
     try:
-        images = generate_image(prompt=dialog_manager.dialog_data["prompt"])
+        images = await generate_image(prompt=dialog_manager.dialog_data["prompt"])
         if images and len(images) > 0:
             # Декодируем изображение из Base64
             image_data = base64.b64decode(images[0])
