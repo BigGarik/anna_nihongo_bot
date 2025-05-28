@@ -6,12 +6,9 @@ from openai import OpenAI
 
 load_dotenv()
 location = os.getenv('LOCATION')
+proxy_url = os.getenv('PROXY_URL')
 
-# proxy_url = 'http://192.168.67.6:24575'
-proxy_url = ''
-
-
-# api_key = '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'
+# proxy_url = ''
 
 
 async def openai_text_to_speech(text: str):
@@ -64,4 +61,6 @@ def openai_gpt_get_phrase_from_text(text):
 
 
 if __name__ == '__main__':
+    api_key = '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'
+
     print(openai_gpt_translate('hello'))
