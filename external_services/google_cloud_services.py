@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 voice_name = os.getenv('VOICE_NAME')
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "anna-nihongo-bot-96c6f518f0cd.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "bot-96c6f518f0cd.json"
 
 
 def unique_languages_from_voices(voices: Sequence[tts.Voice]):

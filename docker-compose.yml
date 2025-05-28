@@ -8,6 +8,8 @@ services:
       - ${ENV_FILE:-.env}
     networks:
       - bot-network
+    volumes:
+      - ./bot-96c6f518f0cd.json:/app/bot-96c6f518f0cd.json
 
 networks:
   bot-network:
