@@ -6,6 +6,8 @@ services:
     restart: unless-stopped
     env_file:
       - ${ENV_FILE:-.env}
+    ports:
+      - "${WEB_SERVER_PORT}:${WEB_SERVER_PORT}/tcp"
     networks:
       - bot-network
     volumes:
