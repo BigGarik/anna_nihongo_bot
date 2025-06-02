@@ -70,7 +70,8 @@ python3 -m bot
 docker build -t anna_nihongo_bot:latest .
 ```
 ```bash
-docker compose up
+ENV_FILE=.env.english docker-compose -p bot-english --env-file .env.english up -d
+ENV_FILE=.env.nihongo docker-compose -p bot-nihongo --env-file .env.nihongo up -d
 ```
 ```bash
 docker compose down

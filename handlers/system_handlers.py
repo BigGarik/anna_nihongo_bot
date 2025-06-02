@@ -18,6 +18,11 @@ location = os.getenv('LOCATION')
 
 logger = logging.getLogger('default')
 
+# Получение списка разрешенных ID пользователей из переменной окружения
+admin_ids = os.getenv('ADMIN_IDS')
+# Преобразование строки в список целых чисел
+admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
+
 
 async def getter_prompt(dialog_manager: DialogManager, **kwargs):
     prompt = dialog_manager.dialog_data.get('prompt')
@@ -52,10 +57,7 @@ async def repeat_ai_generate_image(callback: CallbackQuery, button: Button, dial
 
 
 async def start_getter(dialog_manager: DialogManager, event_from_user: User, **kwargs):
-    # Получение списка разрешенных ID пользователей из переменной окружения
-    admin_ids = os.getenv('ADMIN_IDS')
-    # Преобразование строки в список целых чисел
-    admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
+
     response = {'username': event_from_user.first_name or event_from_user.username}
     if dialog_manager.start_data:
         response['not_new_user'] = dialog_manager.start_data.get("not_new_user", False)
@@ -141,9 +143,7 @@ async def get_user_data(dialog_manager: DialogManager, **kwargs):
 
 
 async def get_non_admin_users(dialog_manager: DialogManager, **kwargs):
-    admin_ids = os.getenv('ADMIN_IDS')
-    # Преобразование строки в список целых чисел
-    admin_ids = [int(user_id) for user_id in admin_ids.split(',')]
+
     users = await User.exclude(id__in=admin_ids).all()
     items = [(user.username, user.first_name, str(user.id)) for user in users]
     return {'users': items}
@@ -213,6 +213,9 @@ def second_answer_getter(data, widget, dialog_manager: DialogManager):
 
 async def check_day_counter(dialog_manager: DialogManager) -> bool:
     user_id = dialog_manager.event.from_user.id
+
+    if user_id in admin_ids:
+        return True
     user = await User.get(id=user_id)
     subscription = await Subscription.get_or_none(user=user).prefetch_related('type_subscription')
     day_counter = user.day_counter
